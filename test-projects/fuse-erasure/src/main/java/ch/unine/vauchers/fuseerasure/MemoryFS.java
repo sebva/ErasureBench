@@ -88,12 +88,12 @@ public class MemoryFS extends FuseFilesystemAdapterAssumeImplemented {
 
         private MemoryFile(final String name) {
             super(name);
-            encdec = new EncDec();
+            encdec = new EncDec(ErasureCodeFactory.getErasureCode());
         }
 
         private MemoryFile(final String name, final MemoryDirectory parent) {
             super(name, parent);
-            encdec = new EncDec();
+            encdec = new EncDec(ErasureCodeFactory.getErasureCode());
         }
 
         @Override
