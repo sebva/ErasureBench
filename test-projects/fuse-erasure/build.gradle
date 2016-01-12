@@ -13,4 +13,7 @@ dependencies {
     compile name: 'fuse-jna-1.0.3-uber'
     compile 'commons-logging:commons-logging:1.1.1'
     compile 'org.json:json:20151123'
+    testCompile 'org.hamcrest:hamcrest-core:+'
+    testCompile 'org.hamcrest:hamcrest-library:+'
+    testCompile 'junit:junit:+'
 }
