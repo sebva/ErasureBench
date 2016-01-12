@@ -205,7 +205,7 @@ public class GaloisField {
    * @param len consider x and y only from 0...len-1
    */
   public void solveVandermondeSystem(int[] x, int[] y, int len) {
-    assert(x.length <= len && y.length <= len);
+    //assert(x.length <= len && y.length <= len);
     for (int i = 0; i < len - 1; i++) {
       for (int j = len - 1; j > i; j--) {
         y[j] = y[j] ^ mulTable[x[i]][y[j - 1]];

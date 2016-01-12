@@ -31,12 +31,15 @@ public class EncDecTest {
         };
         EncDec.ErasureGenerator[] erasureGenerators = new EncDec.ErasureGenerator[] {
                 (paritySize, stripeSize) -> new int[0],
-                (paritySize, stripeSize) -> new int[] {(int) Math.round(Math.random())}
+                (paritySize, stripeSize) -> new int[] {(int) (Math.random() * (paritySize + stripeSize))},
+                (paritySize, stripeSize) -> new int[] {2, 4, 5, 10},
+                (paritySize, stripeSize) -> new int[] {0, 1, 2, 3},
+                (paritySize, stripeSize) -> new int[] {10, 11, 12, 13}
         };
 
         for (ErasureCode code : codes) {
             for (EncDec.ErasureGenerator erasureGenerator : erasureGenerators) {
-                EncDec encdec = new EncDec(code, erasureGenerator);
+                EncDec encdec = new EncDec(code, (code instanceof XORCode ? erasureGenerators[1] : erasureGenerator));
                 byte[] test = "This is a test message!".getBytes("UTF-8");
                 encdec.storeContents(ByteBuffer.wrap(test));
                 ByteBuffer results = encdec.restoreContents();

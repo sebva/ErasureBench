@@ -2,6 +2,7 @@ package ch.unine.vauchers.fuseerasure;
 
 import ch.unine.vauchers.fuseerasure.codes.ErasureCode;
 
+import javax.print.DocFlavor;
 import java.nio.ByteBuffer;
 
 public class EncDec {
@@ -45,7 +46,10 @@ public class EncDec {
         data.rewind();
         while (data.hasRemaining()) {
             int totalSize = erasureCode.stripeSize() + erasureCode.paritySize();
-            for (int i = 0; i < totalSize; i++) {
+            for (int i = 0; i < erasureCode.paritySize(); i++) {
+                stripeParityBuffer[i] = data.get() + Byte.MAX_VALUE;
+            }
+            for (int i = erasureCode.paritySize(); i < totalSize; i++) {
                 stripeParityBuffer[i] = data.get();
             }
 
@@ -82,7 +86,7 @@ public class EncDec {
 
             erasureCode.encode(stripeBuffer, parityBuffer);
             for (int value : parityBuffer) {
-                data.put((byte) value);
+                data.put((byte) (value - Byte.MAX_VALUE));
             }
             for (int value : stripeBuffer) {
                 data.put((byte) value);
