@@ -1,0 +1,63 @@
+\documentclass[11pt,a4paper,parskip=half]{scrreprt}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[rm={oldstyle=false}]{cfr-lm}
+\usepackage[australian,american]{babel}
+
+\usepackage[automark]{scrlayer-scrpage}
+\usepackage{minted}
+\usepackage[super]{nth}
+\usepackage{multirow}
+\usepackage{setspace}
+\usepackage{url}
+\usepackage{titling}
+\usepackage[minnames=1,maxnames=3,backend=biber,style=ieee, bibencoding=utf8,sorting=none]{biblatex}
+\usepackage{csquotes}
+\usepackage{pdfpages}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{todonotes}
+\usepackage{pdflscape}
+\usepackage[hidelinks]{hyperref}
+
+% Constants
+\def\mytitle{Master Thesis}
+\def\myauthor{Sébastien Vaucher}
+
+\pagestyle{scrheadings}
+
+\author{\myauthor\\ \href{mailto:sebastien.vaucher@unine.ch}{sebastien.vaucher@unine.ch}}
+\title{\mytitle}
+
+\addbibresource{references.bib}
+
+\hypersetup{
+	pdftitle=\mytitle,
+	pdfauthor=\myauthor
+}
+
+\nocite{*}
+
+\addbibresource{references.bib}
+
+\begin{document}
+
+\begin{titlingpage}
+
+\begin{otherlanguage}{australian}
+\maketitle
+\end{otherlanguage}
+
+\end{titlingpage}
+
+\tableofcontents
+
+\pagebreak
+
+
+\begin{otherlanguage}{australian}
+\printbibliography
+\end{otherlanguage}
+
+\end{document}
