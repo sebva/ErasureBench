@@ -83,49 +83,72 @@ public class MemoryFS extends FuseFilesystemAdapterAssumeImplemented {
         }
     }
 
-    final class MemoryFile extends MemoryPath {
-        ByteBuffer contents = ByteBuffer.allocate(0);
+    private final class MemoryFile extends MemoryPath {
+        private final EncDec encdec;
 
         private MemoryFile(final String name) {
             super(name);
+            encdec = new EncDec();
         }
 
         private MemoryFile(final String name, final MemoryDirectory parent) {
             super(name, parent);
-        }
-
-        public MemoryFile(final String name, final String text) {
-            super(name);
-            try {
-                final byte[] contentBytes = text.getBytes("UTF-8");
-                contents = ByteBuffer.wrap(contentBytes);
-            } catch (final UnsupportedEncodingException e) {
-                // Not going to happen
-            }
+            encdec = new EncDec();
         }
 
         @Override
         protected void getattr(final StatWrapper stat) {
-            stat.setMode(NodeType.FILE).size(contents.capacity());
+            stat.setMode(NodeType.FILE).size(encdec.size());
         }
 
         private int read(final ByteBuffer buffer, final long size, final long offset) {
-            return EncDec.read(buffer, offset, size, this);
+            ByteBuffer contents = encdec.restoreContents();
+
+            final int bytesToRead = (int) Math.min(contents.capacity() - offset, size);
+            final byte[] bytesRead = new byte[bytesToRead];
+            synchronized (this) {
+                contents.position((int) offset);
+                contents.get(bytesRead, 0, bytesToRead);
+                buffer.put(bytesRead);
+                contents.position(0); // Rewind
+            }
+            return bytesToRead;
         }
 
         private synchronized void truncate(final long size) {
+            ByteBuffer contents = encdec.restoreContents();
+
             if (size < contents.capacity()) {
                 // Need to create a new, smaller buffer
                 final ByteBuffer newContents = ByteBuffer.allocate((int) size);
                 final byte[] bytesRead = new byte[(int) size];
                 contents.get(bytesRead);
                 newContents.put(bytesRead);
-                contents = newContents;
+
+                encdec.storeContents(newContents);
             }
         }
 
         private int write(final ByteBuffer buffer, final long bufSize, final long writeOffset) {
-            return EncDec.write(buffer, bufSize, writeOffset, this);
+            ByteBuffer contents = encdec.restoreContents();
+
+            final int maxWriteIndex = (int) (writeOffset + bufSize);
+            final byte[] bytesToWrite = new byte[(int) bufSize];
+            synchronized (this) {
+                if (maxWriteIndex > contents.capacity()) {
+                    // Need to create a new, larger buffer
+                    final ByteBuffer newContents = ByteBuffer.allocate(maxWriteIndex);
+                    newContents.put(contents);
+                    contents = newContents;
+                }
+                buffer.get(bytesToWrite, 0, (int) bufSize);
+                contents.position((int) writeOffset);
+                contents.put(bytesToWrite);
+                contents.position(0); // Rewind
+
+                encdec.storeContents(contents);
+            }
+            return (int) bufSize;
         }
     }
 
