@@ -14,6 +14,7 @@
 \usepackage[minnames=1,maxnames=3,backend=biber,style=ieee, bibencoding=utf8,sorting=none]{biblatex}
 \usepackage{csquotes}
 \usepackage{pdfpages}
+\usepackage[nolist]{acronym}
 \usepackage{siunitx}
 \usepackage{graphicx}
 \usepackage{subfig}
@@ -39,8 +40,6 @@
 
 \nocite{*}
 
-\addbibresource{references.bib}
-
 \begin{document}
 
 \begin{titlingpage}
@@ -56,6 +55,8 @@
 \pagebreak
 
 \input{state-of-the-art.tex}
+
+\input{acro.tex}
 
 \begin{otherlanguage}{australian}
 \printbibliography
