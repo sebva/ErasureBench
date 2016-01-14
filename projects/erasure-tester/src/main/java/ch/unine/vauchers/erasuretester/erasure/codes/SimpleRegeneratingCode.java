@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.unine.vauchers.erasuretester.erasurecodes;
+package ch.unine.vauchers.erasuretester.erasure.codes;
 
 import java.util.ArrayList;
 import java.util.List;

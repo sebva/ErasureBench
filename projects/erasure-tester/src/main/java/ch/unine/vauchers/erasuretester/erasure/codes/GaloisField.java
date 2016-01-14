@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.unine.vauchers.erasuretester.erasurecodes;
+package ch.unine.vauchers.erasuretester.erasure.codes;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +45,8 @@ public class GaloisField {
 
     /**
      * Get the object performs Galois field arithmetics
-     * @param fieldSize size of the field
+     *
+     * @param fieldSize           size of the field
      * @param primitivePolynomial a primitive polynomial corresponds to the size
      */
     public static GaloisField getInstance(int fieldSize,
@@ -116,6 +117,7 @@ public class GaloisField {
 
     /**
      * Return number of elements in the field
+     *
      * @return number of elements in the field
      */
     public int getFieldSize() {
@@ -124,6 +126,7 @@ public class GaloisField {
 
     /**
      * Return the primitive polynomial in GF(2)
+     *
      * @return primitive polynomial as a integer
      */
     public int getPrimitivePolynomial() {
@@ -132,6 +135,7 @@ public class GaloisField {
 
     /**
      * Compute the sum of two fields
+     *
      * @param x input field
      * @param y input field
      * @return result of addition
@@ -143,6 +147,7 @@ public class GaloisField {
 
     /**
      * Compute the multiplication of two fields
+     *
      * @param x input field
      * @param y input field
      * @return result of multiplication
@@ -154,6 +159,7 @@ public class GaloisField {
 
     /**
      * Compute the division of two fields
+     *
      * @param x input field
      * @param y input field
      * @return x/y
@@ -165,6 +171,7 @@ public class GaloisField {
 
     /**
      * Compute power n of a field
+     *
      * @param x input field
      * @param n power
      * @return x^n
@@ -188,6 +195,7 @@ public class GaloisField {
     /**
      * Given a Vandermonde matrix V[i][j]=x[j]^i and vector y, solve for z such
      * that Vz=y. The output z will be placed in y.
+     *
      * @param x the vector which describe the Vandermonde matrix
      * @param y right-hand side of the Vandermonde system equation.
      *          will be replaced the output in this vector
@@ -199,9 +207,10 @@ public class GaloisField {
     /**
      * Given a Vandermonde matrix V[i][j]=x[j]^i and vector y, solve for z such
      * that Vz=y. The output z will be placed in y.
-     * @param x the vector which describe the Vandermonde matrix
-     * @param y right-hand side of the Vandermonde system equation.
-     *          will be replaced the output in this vector
+     *
+     * @param x   the vector which describe the Vandermonde matrix
+     * @param y   right-hand side of the Vandermonde system equation.
+     *            will be replaced the output in this vector
      * @param len consider x and y only from 0...len-1
      */
     public void solveVandermondeSystem(int[] x, int[] y, int len) {
@@ -252,6 +261,7 @@ public class GaloisField {
      * Compute the multiplication of two polynomials. The index in the
      * array corresponds to the power of the entry. For example p[0] is the
      * constant term of the polynomial p.
+     *
      * @param p input polynomial
      * @param q input polynomial
      * @return polynomial represents p*q
@@ -274,8 +284,9 @@ public class GaloisField {
      * Compute the remainder of a dividend and divisor pair. The index in the
      * array corresponds to the power of the entry. For example p[0] is the
      * constant term of the polynomial p.
+     *
      * @param dividend dividend polynomial, the remainder will be placed here when return
-     * @param divisor divisor polynomial
+     * @param divisor  divisor polynomial
      */
     public void remainder(int[] dividend, int[] divisor) {
         for (int i = dividend.length - divisor.length; i >= 0; i--) {
@@ -308,6 +319,7 @@ public class GaloisField {
      * Compute the sum of two polynomials. The index in the
      * array corresponds to the power of the entry. For example p[0] is the
      * constant term of the polynomial p.
+     *
      * @param p input polynomial
      * @param q input polynomial
      * @return polynomial represents p+q
@@ -329,6 +341,7 @@ public class GaloisField {
 
     /**
      * Substitute x into polynomial p(x).
+     *
      * @param p input polynomial
      * @param x input field
      * @return p(x)

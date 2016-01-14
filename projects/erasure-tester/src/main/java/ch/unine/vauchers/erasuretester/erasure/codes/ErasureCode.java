@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ch.unine.vauchers.erasuretester.erasurecodes;
+package ch.unine.vauchers.erasuretester.erasure.codes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,31 +25,26 @@ public abstract class ErasureCode {
     /**
      * Encodes the given message.
      *
-     * @param message
-     *          The data of the message. The data is present in the least
-     *          significant bits of each int. The number of data bits is
-     *          symbolSize(). The number of elements of message is stripeSize().
-     * @param parity
-     *          (out) The information is present in the least significant bits of
-     *          each int. The number of parity bits is symbolSize(). The number of
-     *          elements in the code is paritySize().
+     * @param message The data of the message. The data is present in the least
+     *                significant bits of each int. The number of data bits is
+     *                symbolSize(). The number of elements of message is stripeSize().
+     * @param parity  (out) The information is present in the least significant bits of
+     *                each int. The number of parity bits is symbolSize(). The number of
+     *                elements in the code is paritySize().
      */
     public abstract void encode(int[] message, int[] parity);
 
     /**
      * Generates missing portions of data.
      *
-     * @param data
-     *          The message and parity. The parity should be placed in the first
-     *          part of the array. In each integer, the relevant portion is
-     *          present in the least significant bits of each int. The number of
-     *          elements in data is stripeSize() + paritySize().
-     * @param erasedLocations
-     *          The indexes in data which are to be fixed.
-     *          All indexes not included in erasedLocations are considered
-     *          available to the decode operation.
-     * @param erasedValues
-     *          (out)The decoded values corresponding to erasedLocations.
+     * @param data            The message and parity. The parity should be placed in the first
+     *                        part of the array. In each integer, the relevant portion is
+     *                        present in the least significant bits of each int. The number of
+     *                        elements in data is stripeSize() + paritySize().
+     * @param erasedLocations The indexes in data which are to be fixed.
+     *                        All indexes not included in erasedLocations are considered
+     *                        available to the decode operation.
+     * @param erasedValues    (out)The decoded values corresponding to erasedLocations.
      */
     public abstract void decode(int[] data, int[] erasedLocations,
                                 int[] erasedValues);
@@ -57,19 +52,14 @@ public abstract class ErasureCode {
     /**
      * Generates missing portions of data.
      *
-     * @param data
-     *          The message and parity. The parity should be placed in the first
-     *          part of the array. In each integer, the relevant portion is
-     *          present in the least significant bits of each int. The number of
-     *          elements in data is stripeSize() + paritySize().
-     * @param erasedLocations
-     *          The indexes in data which are to be fixed.
-     * @param erasedValues
-     *          (out)The decoded values corresponding to erasedLocations.
-     * @param locationsToRead
-     *          The indexes in data which can be used to fix the erasedLocations.
-     * @param locationsNotToRead
-     *          The indexes in data which cannot be used in the decode process.
+     * @param data               The message and parity. The parity should be placed in the first
+     *                           part of the array. In each integer, the relevant portion is
+     *                           present in the least significant bits of each int. The number of
+     *                           elements in data is stripeSize() + paritySize().
+     * @param erasedLocations    The indexes in data which are to be fixed.
+     * @param erasedValues       (out)The decoded values corresponding to erasedLocations.
+     * @param locationsToRead    The indexes in data which can be used to fix the erasedLocations.
+     * @param locationsNotToRead The indexes in data which cannot be used in the decode process.
      */
     public abstract void decode(int[] data, int[] erasedLocations,
                                 int[] erasedValues, int[] locationsToRead, int[] locationsNotToRead);
@@ -81,8 +71,7 @@ public abstract class ErasureCode {
      * data. Values in the range [ paritySize(), paritySize() + stripeSize() )
      * represent message data.
      *
-     * @param erasedLocations
-     *          The erased locations.
+     * @param erasedLocations The erased locations.
      * @return The locations to read.
      */
     public List<Integer> locationsToReadForDecode(List<Integer> erasedLocations)
