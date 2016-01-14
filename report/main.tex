@@ -22,6 +22,20 @@
 \usepackage{pdflscape}
 \usepackage[hidelinks]{hyperref}
 
+%% Added by Hugues
+\usepackage{amsmath, amssymb}
+
+%% Environment for comments: Set the boolean to false to produce a comment-free version.
+\newboolean{showcomments}
+\setboolean{showcomments}{true}
+\ifthenelse{\boolean{showcomments}}
+{ \newcommand{\mynote}[3]{
+    \fbox{\bfseries\sffamily\scriptsize#1}
+    {\small$\blacktriangleright$\textsf{\emph{\color{#3}{#2}}}$\blacktriangleleft$}}}
+{ \newcommand{\mynote}[3]{}}
+% One command per author:
+\newcommand{\hm}[1]{\mynote{Hugues}{#1}{orange}}
+
 % Constants
 \def\mytitle{Master Thesis}
 \def\myauthor{Sébastien Vaucher}
