@@ -4,7 +4,6 @@ import ch.unine.vauchers.erasuretester.backend.FileMetadata;
 import ch.unine.vauchers.erasuretester.backend.StorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.TooManyErasedLocations;
-import org.intellij.lang.annotations.MagicConstant;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;

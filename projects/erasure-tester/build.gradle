@@ -2,12 +2,18 @@ group 'ch.unine.vauchers'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'application'
 
 sourceCompatibility = 1.8
+mainClassName = "ch.unine.vauchers.erasuretester.Main"
 
 repositories {
     mavenCentral()
     flatDir { dirs 'lib' }
+}
+
+run {
+    args System.getProperty("args").split()
 }
 
 dependencies {
