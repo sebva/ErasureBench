@@ -13,7 +13,9 @@ repositories {
 }
 
 run {
-    args System.getProperty("args").split()
+    if (project.hasProperty("args")) {
+        args System.getProperty("args").split()
+    }
 }
 
 dependencies {
