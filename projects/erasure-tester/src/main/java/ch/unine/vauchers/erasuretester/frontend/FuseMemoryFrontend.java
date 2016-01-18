@@ -1,6 +1,7 @@
 package ch.unine.vauchers.erasuretester.frontend;
 
 import ch.unine.vauchers.erasuretester.erasure.FileEncoderDecoder;
+import ch.unine.vauchers.erasuretester.erasure.codes.TooManyErasedLocations;
 import net.fusejna.DirectoryFiller;
 import net.fusejna.ErrorCodes;
 import net.fusejna.StructFuseFileInfo.FileInfoWrapper;
@@ -12,8 +13,11 @@ import net.fusejna.util.FuseFilesystemAdapterAssumeImplemented;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
+    Logger log = Logger.getLogger(FuseMemoryFrontend.class.getName());
+
     public FuseMemoryFrontend(FileEncoderDecoder encdec, boolean log) {
         this.encdec = encdec;
         log(log);
@@ -102,7 +106,13 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         private int read(final ByteBuffer buffer, final long size, final long offset) {
-            ByteBuffer contents = encdec.readFile(this.getFilepath());
+            ByteBuffer contents;
+            try {
+                contents = encdec.readFile(this.getFilepath());
+            } catch (TooManyErasedLocations e) {
+                log.warning("Unable to read file, " + e.getMessage());
+                return 0;
+            }
 
             final int bytesToRead = (int) Math.min(contents.capacity() - offset, size);
             final byte[] bytesRead = new byte[bytesToRead];
@@ -116,7 +126,13 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         private synchronized void truncate(final long size) {
-            ByteBuffer contents = encdec.readFile(this.name);
+            ByteBuffer contents;
+            try {
+                contents = encdec.readFile(this.name);
+            } catch (TooManyErasedLocations e) {
+                log.warning("Unable to truncate file, " + e.getMessage());
+                return;
+            }
 
             if (size < contents.capacity()) {
                 // Need to create a new, smaller buffer
@@ -130,7 +146,13 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         private int write(final ByteBuffer buffer, final long bufSize, final long writeOffset) {
-            ByteBuffer contents = encdec.readFile(this.getFilepath());
+            ByteBuffer contents;
+            try {
+                contents = encdec.readFile(this.getFilepath());
+            } catch (TooManyErasedLocations e) {
+                log.warning("Unable to read file (for further writing), " + e.getMessage());
+                return 0;
+            }
 
             final int maxWriteIndex = (int) (writeOffset + bufSize);
             final byte[] bytesToWrite = new byte[(int) bufSize];
