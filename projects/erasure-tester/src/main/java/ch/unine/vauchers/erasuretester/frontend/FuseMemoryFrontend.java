@@ -160,6 +160,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
                 if (maxWriteIndex > contents.capacity()) {
                     // Need to create a new, larger buffer
                     final ByteBuffer newContents = ByteBuffer.allocate(maxWriteIndex);
+                    contents.rewind();
                     newContents.put(contents);
                     contents = newContents;
                 }
