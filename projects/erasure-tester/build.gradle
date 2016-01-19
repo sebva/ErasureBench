@@ -1,3 +1,7 @@
+plugins {
+    id 'com.palantir.docker' version '0.5.2'
+}
+
 group 'ch.unine.vauchers'
 version '1.0-SNAPSHOT'
 
@@ -10,6 +14,12 @@ mainClassName = "ch.unine.vauchers.erasuretester.Main"
 repositories {
     mavenCentral()
     flatDir { dirs 'lib' }
+}
+
+docker {
+    name 'erasuretester'
+    dependsOn tasks.jar
+    files 'build/libs', 'lib', 'container_start_script.sh'
 }
 
 run {
