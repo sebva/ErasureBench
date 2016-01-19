@@ -8,6 +8,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 public class FileEncoderDecoder {
@@ -106,10 +110,13 @@ public class FileEncoderDecoder {
         FileMetadata metadata = new FileMetadata();
         final int contentsSize = contents.capacity();
         metadata.setContentsSize(contentsSize);
-        List<String> blockKeys = new ArrayList<>(computeDataSize(contentsSize));
 
         int[] stripeBuffer = new int[erasureCode.stripeSize()];
         int[] parityBuffer = new int[erasureCode.paritySize()];
+
+        final int numberOfBlocks = computeDataSize(contentsSize);
+        final List<Future<Boolean>> blockKeysFutures = new ArrayList<>(numberOfBlocks);
+        final List<String> blockKeys = new ArrayList<>(numberOfBlocks);
 
         log.info("Writing the file at " + path);
         int blockCounter = 0;
@@ -123,16 +130,23 @@ public class FileEncoderDecoder {
 
             for (int block : parityBuffer) {
                 String key = path + blockCounter++;
-                storageBackend.storeBlock(key, block);
+                blockKeysFutures.add(storageBackend.storeBlockAsync(key, block));
                 blockKeys.add(key);
             }
             for (int block : stripeBuffer) {
                 String key = path + blockCounter++;
-                storageBackend.storeBlock(key, block);
+                blockKeysFutures.add(storageBackend.storeBlockAsync(key, block));
                 blockKeys.add(key);
             }
         }
 
+        blockKeysFutures.forEach((booleanFuture) -> {
+            try {
+                booleanFuture.get(2, TimeUnit.SECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e) {
+                e.printStackTrace();
+            }
+        });
         metadata.setBlockKeys(blockKeys);
         storageBackend.setFileMetadata(path, metadata);
     }
