@@ -10,8 +10,8 @@ import java.util.Optional;
  *
  */
 public class MemoryStorageBackend extends StorageBackend {
-    private Map<String, Integer> blocksStorage;
-    private Map<String, FileMetadata> metadataStorage;
+    protected Map<String, Integer> blocksStorage;
+    protected Map<String, FileMetadata> metadataStorage;
 
     public MemoryStorageBackend(@NotNull FailureGenerator failureGenerator) {
         super(failureGenerator);
