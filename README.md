@@ -23,3 +23,12 @@ $ cd projects/erasure-tester
 $ ./gradlew run -Dargs="/mnt/my-mountpoint"
 ```
 
+It is possible to run the program within a Docker container. To achieve the same result as with the local startup command shown above, the following can be used:
+
+```
+$ ./gradlew docker
+$ docker run --cap-add SYS_ADMIN --device /dev/fuse erasuretester:latest
+$ sudo mount <container-ip>:/mnt/erasure /mnt/my-mountpoint
+```
+
+The container IP is printed to the console when the container starts.

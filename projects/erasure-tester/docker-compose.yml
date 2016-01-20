@@ -1,0 +1,12 @@
+redis:
+  image: redis:3
+erasure:
+  image: erasuretester:latest
+  cap_add:
+    - SYS_ADMIN
+  devices:
+    - "/dev/fuse"
+  links:
+    - redis
+  environment:
+    REDIS_ADDRESS: "redis:6379"
