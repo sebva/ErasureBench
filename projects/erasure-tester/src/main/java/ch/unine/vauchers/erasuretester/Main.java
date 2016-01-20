@@ -16,7 +16,7 @@ public class Main {
 
     public static void main(String[] argv) throws FuseException {
         // Disable logging completely for faster performance
-        // LogManager.getLogManager().reset();
+        // Utils.disableLogging();
 
         ErasureCode erasureCode = new ReedSolomonCode(10, 4);
         FailureGenerator failureGenerator = new NullFailureGenerator();

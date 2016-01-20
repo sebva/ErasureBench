@@ -13,7 +13,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 public class FileEncoderDecoderTest {
-    private FileEncoderDecoder sut;
+    protected FileEncoderDecoder sut;
 
     protected FileEncoderDecoder createEncoderDecoder(FailureGenerator failureGenerator, ErasureCode erasureCode) {
         return new FileEncoderDecoder(erasureCode, new MemoryStorageBackend(failureGenerator));
