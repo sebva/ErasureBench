@@ -1,5 +1,6 @@
 package ch.unine.vauchers.erasuretester.backend;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,6 +23,11 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     @Before
     public void setup() {
         sut = createInstance();
+    }
+
+    @After
+    public void tearDown() {
+        sut.disconnect();
     }
 
     @Test
