@@ -11,6 +11,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 
 public abstract class StorageBackendTest<T extends StorageBackend> {
@@ -60,6 +61,11 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
         final Map<String, Integer> actual = sut.retrieveAllBlocksAsync(expected.keySet()).get();
 
         expected.forEach((key, value) -> assertEquals(value, actual.get(key)));
+    }
+
+    @Test
+    public void testAbsentKey() {
+        assertFalse(sut.isBlockAvailable("thisKeyDoesNotExist"));
     }
 
     private static void testReadWrite(BiConsumer<String, Integer> storeFunction, Function<String, Integer> retrieveFunction) {

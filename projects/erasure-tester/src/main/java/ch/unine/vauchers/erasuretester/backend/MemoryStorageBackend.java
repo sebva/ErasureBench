@@ -60,6 +60,6 @@ public class MemoryStorageBackend extends StorageBackend {
 
     @Override
     protected boolean isBlockFailed(@NotNull String key) {
-        return false;
+        return !blocksStorage.containsKey(key);
     }
 }
