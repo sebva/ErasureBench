@@ -1,5 +1,8 @@
 plugins {
+    id 'java'
     id 'com.palantir.docker' version '0.5.2'
+    // Plugin to create a Jar with all dependencies in it
+    id 'com.github.johnrengelman.shadow' version '1.2.2'
 }
 
 group 'ch.unine.vauchers'
@@ -18,8 +21,8 @@ repositories {
 
 docker {
     name 'erasuretester'
-    dependsOn tasks.jar
-    files 'build/libs', 'lib', 'container_start_script.sh'
+    dependsOn tasks.shadowJar
+    files 'build/libs', 'container_start_script.sh'
 }
 
 run {
