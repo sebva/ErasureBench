@@ -3,6 +3,7 @@ plugins {
     id 'com.palantir.docker' version '0.5.2'
     // Plugin to create a Jar with all dependencies in it
     id 'com.github.johnrengelman.shadow' version '1.2.2'
+    id 'me.champeau.gradle.jmh' version '0.2.0'
 }
 
 group 'ch.unine.vauchers'
@@ -10,8 +11,10 @@ version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
 apply plugin: 'application'
+apply plugin: 'idea'
 
-sourceCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
 mainClassName = "ch.unine.vauchers.erasuretester.Main"
 
 repositories {
@@ -29,6 +32,20 @@ run {
     if (project.hasProperty("args")) {
         args System.getProperty("args").split()
     }
+}
+
+jmh {
+    jmhVersion =  '1.11.3'
+    batchSize = 1 // Batch size: number of benchmark method calls per operation. (some benchmark modes can ignore this setting)
+    fork = 0 // How many times to forks a single benchmark. Use 0 to disable forking altogether
+    operationsPerInvocation = 1 // Operations per invocation.
+    timeOnIteration = '1s' // Time to spend at each measurement iteration.
+    timeUnit = 'ms' // Output time unit. Available time units are: [m, s, ms, us, ns].
+    verbosity = 'NORMAL' // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
+    warmup = '0s' // Time to spend at each warmup iteration.
+    warmupBatchSize = 1 // Warmup batch size: number of benchmark method calls per operation.
+    warmupForks = 0 // How many warmup forks to make for a single benchmark. 0 to disable warmup forks.
+    warmupIterations = 0 // Number of warmup iterations to do.
 }
 
 dependencies {
