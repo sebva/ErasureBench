@@ -215,7 +215,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         public String getFilepath() {
-            return this.name;
+            return this == rootDirectory ? "" : parent.getFilepath() + "/" + name;
         }
     }
 
