@@ -8,13 +8,6 @@ import java.util.Set;
 import java.util.concurrent.Future;
 
 public abstract class StorageBackend {
-    @NotNull
-    private FailureGenerator failureGenerator;
-
-    protected StorageBackend(@NotNull FailureGenerator failureGenerator) {
-        this.failureGenerator = failureGenerator;
-    }
-
     public abstract Optional<FileMetadata> getFileMetadata(@NotNull String path);
 
     public abstract void setFileMetadata(@NotNull String path, @NotNull FileMetadata metadata);
@@ -29,11 +22,7 @@ public abstract class StorageBackend {
 
     public abstract Future<Boolean> storeBlockAsync(@NotNull String key, int blockData);
 
-    public final boolean isBlockAvailable(@NotNull String key) {
-        return !(failureGenerator.isBlockFailed(key) || this.isBlockFailed(key));
-    }
-
-    protected abstract boolean isBlockFailed(@NotNull String key);
+    public abstract Future<Boolean> isBlockAvailableAsync(@NotNull String key);
 
     public abstract void disconnect();
 }

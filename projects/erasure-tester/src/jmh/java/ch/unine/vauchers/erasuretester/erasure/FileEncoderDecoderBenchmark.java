@@ -2,7 +2,6 @@ package ch.unine.vauchers.erasuretester.erasure;
 
 import ch.unine.vauchers.erasuretester.Utils;
 import ch.unine.vauchers.erasuretester.backend.MemoryStorageBackend;
-import ch.unine.vauchers.erasuretester.backend.NullFailureGenerator;
 import ch.unine.vauchers.erasuretester.erasure.codes.NullErasureCode;
 import org.openjdk.jmh.annotations.*;
 
@@ -31,7 +30,7 @@ public class FileEncoderDecoderBenchmark {
             testContents.put((byte) (Math.random() * 256));
         }
 
-        sut = new FileEncoderDecoder(new NullErasureCode(10), new MemoryStorageBackend(new NullFailureGenerator()));
+        sut = new FileEncoderDecoder(new NullErasureCode(10), new MemoryStorageBackend());
     }
 
     @Benchmark

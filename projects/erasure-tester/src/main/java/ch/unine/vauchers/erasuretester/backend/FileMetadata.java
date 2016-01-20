@@ -15,15 +15,17 @@ public class FileMetadata {
         return blockKeys;
     }
 
-    public void setBlockKeys(List<String> blockKeys) {
+    public FileMetadata setBlockKeys(List<String> blockKeys) {
         this.blockKeys = blockKeys;
+        return this;
     }
 
     public int getContentsSize() {
         return contentsSize;
     }
 
-    public void setContentsSize(int contentsSize) {
+    public FileMetadata setContentsSize(int contentsSize) {
         this.contentsSize = contentsSize;
+        return this;
     }
 }

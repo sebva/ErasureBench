@@ -16,9 +16,7 @@ public class RedisStorageBackend extends MemoryStorageBackend {
 
     private RedissonClient redis;
 
-    public RedisStorageBackend(@NotNull FailureGenerator failureGenerator) {
-        super(failureGenerator);
-
+    public RedisStorageBackend() {
         final String redis_address = System.getenv("REDIS_ADDRESS");
         if (redis_address == null) {
             redis = Redisson.create();
@@ -49,8 +47,8 @@ public class RedisStorageBackend extends MemoryStorageBackend {
     }
 
     @Override
-    protected boolean isBlockFailed(@NotNull String key) {
-        return !blocksStorage.containsKey(key);
+    public Future<Boolean> isBlockAvailableAsync(@NotNull String key) {
+        return ((RMap<String, Integer>)blocksStorage).containsKeyAsync(key);
     }
 
     @Override

@@ -106,29 +106,20 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         private int read(final ByteBuffer buffer, final long size, final long offset) {
-            ByteBuffer contents;
+            final String filepath = getFilepath();
             try {
-                contents = encdec.readFile(this.getFilepath());
+                encdec.readFile(filepath, (int) size, (int) offset, buffer);
+                return (int) Math.min(encdec.sizeOfFile(filepath) - offset, size);
             } catch (TooManyErasedLocations e) {
-                log.warning("Unable to read file, " + e.getMessage());
+                log.warning("Unable to read file at " + filepath);
                 return 0;
             }
-
-            final int bytesToRead = (int) Math.min(contents.capacity() - offset, size);
-            final byte[] bytesRead = new byte[bytesToRead];
-            synchronized (this) {
-                contents.position((int) offset);
-                contents.get(bytesRead, 0, bytesToRead);
-                buffer.put(bytesRead);
-                contents.position(0); // Rewind
-            }
-            return bytesToRead;
         }
 
         private synchronized void truncate(final long size) {
-            ByteBuffer contents;
+            ByteBuffer contents = null;
             try {
-                contents = encdec.readFile(this.name);
+                encdec.readFile(this.name, (int) size, 0, contents);
             } catch (TooManyErasedLocations e) {
                 log.warning("Unable to truncate file, " + e.getMessage());
                 return;
@@ -146,9 +137,9 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         private int write(final ByteBuffer buffer, final long bufSize, final long writeOffset) {
-            ByteBuffer contents;
+            ByteBuffer contents = ByteBuffer.allocate(0);
             try {
-                contents = encdec.readFile(this.getFilepath());
+                encdec.readFile(this.getFilepath(), 0, 0, buffer);
             } catch (TooManyErasedLocations e) {
                 log.warning("Unable to read file (for further writing), " + e.getMessage());
                 return 0;
