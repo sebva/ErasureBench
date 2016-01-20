@@ -2,16 +2,16 @@ package ch.unine.vauchers.erasuretester.backend;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 /**
  *
  */
 public class MemoryStorageBackend extends StorageBackend {
-    private Map<String, Integer> blocksStorage;
-    private Map<String, FileMetadata> metadataStorage;
+    protected Map<String, Integer> blocksStorage;
+    protected Map<String, FileMetadata> metadataStorage;
 
     public MemoryStorageBackend(@NotNull FailureGenerator failureGenerator) {
         super(failureGenerator);
@@ -36,12 +36,30 @@ public class MemoryStorageBackend extends StorageBackend {
     }
 
     @Override
+    public Future<Integer> retrieveBlockAsync(@NotNull String key) {
+        return CompletableFuture.completedFuture(retrieveBlock(key).get());
+    }
+
+    @Override
+    public Future<Map<String, Integer>> retrieveAllBlocksAsync(@NotNull Set<String> keys) {
+        Map<String, Integer> ret = new HashMap<>(keys.size());
+        keys.forEach(key -> retrieveBlock(key).ifPresent((value) -> ret.put(key, value)));
+        return CompletableFuture.completedFuture(ret);
+    }
+
+    @Override
     public void storeBlock(@NotNull String key, int blockData) {
         blocksStorage.put(key, blockData);
     }
 
     @Override
+    public Future<Boolean> storeBlockAsync(@NotNull String key, int blockData) {
+        storeBlock(key, blockData);
+        return CompletableFuture.completedFuture(true);
+    }
+
+    @Override
     protected boolean isBlockFailed(@NotNull String key) {
-        return false;
+        return !blocksStorage.containsKey(key);
     }
 }
