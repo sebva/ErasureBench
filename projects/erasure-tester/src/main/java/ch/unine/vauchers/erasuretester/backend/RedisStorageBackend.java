@@ -52,4 +52,9 @@ public class RedisStorageBackend extends MemoryStorageBackend {
     protected boolean isBlockFailed(@NotNull String key) {
         return !blocksStorage.containsKey(key);
     }
+
+    @Override
+    public void disconnect() {
+        redis.shutdown();
+    }
 }

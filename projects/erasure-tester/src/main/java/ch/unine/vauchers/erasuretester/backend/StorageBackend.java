@@ -34,4 +34,6 @@ public abstract class StorageBackend {
     }
 
     protected abstract boolean isBlockFailed(@NotNull String key);
+
+    public abstract void disconnect();
 }

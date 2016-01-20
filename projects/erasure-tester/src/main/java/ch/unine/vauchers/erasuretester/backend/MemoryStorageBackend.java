@@ -62,4 +62,7 @@ public class MemoryStorageBackend extends StorageBackend {
     protected boolean isBlockFailed(@NotNull String key) {
         return !blocksStorage.containsKey(key);
     }
+
+    @Override
+    public void disconnect() {}
 }
