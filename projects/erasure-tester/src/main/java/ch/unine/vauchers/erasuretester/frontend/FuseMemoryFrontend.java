@@ -117,51 +117,11 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         private synchronized void truncate(final long size) {
-            ByteBuffer contents = null;
-            try {
-                encdec.readFile(this.name, (int) size, 0, contents);
-            } catch (TooManyErasedLocations e) {
-                log.warning("Unable to truncate file, " + e.getMessage());
-                return;
-            }
-
-            if (size < contents.capacity()) {
-                // Need to create a new, smaller buffer
-                final ByteBuffer newContents = ByteBuffer.allocate((int) size);
-                final byte[] bytesRead = new byte[(int) size];
-                contents.get(bytesRead);
-                newContents.put(bytesRead);
-
-                encdec.writeFile(this.getFilepath(), newContents);
-            }
+            encdec.truncate(getFilepath(), (int) size);
         }
 
         private int write(final ByteBuffer buffer, final long bufSize, final long writeOffset) {
-            ByteBuffer contents = ByteBuffer.allocate(0);
-            try {
-                encdec.readFile(this.getFilepath(), 0, 0, buffer);
-            } catch (TooManyErasedLocations e) {
-                log.warning("Unable to read file (for further writing), " + e.getMessage());
-                return 0;
-            }
-
-            final int maxWriteIndex = (int) (writeOffset + bufSize);
-            final byte[] bytesToWrite = new byte[(int) bufSize];
-            synchronized (this) {
-                if (maxWriteIndex > contents.capacity()) {
-                    // Need to create a new, larger buffer
-                    final ByteBuffer newContents = ByteBuffer.allocate(maxWriteIndex);
-                    contents.rewind();
-                    newContents.put(contents);
-                    contents = newContents;
-                }
-                buffer.get(bytesToWrite, 0, (int) bufSize);
-                contents.position((int) writeOffset);
-                contents.put(bytesToWrite);
-                contents.position(0); // Rewind
-
-                encdec.writeFile(this.getFilepath(), contents);
-            }
+            encdec.writeFile(this.getFilepath(), (int) bufSize, (int) writeOffset, buffer);
             return (int) bufSize;
         }
     }

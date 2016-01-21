@@ -1,21 +1,23 @@
 package ch.unine.vauchers.erasuretester.backend;
 
-import java.util.Collections;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
+import java.util.Optional;
 
 /**
  *
  */
 public class FileMetadata {
-    private List<String> blockKeys = Collections.emptyList();
+    private List<String> blockKeys;
     private int contentsSize;
     public static final FileMetadata EMPTY_METADATA = new FileMetadata();
 
-    public List<String> getBlockKeys() {
-        return blockKeys;
+    public @NotNull Optional<List<String>> getBlockKeys() {
+        return Optional.ofNullable(blockKeys);
     }
 
-    public FileMetadata setBlockKeys(List<String> blockKeys) {
+    public FileMetadata setBlockKeys(@NotNull List<String> blockKeys) {
         this.blockKeys = blockKeys;
         return this;
     }

@@ -35,6 +35,6 @@ public class FileEncoderDecoderBenchmark {
 
     @Benchmark
     public void writeFile() {
-        sut.writeFile(randomPath, testContents);
+        sut.writeFile(randomPath, fileSize, 0, testContents);
     }
 }

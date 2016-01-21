@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.Random;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
@@ -30,11 +31,27 @@ public class FileEncoderDecoderTest {
     public void testBasic() throws TooManyErasedLocations, UnsupportedEncodingException {
         byte[] test = "This is a test message!".getBytes("UTF-8");
         final String path = "path";
-        sut.writeFile(path, ByteBuffer.wrap(test));
+        sut.writeFile(path, test.length, 0, ByteBuffer.wrap(test));
 
         ByteBuffer results = ByteBuffer.allocate(test.length);
         sut.readFile(path, test.length, 0, results);
         Assert.assertArrayEquals(test, results.array());
+    }
+
+    @Test
+    public void testBigFile() {
+        final ByteBuffer byteBuffer = createRandomBigByteBuffer();
+        sut.writeFile("path", (int) byteBuffer.capacity(), (int) 0, byteBuffer);
+    }
+
+    private static ByteBuffer createRandomBigByteBuffer() {
+        final int size = 24000;
+        final ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+        final Random random = new Random();
+        for (int i = 0; i < size / Integer.BYTES; i++) {
+            byteBuffer.putInt(random.nextInt());
+        }
+        return byteBuffer;
     }
 
     @Test
