@@ -102,75 +102,26 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
 
         @Override
         protected void getattr(final StatWrapper stat) {
-            stat.setMode(NodeType.FILE).size(encdec.sizeOfFile(this.name));
+            stat.setMode(NodeType.FILE).size(encdec.sizeOfFile(getFilepath()));
         }
 
         private int read(final ByteBuffer buffer, final long size, final long offset) {
-            ByteBuffer contents;
+            final String filepath = getFilepath();
             try {
-                contents = encdec.readFile(this.getFilepath());
+                encdec.readFile(filepath, (int) size, (int) offset, buffer);
+                return (int) Math.min(encdec.sizeOfFile(filepath) - offset, size);
             } catch (TooManyErasedLocations e) {
-                log.warning("Unable to read file, " + e.getMessage());
+                log.warning("Unable to read file at " + filepath);
                 return 0;
             }
-
-            final int bytesToRead = (int) Math.min(contents.capacity() - offset, size);
-            final byte[] bytesRead = new byte[bytesToRead];
-            synchronized (this) {
-                contents.position((int) offset);
-                contents.get(bytesRead, 0, bytesToRead);
-                buffer.put(bytesRead);
-                contents.position(0); // Rewind
-            }
-            return bytesToRead;
         }
 
         private synchronized void truncate(final long size) {
-            ByteBuffer contents;
-            try {
-                contents = encdec.readFile(this.name);
-            } catch (TooManyErasedLocations e) {
-                log.warning("Unable to truncate file, " + e.getMessage());
-                return;
-            }
-
-            if (size < contents.capacity()) {
-                // Need to create a new, smaller buffer
-                final ByteBuffer newContents = ByteBuffer.allocate((int) size);
-                final byte[] bytesRead = new byte[(int) size];
-                contents.get(bytesRead);
-                newContents.put(bytesRead);
-
-                encdec.writeFile(this.getFilepath(), newContents);
-            }
+            encdec.truncate(getFilepath(), (int) size);
         }
 
         private int write(final ByteBuffer buffer, final long bufSize, final long writeOffset) {
-            ByteBuffer contents;
-            try {
-                contents = encdec.readFile(this.getFilepath());
-            } catch (TooManyErasedLocations e) {
-                log.warning("Unable to read file (for further writing), " + e.getMessage());
-                return 0;
-            }
-
-            final int maxWriteIndex = (int) (writeOffset + bufSize);
-            final byte[] bytesToWrite = new byte[(int) bufSize];
-            synchronized (this) {
-                if (maxWriteIndex > contents.capacity()) {
-                    // Need to create a new, larger buffer
-                    final ByteBuffer newContents = ByteBuffer.allocate(maxWriteIndex);
-                    contents.rewind();
-                    newContents.put(contents);
-                    contents = newContents;
-                }
-                buffer.get(bytesToWrite, 0, (int) bufSize);
-                contents.position((int) writeOffset);
-                contents.put(bytesToWrite);
-                contents.position(0); // Rewind
-
-                encdec.writeFile(this.getFilepath(), contents);
-            }
+            encdec.writeFile(this.getFilepath(), (int) bufSize, (int) writeOffset, buffer);
             return (int) bufSize;
         }
     }
@@ -215,7 +166,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         public String getFilepath() {
-            return this.name;
+            return this == rootDirectory ? "" : parent.getFilepath() + "/" + name;
         }
     }
 

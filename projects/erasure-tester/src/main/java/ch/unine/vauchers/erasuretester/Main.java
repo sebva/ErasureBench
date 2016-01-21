@@ -1,7 +1,5 @@
 package ch.unine.vauchers.erasuretester;
 
-import ch.unine.vauchers.erasuretester.backend.FailureGenerator;
-import ch.unine.vauchers.erasuretester.backend.NullFailureGenerator;
 import ch.unine.vauchers.erasuretester.backend.RedisStorageBackend;
 import ch.unine.vauchers.erasuretester.backend.StorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.FileEncoderDecoder;
@@ -16,11 +14,10 @@ public class Main {
 
     public static void main(String[] argv) throws FuseException {
         // Disable logging completely for faster performance
-        // LogManager.getLogManager().reset();
+        // Utils.disableLogging();
 
         ErasureCode erasureCode = new ReedSolomonCode(10, 4);
-        FailureGenerator failureGenerator = new NullFailureGenerator();
-        StorageBackend storageBackend = new RedisStorageBackend(failureGenerator);
+        StorageBackend storageBackend = new RedisStorageBackend();
         FileEncoderDecoder encdec = new FileEncoderDecoder(erasureCode, storageBackend);
 
         final FuseMemoryFrontend fuse = new FuseMemoryFrontend(encdec, false);

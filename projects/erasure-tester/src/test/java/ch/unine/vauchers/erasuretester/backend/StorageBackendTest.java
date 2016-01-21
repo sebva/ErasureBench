@@ -1,5 +1,6 @@
 package ch.unine.vauchers.erasuretester.backend;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,6 +23,11 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     @Before
     public void setup() {
         sut = createInstance();
+    }
+
+    @After
+    public void tearDown() {
+        sut.disconnect();
     }
 
     @Test
@@ -64,8 +70,8 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     }
 
     @Test
-    public void testAbsentKey() {
-        assertFalse(sut.isBlockAvailable("thisKeyDoesNotExist"));
+    public void testAbsentKey() throws ExecutionException, InterruptedException {
+        assertFalse(sut.isBlockAvailableAsync("thisKeyDoesNotExist").get());
     }
 
     private static void testReadWrite(BiConsumer<String, Integer> storeFunction, Function<String, Integer> retrieveFunction) {
@@ -84,9 +90,5 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
 
         storeFunction.accept(key1, value2);
         assertEquals(value2, (int) retrieveFunction.apply(key1));
-    }
-
-    protected FailureGenerator createNullFailureGenerator() {
-        return new NullFailureGenerator();
     }
 }

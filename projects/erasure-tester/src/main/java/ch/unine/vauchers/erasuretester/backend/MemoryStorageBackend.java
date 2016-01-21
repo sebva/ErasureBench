@@ -13,9 +13,7 @@ public class MemoryStorageBackend extends StorageBackend {
     protected Map<String, Integer> blocksStorage;
     protected Map<String, FileMetadata> metadataStorage;
 
-    public MemoryStorageBackend(@NotNull FailureGenerator failureGenerator) {
-        super(failureGenerator);
-
+    public MemoryStorageBackend() {
         blocksStorage = new HashMap<>();
         metadataStorage = new HashMap<>();
     }
@@ -59,8 +57,8 @@ public class MemoryStorageBackend extends StorageBackend {
     }
 
     @Override
-    protected boolean isBlockFailed(@NotNull String key) {
-        return !blocksStorage.containsKey(key);
+    public Future<Boolean> isBlockAvailableAsync(@NotNull String key) {
+        return CompletableFuture.completedFuture(blocksStorage.containsKey(key));
     }
 
     @Override
