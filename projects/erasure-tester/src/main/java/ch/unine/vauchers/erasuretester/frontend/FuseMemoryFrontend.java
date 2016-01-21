@@ -102,7 +102,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
 
         @Override
         protected void getattr(final StatWrapper stat) {
-            stat.setMode(NodeType.FILE).size(encdec.sizeOfFile(this.name));
+            stat.setMode(NodeType.FILE).size(encdec.sizeOfFile(getFilepath()));
         }
 
         private int read(final ByteBuffer buffer, final long size, final long offset) {

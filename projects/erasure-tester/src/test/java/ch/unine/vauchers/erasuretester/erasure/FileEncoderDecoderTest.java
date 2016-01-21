@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.Random;
 import java.util.stream.IntStream;
 
@@ -39,9 +40,43 @@ public class FileEncoderDecoderTest {
     }
 
     @Test
-    public void testBigFile() {
-        final ByteBuffer byteBuffer = createRandomBigByteBuffer();
-        sut.writeFile("path", (int) byteBuffer.capacity(), (int) 0, byteBuffer);
+    public void testAlignedFile() throws TooManyErasedLocations {
+        testUnalignedFile(23000, 500, Optional.empty());
+    }
+
+    @Test
+    public void testRealLifeFile() throws TooManyErasedLocations {
+        testUnalignedFile(4096, 16384, Optional.of(ByteBuffer.allocateDirect(4096)));
+    }
+
+    @Test
+    public void testUnalignedFileBeginEnd() throws TooManyErasedLocations {
+        testUnalignedFile(23000, 502, Optional.empty());
+    }
+
+    @Test
+    public void testUnalignedFileBegin() throws TooManyErasedLocations {
+        testUnalignedFile(22998, 502, Optional.empty());
+    }
+
+    @Test
+    public void testUnalignedFileEnd() throws TooManyErasedLocations {
+        testUnalignedFile(23015, 500, Optional.empty());
+    }
+
+    private void testUnalignedFile(int size, int offset, Optional<ByteBuffer> inBuffer) throws TooManyErasedLocations {
+        final ByteBuffer byteBuffer = inBuffer.orElseGet(FileEncoderDecoderTest::createRandomBigByteBuffer);
+
+        sut.writeFile("path", size, offset, byteBuffer);
+        final ByteBuffer byteBufferOut = ByteBuffer.allocate(byteBuffer.capacity());
+        sut.readFile("path", size, offset, byteBufferOut);
+
+        byteBuffer.rewind();
+        byteBufferOut.rewind();
+
+        for (int i = 0; i < size; i++) {
+            assertEquals("Inequality at index " + byteBuffer.position(), byteBuffer.get(), byteBufferOut.get());
+        }
     }
 
     private static ByteBuffer createRandomBigByteBuffer() {
@@ -51,6 +86,8 @@ public class FileEncoderDecoderTest {
         for (int i = 0; i < size / Integer.BYTES; i++) {
             byteBuffer.putInt(random.nextInt());
         }
+        byteBuffer.put(size -1, (byte) 42);
+        byteBuffer.rewind();
         return byteBuffer;
     }
 
@@ -63,6 +100,7 @@ public class FileEncoderDecoderTest {
         assertEquals(28, sut.nextBoundary(11));
         assertEquals(28, sut.nextBoundary(20));
         assertEquals(42, sut.nextBoundary(21));
+        assertEquals(68824, sut.nextBoundary(45056 + 4096));
     }
 
     @Test
@@ -79,6 +117,7 @@ public class FileEncoderDecoderTest {
         assertEquals(28, sut.previousBoundary(29));
         assertEquals(42, sut.previousBoundary(30));
         assertEquals(42, sut.previousBoundary(34));
+        assertEquals(63070, sut.previousBoundary(45056));
     }
 
     @Test
