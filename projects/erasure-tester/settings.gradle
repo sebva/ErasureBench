@@ -1,2 +1,3 @@
 rootProject.name = 'erasure-tester'
+include 'redis-cluster'
 

@@ -1,12 +1,13 @@
-redis:
+redis-master:
   image: redis:3
+  volumes:
+   - ./redis-cluster/redis.conf:/usr/local/etc/redis/redis.conf:ro
+  command: redis-server /usr/local/etc/redis/redis.conf
+redis-slave:
+  image: redis-slave
 erasure:
   image: erasuretester:latest
   cap_add:
     - SYS_ADMIN
   devices:
     - "/dev/fuse"
-  links:
-    - redis
-  environment:
-    REDIS_ADDRESS: "redis:6379"
