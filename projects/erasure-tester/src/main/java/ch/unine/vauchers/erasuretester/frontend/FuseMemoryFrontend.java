@@ -15,6 +15,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+/**
+ * Frontend exposing the implementation through a FUSE filesystem.
+ *
+ * Basically a copy of the
+ * <a href="https://github.com/EtiennePerot/fuse-jna/blob/master/src/main/java/net/fusejna/examples/MemoryFS.java">MemoryFS</a>
+ * example given by FuseJNA.
+ * <br/>
+ * The attributes of each file/directory are stored in memory within this class,
+ * while the effective content of normal files is passed through erasure coding and stored elsewhere.
+ * <br/>
+ * Beware that, while the global filesystem state is destroyed on application restart, the contents of file might be
+ * kept depending on the StorageBackend implementation in use.
+ */
 public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
     Logger log = Logger.getLogger(FuseMemoryFrontend.class.getName());
 

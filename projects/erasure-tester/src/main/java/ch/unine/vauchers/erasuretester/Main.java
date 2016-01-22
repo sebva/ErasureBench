@@ -10,6 +10,9 @@ import net.fusejna.FuseException;
 
 import java.io.IOException;
 
+/**
+ * Entry-point of the application
+ */
 public class Main {
 
     public static void main(String[] argv) throws FuseException {
@@ -21,6 +24,7 @@ public class Main {
         FileEncoderDecoder encdec = new FileEncoderDecoder(erasureCode, storageBackend);
 
         final FuseMemoryFrontend fuse = new FuseMemoryFrontend(encdec, false);
+        // Gracefully quit on Ctrl+C
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 try {

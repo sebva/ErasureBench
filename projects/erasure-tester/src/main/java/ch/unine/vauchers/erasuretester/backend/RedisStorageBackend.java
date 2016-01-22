@@ -10,6 +10,14 @@ import org.redisson.core.RMap;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * Storage backend backed by a Redis server.<br/>
+ * The address of the Redis server can be configure using the <i>REDIS_ADDRESS</i> environment variable. The default
+ * is to use the server running on the local machine.<br/>
+ * Uses the <a href="https://github.com/mrniko/redisson">Redisson library</a>. This class extends MemoryStorageBackend
+ * as Redisson exposes Redis maps as Java Map objects. Therefore, synchronous operations are identical in both
+ * implementations.
+ */
 public class RedisStorageBackend extends MemoryStorageBackend {
     private static final String BLOCKS_MAP_NAME = "erasure-tester-blocks";
     private static final String METADATA_MAP_NAME = "erasure-tester-metadata";

@@ -16,6 +16,9 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+/**
+ * Intermediate layer between the frontend, the storage backend and erasure coding.
+ */
 public class FileEncoderDecoder {
     @NotNull
     private final ErasureCode erasureCode;
@@ -28,15 +31,31 @@ public class FileEncoderDecoder {
         READ_FILE, WRITE_FILE
     }
 
+    /**
+     * Constructor
+     * @param erasureCode The erasure coding implementation to use
+     * @param storageBackend The storage backend implementation to use
+     */
     public FileEncoderDecoder(@NotNull ErasureCode erasureCode, @NotNull StorageBackend storageBackend) {
         this.erasureCode = erasureCode;
         this.storageBackend = storageBackend;
 
+        // Only works with bytes
         assert(erasureCode.symbolSize() == 8);
         totalSize = erasureCode.stripeSize() + erasureCode.paritySize();
     }
 
-    public void readFile(final String path, final int size, final int offset, final ByteBuffer outBuffer) throws TooManyErasedLocations {
+    /**
+     * Read a previously stored file from storage, and decode it
+     * @param path String uniquely identifying a file
+     * @param size How much bytes of contents to read
+     * @param offset At which byte index the reading has to start
+     * @param outBuffer The contents of the file will be written to this buffer. It needs to be previously allocated
+     *                  with enough space to fit the size passed in parameter. Writing will start wherever the buffer
+     *                  is positioned.
+     * @throws TooManyErasedLocations Due to too many unavailable blocks, the contents can not be retrieved.
+     */
+    public void readFile(final String path, final int size, final int offset, @NotNull final ByteBuffer outBuffer) throws TooManyErasedLocations {
         log.info("Reading the file at " + path);
 
         final FileMetadata metadata = storageBackend.getFileMetadata(path)
@@ -50,7 +69,14 @@ public class FileEncoderDecoder {
         iterate(contentsSize, offset, outBuffer, allBlockKeys, Modes.READ_FILE);
     }
 
-    public void writeFile(String path, int size, int offset, ByteBuffer contents) {
+    /**
+     * Write the contents of a file to storage, with erasure coding applied
+     * @param path String uniquely identifying the file
+     * @param size How much bytes of contents to write
+     * @param offset At which byte index do the writing starts (relative to the complete file)
+     * @param contents The data to write into the file. The buffer will be read starting at its current position.
+     */
+    public void writeFile(String path, int size, int offset, @NotNull ByteBuffer contents) {
         log.info("Writing the file at " + path);
 
         final FileMetadata metadata = storageBackend.getFileMetadata(path).orElseGet(FileMetadata::new);
@@ -61,21 +87,32 @@ public class FileEncoderDecoder {
 
         final int nextBoundary = nextBoundary(contentsSize);
         while (blockKeys.size() < nextBoundary) {
+            // Grow the blockKeys list to fit the size/offset given in parameter
             blockKeys.add(null);
         }
 
         try {
             iterate(iterationSize, offset, contents, blockKeys, Modes.WRITE_FILE);
-        } catch (TooManyErasedLocations ignored) {}
+        } catch (TooManyErasedLocations ignored) {} // Will never happen
 
         metadata.setBlockKeys(blockKeys);
         storageBackend.setFileMetadata(path, metadata);
     }
 
+    /**
+     * Return the size of a given file
+     * @param path String uniquely identifying a file
+     * @return The size of the contents of the file, in bytes
+     */
     public long sizeOfFile(String path) {
         return storageBackend.getFileMetadata(path).orElse(FileMetadata.EMPTY_METADATA).getContentsSize();
     }
 
+    /**
+     * Truncate the size of a given file to a given size
+     * @param path String uniquely identifying a file
+     * @param size The new size of the file
+     */
     public void truncate(final String filepath, final int size) {
         storageBackend.getFileMetadata(filepath).ifPresent(metadata -> {
             final int newSize = Math.min(metadata.getContentsSize(), size);
@@ -136,6 +173,8 @@ public class FileEncoderDecoder {
             }
         }
 
+        /* We can end up loading more blocks than necessary
+           TODO Only load blocks that are really needed */
         final Future<Map<String, Integer>> blocks = storageBackend.retrieveAllBlocksAsync(availableBlocksKeys);
 
         final Stream<Byte> partData = decodeFileData(blockKeys, blocks, erasedBlocksIndices);
@@ -205,6 +244,7 @@ public class FileEncoderDecoder {
         final int[] recoveredValues = new int[erasedIndices.size()];
         erasureCode.decode(dataBuffer, convertToIntArray(erasedIndices), recoveredValues, convertToIntArray(toReadForDecode), fillNotToRead(toReadForDecode));
 
+        // Restore erased values
         final PrimitiveIterator.OfInt recoveredValuesIterator = Arrays.stream(recoveredValues).iterator();
         erasedIndices.forEach(erasedIndex -> dataBuffer[erasedIndex] = recoveredValues[recoveredValuesIterator.next()]);
 

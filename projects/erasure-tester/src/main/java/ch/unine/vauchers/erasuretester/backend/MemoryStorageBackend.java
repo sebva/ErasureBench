@@ -7,7 +7,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 /**
- *
+ * Storage backend implementation backed by a plain old Java Map object.
+ * Asynchronous operations are done synchronously.
  */
 public class MemoryStorageBackend extends StorageBackend {
     protected Map<String, Integer> blocksStorage;
