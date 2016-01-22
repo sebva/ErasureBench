@@ -5,15 +5,9 @@ redis-master:
   command: redis-server /usr/local/etc/redis/redis.conf
 redis-slave:
   image: redis-slave
-  links:
-    - redis-master
 erasure:
   image: erasuretester:latest
   cap_add:
     - SYS_ADMIN
   devices:
     - "/dev/fuse"
-  links:
-    - redis-master
-  environment:
-    REDIS_ADDRESS: "redis-master:6379"

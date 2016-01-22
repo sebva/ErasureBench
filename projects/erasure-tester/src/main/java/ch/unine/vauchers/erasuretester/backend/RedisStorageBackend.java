@@ -29,9 +29,10 @@ public class RedisStorageBackend extends MemoryStorageBackend {
         if (redis_address == null) {
             redis = Redisson.create();
         } else {
+            System.out.println("Connecting to master at " + redis_address);
             Config config = new Config();
-            config.useSingleServer()
-                    .setAddress(redis_address);
+            config.useClusterServers()
+                    .addNodeAddress(redis_address);
             redis = Redisson.create(config);
         }
 
