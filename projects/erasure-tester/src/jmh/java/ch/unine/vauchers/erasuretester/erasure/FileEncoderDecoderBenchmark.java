@@ -12,7 +12,7 @@ import java.util.Random;
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
 public class FileEncoderDecoderBenchmark {
-    @Param({"1", "1000", "2000", "10000"})
+    @Param({"1000", "2000", "10000"})
     public int fileSize;
 
     private ByteBuffer testContents;
@@ -25,7 +25,7 @@ public class FileEncoderDecoderBenchmark {
         Utils.disableLogging();
 
         randomPath = new BigInteger(40, new Random()).toString(256);
-        testContents = ByteBuffer.allocate(fileSize);
+        testContents = ByteBuffer.allocateDirect(fileSize);
         while (testContents.hasRemaining()) {
             testContents.put((byte) (Math.random() * 256));
         }
@@ -35,6 +35,7 @@ public class FileEncoderDecoderBenchmark {
 
     @Benchmark
     public void writeFile() {
+        testContents.rewind();
         sut.writeFile(randomPath, fileSize, 0, testContents);
     }
 }
