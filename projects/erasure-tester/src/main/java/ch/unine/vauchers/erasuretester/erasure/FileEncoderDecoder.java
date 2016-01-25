@@ -98,9 +98,14 @@ public class FileEncoderDecoder {
         final int iterationSize = Math.min(contents.limit(), size);
         final int contentsSize = Math.max(iterationSize + offset, metadata.getContentsSize());
         metadata.setContentsSize(contentsSize);
-        final List<String> blockKeys = metadata.getBlockKeys().orElseGet(() -> new ArrayList<>(contentsSize));
+        List<String> blockKeys = metadata.getBlockKeys().orElseGet(() -> new ArrayList<>(contentsSize));
 
         final int nextBoundary = nextBoundary(contentsSize);
+        if (blockKeys.size() < nextBoundary) {
+            final List<String> oldBlockKeys = blockKeys;
+            blockKeys = new ArrayList<>(nextBoundary);
+            blockKeys.addAll(oldBlockKeys);
+        }
         while (blockKeys.size() < nextBoundary) {
             // Grow the blockKeys list to fit the size/offset given in parameter
             blockKeys.add(null);
