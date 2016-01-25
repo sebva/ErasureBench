@@ -4,9 +4,9 @@ import ch.unine.vauchers.erasuretester.backend.FileMetadata;
 import ch.unine.vauchers.erasuretester.backend.StorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.TooManyErasedLocations;
+import jnr.ffi.Pointer;
 import org.jetbrains.annotations.NotNull;
 
-import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -70,7 +70,7 @@ public class FileEncoderDecoder {
      *                  is positioned.
      * @throws TooManyErasedLocations Due to too many unavailable blocks, the contents can not be retrieved.
      */
-    public void readFile(final String path, final int size, final int offset, @NotNull final ByteBuffer outBuffer) throws TooManyErasedLocations {
+    public void readFile(final String path, final int size, final int offset, final Pointer outBuffer) throws TooManyErasedLocations {
         log.info("Reading the file at " + path);
 
         final FileMetadata metadata = storageBackend.getFileMetadata(path)
@@ -91,11 +91,11 @@ public class FileEncoderDecoder {
      * @param offset At which byte index do the writing starts (relative to the complete file)
      * @param contents The data to write into the file. The buffer will be read starting at its current position.
      */
-    public void writeFile(String path, int size, int offset, @NotNull ByteBuffer contents) {
+    public void writeFile(String path, int size, int offset, Pointer contents) {
         log.info("Writing the file at " + path);
 
         final FileMetadata metadata = storageBackend.getFileMetadata(path).orElseGet(FileMetadata::new);
-        final int iterationSize = Math.min(contents.limit(), size);
+        final int iterationSize = (int) Math.min(contents.size(), size);
         final int contentsSize = Math.max(iterationSize + offset, metadata.getContentsSize());
         metadata.setContentsSize(contentsSize);
         List<String> blockKeys = metadata.getBlockKeys().orElseGet(() -> new ArrayList<>(contentsSize));
@@ -142,12 +142,13 @@ public class FileEncoderDecoder {
         });
     }
 
-    private void iterate(int size, int offset, ByteBuffer fileBuffer, List<String> blockKeys, Modes mode) throws TooManyErasedLocations {
+    private void iterate(int size, int offset, Pointer fileBuffer, List<String> blockKeys, Modes mode) throws TooManyErasedLocations {
         final int firstLowerBoundary = previousBoundary(offset);
         final int lastLowerBoundary = previousBoundary(offset + size);
         final int blocksToDiscardBeginning = lowerBytesToDrop(offset);
         final int blocksToDiscardEnd = higherBytesToDrop(offset + size);
 
+        int position = 0;
         for (int i = firstLowerBoundary; i <= lastLowerBoundary; i += totalSize) {
             int offsetPart = 0;
             int sizePart = erasureCode.stripeSize();
@@ -162,9 +163,9 @@ public class FileEncoderDecoder {
                 }
             }
 
-            ByteBuffer buffer = fileBuffer.slice();
+            Pointer buffer = fileBuffer.slice(position, position + sizePart);
             if (i < lastLowerBoundary) {
-                fileBuffer.position(fileBuffer.position() + sizePart);
+                position += sizePart;
             }
             final List<String> keysSublist = blockKeys.subList(i, i + totalSize);
             if (mode == Modes.READ_FILE) {
@@ -175,7 +176,7 @@ public class FileEncoderDecoder {
         }
     }
 
-    private void readPart(List<String> blockKeys, ByteBuffer outBuffer, int size, int offset) throws TooManyErasedLocations {
+    private void readPart(List<String> blockKeys, Pointer outBuffer, int size, int offset) throws TooManyErasedLocations {
         availableBlocksKeys.clear();
         erasedBlocksIndices.clear();
 
@@ -199,11 +200,17 @@ public class FileEncoderDecoder {
 
         final Stream<Byte> partData = decodeFileData(blockKeys, blocks, erasedBlocksIndices);
 
-        partData.skip(offset).limit(size).forEach(outBuffer::put);
+        long position = 0;
+        final Iterator<Byte> iterator = partData.skip(offset).limit(size).iterator();
+        while (iterator.hasNext()) {
+            outBuffer.putByte(position++, iterator.next());
+        }
     }
 
-    private void writePart(List<String> blockKeys, ByteBuffer fileBuffer, int size, int offset) {
+    private void writePart(List<String> blockKeys, Pointer fileBuffer, int size, int offset) {
         blockKeysFutures.clear();
+
+        long position = 0;
 
         for (int i = 0; i < erasureCode.stripeSize(); i++) {
             if (i < offset || i >= offset + size) { // Restore existing data
@@ -214,7 +221,7 @@ public class FileEncoderDecoder {
                     stripeBuffer[i] = 0;
                 }
             } else {
-                stripeBuffer[i] = Byte.toUnsignedInt(fileBuffer.get());
+                stripeBuffer[i] = Byte.toUnsignedInt(fileBuffer.getByte(position++));
             }
         }
 

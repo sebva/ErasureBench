@@ -2,15 +2,16 @@ package ch.unine.vauchers.erasuretester.frontend;
 
 import ch.unine.vauchers.erasuretester.erasure.FileEncoderDecoder;
 import ch.unine.vauchers.erasuretester.erasure.codes.TooManyErasedLocations;
-import net.fusejna.DirectoryFiller;
-import net.fusejna.ErrorCodes;
-import net.fusejna.StructFuseFileInfo.FileInfoWrapper;
-import net.fusejna.StructStat.StatWrapper;
-import net.fusejna.types.TypeMode.ModeWrapper;
-import net.fusejna.types.TypeMode.NodeType;
-import net.fusejna.util.FuseFilesystemAdapterAssumeImplemented;
+import jnr.ffi.Pointer;
+import jnr.ffi.types.mode_t;
+import jnr.ffi.types.off_t;
+import jnr.ffi.types.size_t;
+import ru.serce.jnrfuse.ErrorCodes;
+import ru.serce.jnrfuse.FuseFillDir;
+import ru.serce.jnrfuse.FuseStubFS;
+import ru.serce.jnrfuse.struct.FileStat;
+import ru.serce.jnrfuse.struct.FuseFileInfo;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -28,12 +29,11 @@ import java.util.logging.Logger;
  * Beware that, while the global filesystem state is destroyed on application restart, the contents of file might be
  * kept depending on the StorageBackend implementation in use.
  */
-public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
+public class FuseMemoryFrontend extends FuseStubFS {
     Logger log = Logger.getLogger(FuseMemoryFrontend.class.getName());
 
     public FuseMemoryFrontend(FileEncoderDecoder encdec, boolean log) {
         this.encdec = encdec;
-        log(log);
     }
 
     private final class MemoryDirectory extends MemoryPath {
@@ -85,8 +85,8 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         @Override
-        protected void getattr(final StatWrapper stat) {
-            stat.setMode(NodeType.DIRECTORY);
+        protected void getattr(final FileStat stat) {
+            stat.st_mode.set(FileStat.S_IFDIR);
         }
 
         private synchronized void mkdir(final String lastComponent) {
@@ -97,9 +97,9 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
             contents.add(new MemoryFile(lastComponent, this));
         }
 
-        public synchronized void read(final DirectoryFiller filler) {
+        public synchronized void read(Pointer buf, final FuseFillDir filler) {
             for (final MemoryPath p : contents) {
-                filler.add(p.name);
+                filler.apply(buf, p.name, null, 0);
             }
         }
     }
@@ -114,11 +114,12 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         }
 
         @Override
-        protected void getattr(final StatWrapper stat) {
-            stat.setMode(NodeType.FILE).size(encdec.sizeOfFile(getFilepath()));
+        protected void getattr(final FileStat stat) {
+            stat.st_mode.set(FileStat.S_IFREG | 0777);
+            stat.st_size.set(encdec.sizeOfFile(getFilepath()));
         }
 
-        private int read(final ByteBuffer buffer, final long size, final long offset) {
+        private int read(final Pointer buffer, final long size, final long offset) {
             final String filepath = getFilepath();
             try {
                 encdec.readFile(filepath, (int) size, (int) offset, buffer);
@@ -133,7 +134,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
             encdec.truncate(getFilepath(), (int) size);
         }
 
-        private int write(final ByteBuffer buffer, final long bufSize, final long writeOffset) {
+        private int write(final Pointer buffer, final long bufSize, final long writeOffset) {
             encdec.writeFile(this.getFilepath(), (int) bufSize, (int) writeOffset, buffer);
             return (int) bufSize;
         }
@@ -169,7 +170,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
             return null;
         }
 
-        protected abstract void getattr(StatWrapper stat);
+        protected abstract void getattr(FileStat stat);
 
         private void rename(String newName) {
             while (newName.startsWith("/")) {
@@ -193,7 +194,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
     }
 
     @Override
-    public int create(final String path, final ModeWrapper mode, final FileInfoWrapper info) {
+    public int create(final String path, @mode_t long mode, final FuseFileInfo info) {
         if (getPath(path) != null) {
             return -ErrorCodes.EEXIST();
         }
@@ -206,7 +207,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
     }
 
     @Override
-    public int getattr(final String path, final StatWrapper stat) {
+    public int getattr(final String path, final FileStat stat) {
         final MemoryPath p = getPath(path);
         if (p != null) {
             p.getattr(stat);
@@ -234,7 +235,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
     }
 
     @Override
-    public int mkdir(final String path, final ModeWrapper mode) {
+    public int mkdir(final String path, @mode_t long mode) {
         if (getPath(path) != null) {
             return -ErrorCodes.EEXIST();
         }
@@ -247,12 +248,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
     }
 
     @Override
-    public int open(final String path, final FileInfoWrapper info) {
-        return 0;
-    }
-
-    @Override
-    public int read(final String path, final ByteBuffer buffer, final long size, final long offset, final FileInfoWrapper info) {
+    public int read(String path, Pointer buf, @size_t long size, @off_t long offset, FuseFileInfo fi) {
         final MemoryPath p = getPath(path);
         if (p == null) {
             return -ErrorCodes.ENOENT();
@@ -260,11 +256,11 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         if (!(p instanceof MemoryFile)) {
             return -ErrorCodes.EISDIR();
         }
-        return ((MemoryFile) p).read(buffer, size, offset);
+        return ((MemoryFile) p).read(buf, size, offset);
     }
 
     @Override
-    public int readdir(final String path, final DirectoryFiller filler) {
+    public int readdir(String path, Pointer buf, FuseFillDir filter, @off_t long offset, FuseFileInfo fi) {
         final MemoryPath p = getPath(path);
         if (p == null) {
             return -ErrorCodes.ENOENT();
@@ -272,7 +268,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         if (!(p instanceof MemoryDirectory)) {
             return -ErrorCodes.ENOTDIR();
         }
-        ((MemoryDirectory) p).read(filler);
+        ((MemoryDirectory) p).read(buf, filter);
         return 0;
     }
 
@@ -332,8 +328,7 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
     }
 
     @Override
-    public int write(final String path, final ByteBuffer buf, final long bufSize, final long writeOffset,
-                     final FileInfoWrapper wrapper) {
+    public int write(String path, Pointer buf, @size_t long size, @off_t long offset, FuseFileInfo fi) {
         final MemoryPath p = getPath(path);
         if (p == null) {
             return -ErrorCodes.ENOENT();
@@ -341,6 +336,6 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         if (!(p instanceof MemoryFile)) {
             return -ErrorCodes.EISDIR();
         }
-        return ((MemoryFile) p).write(buf, bufSize, writeOffset);
+        return ((MemoryFile) p).write(buf, size, offset);
     }
 }

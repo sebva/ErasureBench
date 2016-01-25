@@ -6,16 +6,16 @@ import ch.unine.vauchers.erasuretester.erasure.FileEncoderDecoder;
 import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.ReedSolomonCode;
 import ch.unine.vauchers.erasuretester.frontend.FuseMemoryFrontend;
-import net.fusejna.FuseException;
+import ru.serce.jnrfuse.FuseException;
 
-import java.io.IOException;
+import java.nio.file.FileSystems;
 
 /**
  * Entry-point of the application
  */
 public class Main {
 
-    public static void main(String[] argv) throws FuseException {
+    public static void main(String[] argv) {
         // Disable logging completely for faster performance
         // Utils.disableLogging();
 
@@ -24,19 +24,20 @@ public class Main {
         FileEncoderDecoder encdec = new FileEncoderDecoder(erasureCode, storageBackend);
 
         final FuseMemoryFrontend fuse = new FuseMemoryFrontend(encdec, false);
+
         // Gracefully quit on Ctrl+C
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
                 try {
                     storageBackend.disconnect();
-                    fuse.unmount();
-                } catch (IOException | FuseException e) {
+                    fuse.umount();
+                } catch (FuseException e) {
                     e.printStackTrace();
                 }
             }
         });
 
-        fuse.mount(argv[0]);
+        fuse.mount(FileSystems.getDefault().getPath(argv[0]));
     }
 
 }
