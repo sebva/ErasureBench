@@ -27,6 +27,14 @@ public class FileEncoderDecoder {
     private final Logger log = Logger.getLogger(FileEncoderDecoder.class.getName());
     private final int totalSize;
 
+    // Field used in decode/encode methods, declared globally for better performance
+    private final List<Integer> erasedBlocksIndices;
+    private final Set<String> availableBlocksKeys;
+    private final int[] stripeBuffer;
+    private final int[] parityBuffer;
+    private final List<Future<Boolean>> blockKeysFutures;
+    private final int[] dataBuffer;
+
     private enum Modes {
         READ_FILE, WRITE_FILE
     }
@@ -43,6 +51,13 @@ public class FileEncoderDecoder {
         // Only works with bytes
         assert(erasureCode.symbolSize() == 8);
         totalSize = erasureCode.stripeSize() + erasureCode.paritySize();
+
+        erasedBlocksIndices = new ArrayList<>();
+        availableBlocksKeys = new HashSet<>();
+        stripeBuffer = new int[erasureCode.stripeSize()];
+        parityBuffer = new int[erasureCode.paritySize()];
+        blockKeysFutures = new ArrayList<>(totalSize);
+        dataBuffer = new int[totalSize];
     }
 
     /**
@@ -110,7 +125,7 @@ public class FileEncoderDecoder {
 
     /**
      * Truncate the size of a given file to a given size
-     * @param path String uniquely identifying a file
+     * @param filepath String uniquely identifying a file
      * @param size The new size of the file
      */
     public void truncate(final String filepath, final int size) {
@@ -156,8 +171,8 @@ public class FileEncoderDecoder {
     }
 
     private void readPart(List<String> blockKeys, ByteBuffer outBuffer, int size, int offset) throws TooManyErasedLocations {
-        List<Integer> erasedBlocksIndices = new ArrayList<>();
-        Set<String> availableBlocksKeys = new HashSet<>();
+        availableBlocksKeys.clear();
+        erasedBlocksIndices.clear();
 
         final Iterator<Future<Boolean>> blocksAvailableIterator = blockKeys.stream().map(storageBackend::isBlockAvailableAsync).iterator();
         for (int i = 0; i < totalSize; i++) {
@@ -183,10 +198,7 @@ public class FileEncoderDecoder {
     }
 
     private void writePart(List<String> blockKeys, ByteBuffer fileBuffer, int size, int offset) {
-        int[] stripeBuffer = new int[erasureCode.stripeSize()];
-        int[] parityBuffer = new int[erasureCode.paritySize()];
-
-        final List<Future<Boolean>> blockKeysFutures = new ArrayList<>(totalSize);
+        blockKeysFutures.clear();
 
         for (int i = 0; i < erasureCode.stripeSize(); i++) {
             if (i < offset || i >= offset + size) { // Restore existing data
@@ -231,7 +243,6 @@ public class FileEncoderDecoder {
         final List<Integer> toReadForDecode = erasureCode.locationsToReadForDecode(erasedIndices);
         toReadForDecode.sort(null);
 
-        final int[] dataBuffer = new int[totalSize];
         toReadForDecode.stream().forEach(index -> {
             final String key = blockKeys.get(index);
             try {
