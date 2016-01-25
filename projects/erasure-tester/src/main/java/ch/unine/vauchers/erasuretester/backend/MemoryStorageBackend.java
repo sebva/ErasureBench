@@ -11,7 +11,7 @@ import java.util.concurrent.Future;
  * Asynchronous operations are done synchronously.
  */
 public class MemoryStorageBackend extends StorageBackend {
-    protected Map<String, Integer> blocksStorage;
+    protected Map<Long, Integer> blocksStorage;
     protected Map<String, FileMetadata> metadataStorage;
 
     public MemoryStorageBackend() {
@@ -30,35 +30,35 @@ public class MemoryStorageBackend extends StorageBackend {
     }
 
     @Override
-    public Optional<Integer> retrieveBlock(@NotNull String key) {
+    public Optional<Integer> retrieveBlock(long key) {
         return Optional.ofNullable(blocksStorage.get(key));
     }
 
     @Override
-    public Future<Integer> retrieveBlockAsync(@NotNull String key) {
+    public Future<Integer> retrieveBlockAsync(long key) {
         return CompletableFuture.completedFuture(retrieveBlock(key).get());
     }
 
     @Override
-    public Future<Map<String, Integer>> retrieveAllBlocksAsync(@NotNull Set<String> keys) {
-        Map<String, Integer> ret = new HashMap<>(keys.size());
+    public Future<Map<Long, Integer>> retrieveAllBlocksAsync(@NotNull Set<Long> keys) {
+        Map<Long, Integer> ret = new HashMap<>(keys.size());
         keys.forEach(key -> retrieveBlock(key).ifPresent((value) -> ret.put(key, value)));
         return CompletableFuture.completedFuture(ret);
     }
 
     @Override
-    public void storeBlock(@NotNull String key, int blockData) {
+    public void storeBlock(long key, int blockData) {
         blocksStorage.put(key, blockData);
     }
 
     @Override
-    public Future<Boolean> storeBlockAsync(@NotNull String key, int blockData) {
+    public Future<Boolean> storeBlockAsync(long key, int blockData) {
         storeBlock(key, blockData);
         return CompletableFuture.completedFuture(true);
     }
 
     @Override
-    public Future<Boolean> isBlockAvailableAsync(@NotNull String key) {
+    public Future<Boolean> isBlockAvailableAsync(long key) {
         return CompletableFuture.completedFuture(blocksStorage.containsKey(key));
     }
 

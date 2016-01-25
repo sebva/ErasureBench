@@ -57,27 +57,27 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     @Test
     public void testBulkRetrieveAsync() throws ExecutionException, InterruptedException {
         final Random rnd = new Random();
-        Map<String, Integer> expected = new HashMap<>();
+        Map<Long, Integer> expected = new HashMap<>();
         int[] values = {42, -122, 64, 144, 0, 1, -1};
 
-        Arrays.stream(values).forEach(value -> expected.put(new BigInteger(40, rnd).toString(256), value));
+        Arrays.stream(values).forEach(value -> expected.put(new BigInteger(40, rnd).longValue(), value));
 
         expected.forEach(sut::storeBlock);
 
-        final Map<String, Integer> actual = sut.retrieveAllBlocksAsync(expected.keySet()).get();
+        final Map<Long, Integer> actual = sut.retrieveAllBlocksAsync(expected.keySet()).get();
 
         expected.forEach((key, value) -> assertEquals(value, actual.get(key)));
     }
 
     @Test
     public void testAbsentKey() throws ExecutionException, InterruptedException {
-        assertFalse(sut.isBlockAvailableAsync("thisKeyDoesNotExist").get());
+        assertFalse(sut.isBlockAvailableAsync(32134214L).get());
     }
 
-    private static void testReadWrite(BiConsumer<String, Integer> storeFunction, Function<String, Integer> retrieveFunction) {
+    private static void testReadWrite(BiConsumer<Long, Integer> storeFunction, Function<Long, Integer> retrieveFunction) {
         final Random rnd = new Random();
-        String key1 = new BigInteger(40, rnd).toString(256);
-        String key2 = new BigInteger(40, rnd).toString(256);
+        long key1 = new BigInteger(40, rnd).longValue();
+        long key2 = new BigInteger(40, rnd).longValue();
 
         int value1 = 42;
         int value2 = -122;

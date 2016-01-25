@@ -41,23 +41,23 @@ public class RedisStorageBackend extends MemoryStorageBackend {
     }
 
     @Override
-    public Future<Integer> retrieveBlockAsync(@NotNull String key) {
-        return ((RMap<String, Integer>)blocksStorage).getAsync(key);
+    public Future<Integer> retrieveBlockAsync(long key) {
+        return ((RMap<Long, Integer>)blocksStorage).getAsync(key);
     }
 
     @Override
-    public Future<Map<String, Integer>> retrieveAllBlocksAsync(@NotNull Set<String> keys) {
-        return ((RMap<String, Integer>)blocksStorage).getAllAsync(keys);
+    public Future<Map<Long, Integer>> retrieveAllBlocksAsync(@NotNull Set<Long> keys) {
+        return ((RMap<Long, Integer>)blocksStorage).getAllAsync(keys);
     }
 
     @Override
-    public Future<Boolean> storeBlockAsync(@NotNull String key, int blockData) {
-        return ((RMap<String, Integer>)blocksStorage).fastPutAsync(key, blockData);
+    public Future<Boolean> storeBlockAsync(long key, int blockData) {
+        return ((RMap<Long, Integer>)blocksStorage).fastPutAsync(key, blockData);
     }
 
     @Override
-    public Future<Boolean> isBlockAvailableAsync(@NotNull String key) {
-        return ((RMap<String, Integer>)blocksStorage).containsKeyAsync(key);
+    public Future<Boolean> isBlockAvailableAsync(long key) {
+        return ((RMap<Long, Integer>)blocksStorage).containsKeyAsync(key);
     }
 
     @Override
