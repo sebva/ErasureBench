@@ -16,4 +16,5 @@ echo yes | ruby ./redis-trib.rb fix ${master_ip}:6379 > /dev/null
 
 sleep 3 # Let the cluster transition to state 'ok'
 
-REDIS_ADDRESS=${master_ip}:6379 java -cp '*' ch.unine.vauchers.erasuretester.Main /mnt/erasure
+echo Starting Java program...
+REDIS_ADDRESS=${master_ip}:6379 exec java -cp '*' ch.unine.vauchers.erasuretester.Main /mnt/erasure

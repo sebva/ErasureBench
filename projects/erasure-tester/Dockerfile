@@ -16,4 +16,4 @@ WORKDIR /opt/erasuretester
 
 EXPOSE 111/udp 2049/tcp
 
-CMD /opt/erasuretester/container_start_script.sh
+CMD ["/opt/erasuretester/container_start_script.sh"]
