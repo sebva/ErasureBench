@@ -1,0 +1,37 @@
+group 'ch.unine.vauchers'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'me.champeau.gradle.jmh'
+
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
+repositories {
+    mavenCentral()
+}
+
+jmh {
+    jmhVersion =  '1.11.3'
+    batchSize = 1 // Batch size: number of benchmark method calls per operation. (some benchmark modes can ignore this setting)
+    fork = 0 // How many times to forks a single benchmark. Use 0 to disable forking altogether
+    iterations = 5
+    operationsPerInvocation = 1 // Operations per invocation.
+    threads = 1
+    timeOnIteration = '10s' // Time to spend at each measurement iteration.
+    timeUnit = 'ms' // Output time unit. Available time units are: [m, s, ms, us, ns].
+    verbosity = 'NORMAL' // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
+    warmup = '1s' // Time to spend at each warmup iteration.
+    warmupBatchSize = 1 // Warmup batch size: number of benchmark method calls per operation.
+    warmupForks = 0 // How many warmup forks to make for a single benchmark. 0 to disable warmup forks.
+    warmupIterations = 2 // Number of warmup iterations to do.
+}
+
+dependencies {
+    jmh 'org.jetbrains:annotations:15.0'
+    jmh 'org.redisson:redisson:2.2.5'
+    jmh 'redis.clients:jedis:2.7.2'
+    jmh 'biz.paluch.redis:lettuce:4.0.2.Final'
+    jmh 'org.slf4j:slf4j-simple:1.7.13'
+}
