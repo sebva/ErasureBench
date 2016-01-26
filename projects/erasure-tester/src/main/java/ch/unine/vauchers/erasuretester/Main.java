@@ -17,7 +17,7 @@ public class Main {
 
     public static void main(String[] argv) throws FuseException {
         // Disable logging completely for faster performance
-        // Utils.disableLogging();
+        Utils.disableLogging();
 
         ErasureCode erasureCode = new NullErasureCode(10);
         StorageBackend storageBackend = new JedisStorageBackend();

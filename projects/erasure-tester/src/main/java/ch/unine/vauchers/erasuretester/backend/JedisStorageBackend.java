@@ -8,9 +8,11 @@ import redis.clients.jedis.JedisCommands;
 
 import java.io.Closeable;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
 /**
@@ -21,10 +23,9 @@ import java.util.stream.Stream;
  */
 public class JedisStorageBackend extends StorageBackend {
     private static final String BLOCKS_PREFIX = "erasure-tester-blocks/";
-    private static final String METADATA_BLOCKS_KEY = "erasure-tester-metadata-blocks/";
-    private static final String METADATA_SIZE_KEY = "erasure-tester-metadata-size/";
 
-    private JedisCommands redis;
+    private final JedisCommands redis;
+    private final Map<String, FileMetadata> metadataMap;
 
     public JedisStorageBackend() {
         final String redis_address = System.getenv("REDIS_ADDRESS");
@@ -36,28 +37,17 @@ public class JedisStorageBackend extends StorageBackend {
             Set<HostAndPort> node = Stream.of(new HostAndPort(split[0], Integer.parseInt(split[1]))).collect(Collectors.toSet());
             redis = new JedisCluster(node);
         }
+        metadataMap = new HashMap<>();
     }
 
     @Override
     public Optional<FileMetadata> getFileMetadata(@NotNull String path) {
-        String blockKeysKey = METADATA_BLOCKS_KEY.concat(path);
-        long blockKeysSize = redis.llen(blockKeysKey);
-        int fileSize = Integer.parseInt(Optional.ofNullable(redis.get(METADATA_SIZE_KEY.concat(path))).orElse("0"));
-        final List<Long> blockKeys = LongStream.range(0, blockKeysSize).map(
-                (i) -> Long.parseLong(redis.lpop(blockKeysKey))).boxed().collect(Collectors.toList());
-
-        return Optional.of(new FileMetadata().setBlockKeys(blockKeys).setContentsSize(fileSize));
+        return Optional.ofNullable(metadataMap.get(path));
     }
 
     @Override
     public void setFileMetadata(@NotNull String path, @NotNull FileMetadata metadata) {
-        redis.set(METADATA_SIZE_KEY.concat(path), String.valueOf(metadata.getContentsSize()));
-        final String blocks_key = METADATA_BLOCKS_KEY.concat(path);
-        if (redis.llen(blocks_key) > 0) {
-            redis.ltrim(blocks_key, 0, 0);
-        }
-        List<Long> blockKeys = metadata.getBlockKeys().orElseGet(Collections::<Long>emptyList);
-        redis.rpush(blocks_key, blockKeys.stream().map(String::valueOf).toArray(String[]::new));
+        metadataMap.put(path, metadata);
     }
 
     @Override
