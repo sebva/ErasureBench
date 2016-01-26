@@ -1,3 +1,4 @@
 rootProject.name = 'erasure-tester'
 include 'redis-cluster'
 include 'benchmark'
+include 'redis-libs-benchmark'
