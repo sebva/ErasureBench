@@ -8,10 +8,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -29,11 +25,10 @@ public class FileEncoderDecoder {
 
     // Field used in decode/encode methods, declared globally for better performance
     private final List<Integer> erasedBlocksIndices;
-    private final Set<String> availableBlocksKeys;
     private final int[] stripeBuffer;
     private final int[] parityBuffer;
-    private final List<Future<Boolean>> blockKeysFutures;
     private final int[] dataBuffer;
+    private long keyCounter = 0L;
 
     private enum Modes {
         READ_FILE, WRITE_FILE
@@ -53,10 +48,8 @@ public class FileEncoderDecoder {
         totalSize = erasureCode.stripeSize() + erasureCode.paritySize();
 
         erasedBlocksIndices = new ArrayList<>();
-        availableBlocksKeys = new HashSet<>();
         stripeBuffer = new int[erasureCode.stripeSize()];
         parityBuffer = new int[erasureCode.paritySize()];
-        blockKeysFutures = new ArrayList<>(totalSize);
         dataBuffer = new int[totalSize];
     }
 
@@ -79,7 +72,7 @@ public class FileEncoderDecoder {
         if (contentsSize <= 0) {
             return;
         }
-        final List<String> allBlockKeys = metadata.getBlockKeys().get();
+        final List<Long> allBlockKeys = metadata.getBlockKeys().get();
 
         iterate(contentsSize, offset, outBuffer, allBlockKeys, Modes.READ_FILE);
     }
@@ -98,11 +91,11 @@ public class FileEncoderDecoder {
         final int iterationSize = Math.min(contents.limit(), size);
         final int contentsSize = Math.max(iterationSize + offset, metadata.getContentsSize());
         metadata.setContentsSize(contentsSize);
-        List<String> blockKeys = metadata.getBlockKeys().orElseGet(() -> new ArrayList<>(contentsSize));
+        List<Long> blockKeys = metadata.getBlockKeys().orElseGet(() -> new ArrayList<>(contentsSize));
 
         final int nextBoundary = nextBoundary(contentsSize);
         if (blockKeys.size() < nextBoundary) {
-            final List<String> oldBlockKeys = blockKeys;
+            final List<Long> oldBlockKeys = blockKeys;
             blockKeys = new ArrayList<>(nextBoundary);
             blockKeys.addAll(oldBlockKeys);
         }
@@ -142,7 +135,7 @@ public class FileEncoderDecoder {
         });
     }
 
-    private void iterate(int size, int offset, ByteBuffer fileBuffer, List<String> blockKeys, Modes mode) throws TooManyErasedLocations {
+    private void iterate(int size, int offset, ByteBuffer fileBuffer, List<Long> blockKeys, Modes mode) throws TooManyErasedLocations {
         final int firstLowerBoundary = previousBoundary(offset);
         final int lastLowerBoundary = previousBoundary(offset + size);
         final int blocksToDiscardBeginning = lowerBytesToDrop(offset);
@@ -166,7 +159,7 @@ public class FileEncoderDecoder {
             if (i < lastLowerBoundary) {
                 fileBuffer.position(fileBuffer.position() + sizePart);
             }
-            final List<String> keysSublist = blockKeys.subList(i, i + totalSize);
+            final List<Long> keysSublist = blockKeys.subList(i, i + totalSize);
             if (mode == Modes.READ_FILE) {
                 readPart(keysSublist, buffer, sizePart, offsetPart);
             } else if (mode == Modes.WRITE_FILE) {
@@ -175,39 +168,25 @@ public class FileEncoderDecoder {
         }
     }
 
-    private void readPart(List<String> blockKeys, ByteBuffer outBuffer, int size, int offset) throws TooManyErasedLocations {
-        availableBlocksKeys.clear();
+    private void readPart(List<Long> blockKeys, ByteBuffer outBuffer, int size, int offset) throws TooManyErasedLocations {
         erasedBlocksIndices.clear();
 
-        final Iterator<Future<Boolean>> blocksAvailableIterator = blockKeys.stream().map(storageBackend::isBlockAvailableAsync).iterator();
+        final Iterator<Boolean> blocksAvailableIterator = blockKeys.stream().map(storageBackend::isBlockAvailable).iterator();
         for (int i = 0; i < totalSize; i++) {
-            try {
-                if (blocksAvailableIterator.next().get()) {
-                    availableBlocksKeys.add(blockKeys.get(i));
-                } else {
-                    erasedBlocksIndices.add(i);
-                }
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+            if (!blocksAvailableIterator.next()) {
                 erasedBlocksIndices.add(i);
             }
         }
 
-        /* We can end up loading more blocks than necessary
-           TODO Only load blocks that are really needed */
-        final Future<Map<String, Integer>> blocks = storageBackend.retrieveAllBlocksAsync(availableBlocksKeys);
-
-        final Stream<Byte> partData = decodeFileData(blockKeys, blocks, erasedBlocksIndices);
+        final Stream<Byte> partData = decodeFileData(blockKeys, erasedBlocksIndices);
 
         partData.skip(offset).limit(size).forEach(outBuffer::put);
     }
 
-    private void writePart(List<String> blockKeys, ByteBuffer fileBuffer, int size, int offset) {
-        blockKeysFutures.clear();
-
+    private void writePart(List<Long> blockKeys, ByteBuffer fileBuffer, int size, int offset) {
         for (int i = 0; i < erasureCode.stripeSize(); i++) {
             if (i < offset || i >= offset + size) { // Restore existing data
-                final String key = blockKeys.get(i + erasureCode.paritySize());
+                final Long key = blockKeys.get(i + erasureCode.paritySize());
                 if (key != null) {
                     stripeBuffer[i] = storageBackend.retrieveBlock(key).orElse(0);
                 } else {
@@ -221,40 +200,28 @@ public class FileEncoderDecoder {
         erasureCode.encode(stripeBuffer, parityBuffer);
 
         for (int i = 0; i < erasureCode.paritySize(); i++) {
-            String key = generateKey();
-            blockKeysFutures.add(storageBackend.storeBlockAsync(key, parityBuffer[i]));
+            long key = generateKey();
+            storageBackend.storeBlock(key, parityBuffer[i]);
             blockKeys.set(i, key);
         }
         for (int i = 0; i < erasureCode.stripeSize(); i++) {
-            String key = generateKey();
-            blockKeysFutures.add(storageBackend.storeBlockAsync(key, stripeBuffer[i]));
+            long key = generateKey();
+            storageBackend.storeBlock(key, stripeBuffer[i]);
             blockKeys.set(i + erasureCode.paritySize(), key);
         }
-
-        blockKeysFutures.forEach((booleanFuture) -> {
-            try {
-                booleanFuture.get(2, TimeUnit.SECONDS);
-            } catch (InterruptedException | ExecutionException | TimeoutException e) {
-                e.printStackTrace();
-            }
-        });
     }
 
-    private String generateKey() {
-        return UUID.randomUUID().toString();
+    private long generateKey() {
+        return keyCounter++;
     }
 
-    private Stream<Byte> decodeFileData(List<String> blockKeys, Future<Map<String, Integer>> blocksFuture, List<Integer> erasedIndices) throws TooManyErasedLocations {
+    private Stream<Byte> decodeFileData(List<Long> blockKeys, List<Integer> erasedIndices) throws TooManyErasedLocations {
         final List<Integer> toReadForDecode = erasureCode.locationsToReadForDecode(erasedIndices);
         toReadForDecode.sort(null);
 
         toReadForDecode.stream().forEach(index -> {
-            final String key = blockKeys.get(index);
-            try {
-                dataBuffer[index] = blocksFuture.get().get(key);
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+            final Long key = blockKeys.get(index);
+            dataBuffer[index] = storageBackend.retrieveBlock(key).orElse(0);
         });
 
         final int[] recoveredValues = new int[erasedIndices.size()];

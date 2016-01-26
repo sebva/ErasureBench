@@ -5,15 +5,16 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigInteger;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.fail;
 
 public abstract class StorageBackendTest<T extends StorageBackend> {
     private T sut;
@@ -36,48 +37,14 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     }
 
     @Test
-    public void testReadWriteAsync() {
-        testReadWrite((key, blockData) -> {
-            final Future<Boolean> future = sut.storeBlockAsync(key, blockData);
-            try {
-                future.get();
-            } catch (InterruptedException | ExecutionException e) {
-                fail(e.getMessage());
-            }
-        }, (key) -> {
-            try {
-                return sut.retrieveBlockAsync(key).get();
-            } catch (InterruptedException | ExecutionException e) {
-                fail(e.getMessage());
-                return null;
-            }
-        });
-    }
-
-    @Test
-    public void testBulkRetrieveAsync() throws ExecutionException, InterruptedException {
-        final Random rnd = new Random();
-        Map<String, Integer> expected = new HashMap<>();
-        int[] values = {42, -122, 64, 144, 0, 1, -1};
-
-        Arrays.stream(values).forEach(value -> expected.put(new BigInteger(40, rnd).toString(256), value));
-
-        expected.forEach(sut::storeBlock);
-
-        final Map<String, Integer> actual = sut.retrieveAllBlocksAsync(expected.keySet()).get();
-
-        expected.forEach((key, value) -> assertEquals(value, actual.get(key)));
-    }
-
-    @Test
     public void testAbsentKey() throws ExecutionException, InterruptedException {
-        assertFalse(sut.isBlockAvailableAsync("thisKeyDoesNotExist").get());
+        assertFalse(sut.isBlockAvailable(32432134214L));
     }
 
-    private static void testReadWrite(BiConsumer<String, Integer> storeFunction, Function<String, Integer> retrieveFunction) {
+    private static void testReadWrite(BiConsumer<Long, Integer> storeFunction, Function<Long, Integer> retrieveFunction) {
         final Random rnd = new Random();
-        String key1 = new BigInteger(40, rnd).toString(256);
-        String key2 = new BigInteger(40, rnd).toString(256);
+        long key1 = new BigInteger(40, rnd).longValue();
+        long key2 = new BigInteger(40, rnd).longValue();
 
         int value1 = 42;
         int value2 = -122;
@@ -90,5 +57,31 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
 
         storeFunction.accept(key1, value2);
         assertEquals(value2, (int) retrieveFunction.apply(key1));
+    }
+
+    @Test
+    public void testFileMetadataStorage() {
+        FileMetadata expected = new FileMetadata();
+        List<Long> blockKeys = new ArrayList<>(30);
+        for (int i = 0; i < 30; i++) {
+            blockKeys.add((long) (Math.random() * (double) Long.MAX_VALUE));
+        }
+
+        expected.setContentsSize(291643824);
+        expected.setBlockKeys(blockKeys);
+        sut.setFileMetadata("somewhere", expected);
+
+        FileMetadata actual = sut.getFileMetadata("somewhere").get();
+        assertEquals(291643824, actual.getContentsSize());
+
+        final Iterator<Long> iterator1 = blockKeys.iterator();
+        final List<Long> actualBlocks = actual.getBlockKeys().get();
+        final Iterator<Long> iterator2 = actualBlocks.iterator();
+
+        while (iterator1.hasNext() && iterator2.hasNext()) {
+            assertEquals(iterator1.next(), iterator2.next());
+        }
+
+        assertEquals(blockKeys.size(), actualBlocks.size());
     }
 }

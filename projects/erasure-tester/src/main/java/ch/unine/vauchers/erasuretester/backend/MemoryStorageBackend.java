@@ -2,16 +2,16 @@ package ch.unine.vauchers.erasuretester.backend;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Storage backend implementation backed by a plain old Java Map object.
  * Asynchronous operations are done synchronously.
  */
 public class MemoryStorageBackend extends StorageBackend {
-    protected Map<String, Integer> blocksStorage;
+    protected Map<Long, Integer> blocksStorage;
     protected Map<String, FileMetadata> metadataStorage;
 
     public MemoryStorageBackend() {
@@ -30,36 +30,18 @@ public class MemoryStorageBackend extends StorageBackend {
     }
 
     @Override
-    public Optional<Integer> retrieveBlock(@NotNull String key) {
+    public Optional<Integer> retrieveBlock(long key) {
         return Optional.ofNullable(blocksStorage.get(key));
     }
 
     @Override
-    public Future<Integer> retrieveBlockAsync(@NotNull String key) {
-        return CompletableFuture.completedFuture(retrieveBlock(key).get());
-    }
-
-    @Override
-    public Future<Map<String, Integer>> retrieveAllBlocksAsync(@NotNull Set<String> keys) {
-        Map<String, Integer> ret = new HashMap<>(keys.size());
-        keys.forEach(key -> retrieveBlock(key).ifPresent((value) -> ret.put(key, value)));
-        return CompletableFuture.completedFuture(ret);
-    }
-
-    @Override
-    public void storeBlock(@NotNull String key, int blockData) {
+    public void storeBlock(long key, int blockData) {
         blocksStorage.put(key, blockData);
     }
 
     @Override
-    public Future<Boolean> storeBlockAsync(@NotNull String key, int blockData) {
-        storeBlock(key, blockData);
-        return CompletableFuture.completedFuture(true);
-    }
-
-    @Override
-    public Future<Boolean> isBlockAvailableAsync(@NotNull String key) {
-        return CompletableFuture.completedFuture(blocksStorage.containsKey(key));
+    public boolean isBlockAvailable(long key) {
+        return blocksStorage.containsKey(key);
     }
 
     @Override

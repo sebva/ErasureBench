@@ -13,16 +13,16 @@ public abstract class StorageBackendBenchmark {
 
     @Setup
     public void setup() {
-        sut.storeBlock("key", 42);
+        sut.storeBlock(32956438563L, 42);
     }
 
     @Benchmark
     public void storeSync() {
-        sut.storeBlock("key", 42);
+        sut.storeBlock(32956438563L, 42);
     }
 
     @Benchmark
     public int retrieveSync() {
-        return sut.retrieveBlock("key").orElseThrow(() -> new RuntimeException("key not added during setup"));
+        return sut.retrieveBlock(32956438563L).orElseThrow(() -> new RuntimeException("key not added during setup"));
     }
 }

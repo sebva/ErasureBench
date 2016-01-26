@@ -15,7 +15,7 @@ public class FileMetadata {
      * <br/>
      * The last stripe can contain meaningless data blocks, to always have complete stripes with parity blocks.
      */
-    private List<String> blockKeys;
+    private List<Long> blockKeys;
     /**
      * Size of the real contents of the file.
      */
@@ -27,7 +27,7 @@ public class FileMetadata {
      * retrieved from the storage backend.
      * @return The list of block keys
      */
-    public @NotNull Optional<List<String>> getBlockKeys() {
+    public @NotNull Optional<List<Long>> getBlockKeys() {
         return Optional.ofNullable(blockKeys);
     }
 
@@ -36,7 +36,7 @@ public class FileMetadata {
      * @param blockKeys The new list of block keys
      * @return This object for call chaining
      */
-    public FileMetadata setBlockKeys(@NotNull List<String> blockKeys) {
+    public FileMetadata setBlockKeys(@NotNull List<Long> blockKeys) {
         this.blockKeys = blockKeys;
         return this;
     }
