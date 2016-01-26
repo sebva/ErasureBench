@@ -6,7 +6,7 @@ service nfs-kernel-server start
 
 echo Filesystem access using NFS at `ip -4 addr | grep inet | tail -n 1 | sed -r 's/.+inet ([0-9.]+).*/\1/g'`:/mnt/erasure
 
-sleep 20
+sleep 6
 
 master_ip=`grep erasuretester_redis-master_1 /etc/hosts | grep -Eo '[0-9.]{7,}' | head -n 1`
 echo Master is at ${master_ip}

@@ -61,3 +61,10 @@ $ sudo mount `docker inspect erasuretester_erasure_1 | grep IPAddress | grep -Eo
 $ sudo umount /mnt/my-mountpoint
 ```
 
+As an alternative to mounting the exposed filesystem in the host, a separate "benchmark" container containing benchmarks against the filesystem can be used.
+It can be launched similarly to the *run_in_docker.sh* script. The following will run the benchmarks along with all their dependencies:
+
+```
+$ cd projects/erasure-tester
+$ ./benchmark_in_docker.sh
+```
