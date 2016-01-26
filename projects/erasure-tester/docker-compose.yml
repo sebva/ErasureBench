@@ -11,3 +11,7 @@ erasure:
     - SYS_ADMIN
   devices:
     - "/dev/fuse"
+benchmark:
+  image: benchmark:latest
+  cap_add:
+    - SYS_ADMIN
