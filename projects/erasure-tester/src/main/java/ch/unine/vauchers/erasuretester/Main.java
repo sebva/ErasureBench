@@ -1,10 +1,10 @@
 package ch.unine.vauchers.erasuretester;
 
-import ch.unine.vauchers.erasuretester.backend.RedisStorageBackend;
+import ch.unine.vauchers.erasuretester.backend.JedisStorageBackend;
 import ch.unine.vauchers.erasuretester.backend.StorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.FileEncoderDecoder;
 import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
-import ch.unine.vauchers.erasuretester.erasure.codes.ReedSolomonCode;
+import ch.unine.vauchers.erasuretester.erasure.codes.NullErasureCode;
 import ch.unine.vauchers.erasuretester.frontend.FuseMemoryFrontend;
 import net.fusejna.FuseException;
 
@@ -19,8 +19,8 @@ public class Main {
         // Disable logging completely for faster performance
         // Utils.disableLogging();
 
-        ErasureCode erasureCode = new ReedSolomonCode(10, 4);
-        StorageBackend storageBackend = new RedisStorageBackend();
+        ErasureCode erasureCode = new NullErasureCode(10);
+        StorageBackend storageBackend = new JedisStorageBackend();
         FileEncoderDecoder encdec = new FileEncoderDecoder(erasureCode, storageBackend);
 
         final FuseMemoryFrontend fuse = new FuseMemoryFrontend(encdec, false);
