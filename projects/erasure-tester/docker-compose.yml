@@ -13,5 +13,7 @@ erasure:
     - "/dev/fuse"
 benchmark:
   image: benchmark:latest
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
   cap_add:
     - SYS_ADMIN

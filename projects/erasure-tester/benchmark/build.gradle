@@ -5,5 +5,5 @@ version '1.0-SNAPSHOT'
 
 docker {
     name 'benchmark'
-    files 'benchmark.sh'
+    files 'benchmark.sh', 'benchmark-client.py'
 }

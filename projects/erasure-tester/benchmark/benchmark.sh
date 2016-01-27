@@ -2,9 +2,10 @@
 
 rpcbind
 rpc.statd
-sleep 3
+sleep 10
+echo Mounting NFS filesystem...
 mount -a
 sleep 2
 
-echo Writing 40 kB using dd
-dd if=/dev/zero of=/mnt/erasure/file bs=4096 count=10
+echo Starting Python client...
+exec python3 -u /opt/erasuretester/benchmark-client.py
