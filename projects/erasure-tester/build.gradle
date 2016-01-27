@@ -30,7 +30,7 @@ docker {
     name 'erasuretester'
     dependsOn tasks.mkdirLibs
     dependsOn tasks.shadowJar
-    files 'build/libs', 'container_start_script.sh', 'redis-cluster/redis-trib.rb'
+    files 'build/libs', 'container-scripts', 'redis-cluster/redis-trib.rb'
 }
 
 run {
