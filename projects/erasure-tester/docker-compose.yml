@@ -3,8 +3,6 @@ redis-master:
   volumes:
    - ./redis-cluster/redis.conf:/usr/local/etc/redis/redis.conf:ro
   command: redis-server /usr/local/etc/redis/redis.conf
-redis-slave:
-  image: redis-slave
 erasure:
   image: erasuretester:latest
   cap_add:

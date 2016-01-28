@@ -6,6 +6,8 @@ import subprocess
 import docker as dckr
 import signal
 from datetime import datetime
+
+import socket
 from time import sleep
 from benchmarks_impl import BenchmarksImpl
 
@@ -57,23 +59,23 @@ class Benchmarks:
             return True
 
         print("Trimming Redis to %d nodes" % cluster_size)
-        slaves = self.get_redis_slaves()
-        if len(slaves) + 1 < cluster_size:
+        nodes = self.get_redis_masters()
+        if len(nodes) < cluster_size:
             return False
-        while len(slaves) + 1 > cluster_size:
-            self.kill_a_redis_slave(slaves)
+        while len(nodes) > cluster_size:
+            self.kill_a_redis_node(nodes)
 
         self.fix_redis()
         return True
 
-    def get_redis_slaves(self):
+    def get_redis_masters(self):
         return [x['Id'] for x in self.docker.containers(filters={
             'status': 'running',
-            'label': 'com.docker.compose.service=redis-slave'
+            'label': 'com.docker.compose.service=redis-master'
         })]
 
-    def kill_a_redis_slave(self, slaves):
-        victim = slaves.pop()
+    def kill_a_redis_node(self, nodes):
+        victim = nodes.pop()
         self.docker.stop(victim)
 
     def restart(self, erasure, storage, stripe=None, parity=None, src=None, quiet=True):
@@ -135,7 +137,26 @@ def kill_pid(proc):
         os.kill(proc.pid, signal.SIGKILL)
         proc.wait()
 
+
+def start_redis_cluster():
+    args = ['ruby', 'redis-trib.rb', 'create']
+    try:
+        i = 1
+        while True:
+            redis_node = socket.getaddrinfo('erasuretester_redis-master_%d' % i, 6379, socket.AF_INET)[0][4]
+            args.append(':'.join(map(str, redis_node)))
+            i += 1
+    except socket.gaierror:
+        pass
+
+    redistrib = subprocess.Popen(args, stdin=subprocess.PIPE)
+    redistrib.communicate(b'yes\n')
+    redistrib.wait()
+
+
 if __name__ == '__main__':
+    print("Configuring Redis cluster")
+    start_redis_cluster()
     print("Python client ready, starting benchmarks")
     benchmarks = Benchmarks(dckr.Client('unix://var/run/docker.sock'), JavaProgram())
     benchmarks.run_benchmarks()
