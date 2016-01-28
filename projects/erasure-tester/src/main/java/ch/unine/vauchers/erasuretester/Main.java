@@ -104,7 +104,7 @@ public class Main {
 
         FileEncoderDecoder encdec = new FileEncoderDecoder(erasureCode, storageBackend);
 
-        final FuseMemoryFrontend fuse = new FuseMemoryFrontend(encdec, false);
+        final FuseMemoryFrontend fuse = new FuseMemoryFrontend(encdec, !namespace.getBoolean("quiet"));
         // Gracefully quit on Ctrl+C
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {

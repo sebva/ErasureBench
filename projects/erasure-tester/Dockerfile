@@ -9,6 +9,7 @@ RUN pip3 install docker-py
 RUN mkdir /mnt/erasure
 RUN echo "/mnt/erasure\t*(rw,fsid=0,no_subtree_check,no_root_squash)" > /etc/exports
 
+RUN mkdir -p /opt/erasuretester/results
 COPY *-all.jar /opt/erasuretester/
 COPY *.sh /opt/erasuretester/
 COPY *.py /opt/erasuretester/
