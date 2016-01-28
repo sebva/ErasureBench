@@ -1,9 +1,0 @@
-apply plugin: 'com.palantir.docker'
-
-group 'ch.unine.vauchers'
-version '1.0-SNAPSHOT'
-
-docker {
-    name 'benchmark'
-    files 'benchmark.sh'
-}

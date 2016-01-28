@@ -30,7 +30,7 @@ docker {
     name 'erasuretester'
     dependsOn tasks.mkdirLibs
     dependsOn tasks.shadowJar
-    files 'build/libs', 'container_start_script.sh', 'redis-cluster/redis-trib.rb'
+    files 'build/libs', 'container-scripts'
 }
 
 run {
@@ -62,5 +62,6 @@ dependencies {
     compile 'org.redisson:redisson:2.2.5'
     compile 'redis.clients:jedis:2.8.0'
     compile 'org.slf4j:slf4j-simple:1.7.13'
+    compile 'net.sourceforge.argparse4j:argparse4j:0.7.0'
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }

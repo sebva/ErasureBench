@@ -12,6 +12,12 @@ erasure:
   devices:
     - "/dev/fuse"
 benchmark:
-  image: benchmark:latest
+  image: erasuretester:latest
+  command: /opt/erasuretester/benchmark.sh
   cap_add:
     - SYS_ADMIN
+  devices:
+    - "/dev/fuse"
+  volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ./results:/opt/erasuretester/results
