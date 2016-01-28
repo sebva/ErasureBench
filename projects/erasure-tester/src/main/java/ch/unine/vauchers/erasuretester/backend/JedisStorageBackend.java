@@ -27,15 +27,21 @@ public class JedisStorageBackend extends StorageBackend {
     private final JedisCommands redis;
     private final Map<String, FileMetadata> metadataMap;
 
-    public JedisStorageBackend() {
+    public JedisStorageBackend(boolean is_cluster) {
         final String redis_address = System.getenv("REDIS_ADDRESS");
         if (redis_address == null) {
             redis = new Jedis();
         } else {
             System.out.println("Connecting to master at " + redis_address);
             final String[] split = redis_address.split(":");
-            Set<HostAndPort> node = Stream.of(new HostAndPort(split[0], Integer.parseInt(split[1]))).collect(Collectors.toSet());
-            redis = new JedisCluster(node);
+            final String host = split[0];
+            final int port = Integer.parseInt(split[1]);
+            if (is_cluster) {
+                Set<HostAndPort> node = Stream.of(new HostAndPort(host, port)).collect(Collectors.toSet());
+                redis = new JedisCluster(node);
+            } else {
+                redis = new Jedis(host, port);
+            }
         }
         metadataMap = new HashMap<>();
     }

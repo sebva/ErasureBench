@@ -19,8 +19,8 @@ class Benchmarks:
         self.docker = docker
         self.java = java
 
-        # Only 0 and the amount of Redis nodes configured in benchmark_in_docker.sh are allowed at the same time
-        self.redis_size = [5, 0]
+        # 2 is forbidden due to Redis limitation on Cluster size
+        self.redis_size = [5, 1, 0]
         self.erasure_codes = ['Null']
         self.stripe_sizes = [10]
         self.parity_sizes = [0]
@@ -39,7 +39,7 @@ class Benchmarks:
                             sb = 'Jedis' if rs > 0 else 'Memory'
                             config = (ec, rs, sb, ss, ps)
                             print("Running with " + str(config))
-                            self.restart(ec, sb, ss, ps)
+                            self.restart(*config)
                             for b in self.benches:
                                 self._run_benchmark(b, config)
             else:
@@ -55,7 +55,7 @@ class Benchmarks:
             json.dump(self.results, out, indent=4)
 
     def trim_redis(self, cluster_size):
-        if cluster_size <= 0:
+        if cluster_size <= 1:
             return True
 
         print("Trimming Redis to %d nodes" % cluster_size)
@@ -65,7 +65,6 @@ class Benchmarks:
         while len(nodes) > cluster_size:
             self.kill_a_redis_node(nodes)
 
-        self.fix_redis()
         return True
 
     def get_redis_masters(self):
@@ -78,7 +77,7 @@ class Benchmarks:
         victim = nodes.pop()
         self.docker.stop(victim)
 
-    def restart(self, erasure, storage, stripe=None, parity=None, src=None, quiet=True):
+    def restart(self, erasure, redis_size, storage, stripe=None, parity=None, src=None, quiet=True):
         if self.first:
             self.first = False
         else:
@@ -97,21 +96,18 @@ class Benchmarks:
             params += ['--parity', str(parity)]
         if src is not None:
             params += ['--src', str(src)]
+        if redis_size > 1:
+            params += ['--redis-cluster']
 
-        self.java.start(params)
-
-    @staticmethod
-    def fix_redis():
-        print("Fixing Redis after trim")
-        subprocess.call('echo yes | ruby ./redis-trib.rb fix %s' % os.environ['REDIS_ADDRESS'],
-                        shell=True, stdout=subprocess.DEVNULL)
+        env = {'REDIS_ADDRESS': get_redis_node_str(redis_size)}
+        self.java.start(params, env)
 
 
 class JavaProgram:
     java_with_args = "java -cp * ch.unine.vauchers.erasuretester.Main /mnt/erasure".split(' ')
 
-    def start(self, more_args):
-        self.proc = subprocess.Popen(self.java_with_args + more_args)
+    def start(self, more_args, env):
+        self.proc = subprocess.Popen(self.java_with_args + more_args, env=env)
         sleep(10)
 
     def kill(self):
@@ -140,21 +136,33 @@ def kill_pid(proc):
 
 def start_redis_cluster():
     args = ['ruby', 'redis-trib.rb', 'create']
-    try:
-        i = 1
-        while True:
-            redis_node = socket.getaddrinfo('erasuretester_redis-master_%d' % i, 6379, socket.AF_INET)[0][4]
-            args.append(':'.join(map(str, redis_node)))
-            i += 1
-    except socket.gaierror:
-        pass
+
+    args += [':'.join(map(str, x)) for x in get_redis_nodes()]
 
     redistrib = subprocess.Popen(args, stdin=subprocess.PIPE)
     redistrib.communicate(b'yes\n')
     redistrib.wait()
 
 
+def get_redis_nodes():
+    redis_nodes = []
+    try:
+        i = 1
+        while True:
+            redis_nodes.append(socket.getaddrinfo('erasuretester_redis-master_%d' % i, 6379, socket.AF_INET)[0][4])
+            i += 1
+    except socket.gaierror:
+        pass
+    return redis_nodes
+
+
+def get_redis_node_str(redis_size):
+    container_name = 'standalone' if redis_size <= 1 else 'master'
+    return ':'.join(map(str, socket.getaddrinfo('erasuretester_redis-%s_1' % container_name, 6379, socket.AF_INET)[0][4]))
+
+
 if __name__ == '__main__':
+    sleep(10)
     print("Configuring Redis cluster")
     start_redis_cluster()
     print("Python client ready, starting benchmarks")
