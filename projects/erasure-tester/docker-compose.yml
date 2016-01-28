@@ -19,5 +19,4 @@ benchmark:
   devices:
     - "/dev/fuse"
   volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
     - ./results:/opt/erasuretester/results

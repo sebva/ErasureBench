@@ -1,26 +1,24 @@
 #!/usr/bin/env python3
 import json
 import os
+import re
+import socket
 import subprocess
-
-import docker as dckr
-import signal
 from datetime import datetime
 
-import socket
-from time import sleep
+import signal
 from benchmarks_impl import BenchmarksImpl
+from time import sleep
 
 
 class Benchmarks:
     log_file_base = '/opt/erasuretester/results/result_'
 
-    def __init__(self, docker, java):
-        self.docker = docker
+    def __init__(self, java):
         self.java = java
 
         # 2 is forbidden due to Redis limitation on Cluster size
-        self.redis_size = [5, 1, 0]
+        self.redis_size = [5, 3, 1, 0]
         self.erasure_codes = ['Null']
         self.stripe_sizes = [10]
         self.parity_sizes = [0]
@@ -68,14 +66,41 @@ class Benchmarks:
         return True
 
     def get_redis_masters(self):
-        return [x['Id'] for x in self.docker.containers(filters={
-            'status': 'running',
-            'label': 'com.docker.compose.service=redis-master'
-        })]
+        nodes = [x.split(' ') for x in
+                 subprocess.check_output('redis-cli -h 172.18.0.2 CLUSTER NODES'.split(' ')).decode(
+                         'UTF-8').splitlines()]
+        return [{
+                    'id': x[0],
+                    'ip_port': x[1],
+                    'is_number_1': 'myself' in x[2]
+                } for x in nodes]
 
     def kill_a_redis_node(self, nodes):
-        victim = nodes.pop()
-        self.docker.stop(victim)
+        victim = None
+        nodes_iter = iter(nodes)
+        while victim is None:
+            victim = next(nodes_iter)
+            if victim['is_number_1']:
+                victim = None
+        nodes.remove(victim)
+
+        master_ip_port = [x['ip_port'] for x in nodes if x['is_number_1']][0]
+        info = subprocess.check_output(['ruby', 'redis-trib.rb', 'info', master_ip_port]).decode('UTF-8').splitlines()
+        slots_to_remove = int(
+                re.search(r'([0-9]+) slots', [x for x in info if x.startswith(victim['ip_port'])][0]).group(1))
+        slots_to_remove_per_node = int(slots_to_remove / len(nodes))
+        slots_to_remove -= slots_to_remove_per_node * len(nodes)
+
+        for node in nodes:
+            self.transfer_slots(victim['id'], node['id'], slots_to_remove_per_node, master_ip_port)
+        if slots_to_remove > 0:
+            self.transfer_slots(victim['id'], nodes[0]['id'], slots_to_remove, master_ip_port)
+
+        subprocess.check_call(['ruby', 'redis-trib.rb', 'del-node', master_ip_port, victim['id']])
+
+    def transfer_slots(self, from_id, to_id, amount, master_ip_port):
+        subprocess.check_call(('ruby redis-trib.rb reshard --from %s --to %s --slots %d --yes %s' % (
+            from_id, to_id, amount, master_ip_port)).split(' '), stdout=subprocess.DEVNULL)
 
     def restart(self, erasure, redis_size, storage, stripe=None, parity=None, src=None, quiet=True):
         if self.first:
@@ -158,7 +183,8 @@ def get_redis_nodes():
 
 def get_redis_node_str(redis_size):
     container_name = 'standalone' if redis_size <= 1 else 'master'
-    return ':'.join(map(str, socket.getaddrinfo('erasuretester_redis-%s_1' % container_name, 6379, socket.AF_INET)[0][4]))
+    return ':'.join(
+            map(str, socket.getaddrinfo('erasuretester_redis-%s_1' % container_name, 6379, socket.AF_INET)[0][4]))
 
 
 if __name__ == '__main__':
@@ -166,7 +192,7 @@ if __name__ == '__main__':
     print("Configuring Redis cluster")
     start_redis_cluster()
     print("Python client ready, starting benchmarks")
-    benchmarks = Benchmarks(dckr.Client('unix://var/run/docker.sock'), JavaProgram())
+    benchmarks = Benchmarks(JavaProgram())
     benchmarks.run_benchmarks()
     print("Benchmarks ended, saving results to JSON file")
     benchmarks.save_results_to_file()
