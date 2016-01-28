@@ -40,6 +40,8 @@ class Benchmarks:
                             self.restart(ec, sb, ss, ps)
                             for b in self.benches:
                                 self._run_benchmark(b, config)
+            else:
+                print("Cannot run benchmark on %d Redis nodes: not enough slaves" % rs)
 
     def _run_benchmark(self, bench, config):
         bench_name = bench.__name__
