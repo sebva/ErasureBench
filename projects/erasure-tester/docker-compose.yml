@@ -3,8 +3,8 @@ redis-master:
   volumes:
    - ./redis-cluster/redis.conf:/usr/local/etc/redis/redis.conf:ro
   command: redis-server /usr/local/etc/redis/redis.conf
-redis-slave:
-  image: redis-slave
+redis-standalone:
+  image: redis:3
 erasure:
   image: erasuretester:latest
   cap_add:
@@ -13,11 +13,10 @@ erasure:
     - "/dev/fuse"
 benchmark:
   image: erasuretester:latest
-  command: /opt/erasuretester/benchmark.sh
+  command: python3 -u /opt/erasuretester/benchmark.py
   cap_add:
     - SYS_ADMIN
   devices:
     - "/dev/fuse"
   volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
     - ./results:/opt/erasuretester/results

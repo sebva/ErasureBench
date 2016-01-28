@@ -46,6 +46,9 @@ public class Main {
                 .help("Parity size SRC, only used for Simple regenerating code")
                 .type(Integer.TYPE)
                 .setDefault(2);
+        parser.addArgument("--redis-cluster")
+                .help("Flag the Redis server in use as part of a cluster")
+                .action(Arguments.storeTrue());
         parser.addArgument("-q", "--quiet")
                 .help("Disable logging")
                 .action(Arguments.storeTrue());
@@ -95,7 +98,7 @@ public class Main {
                 storageBackend = new MemoryStorageBackend();
                 break;
             case "Jedis":
-                storageBackend = new JedisStorageBackend();
+                storageBackend = new JedisStorageBackend(namespace.getBoolean("redis_cluster"));
                 break;
             case "Redisson":
                 storageBackend = new RedissonStorageBackend();
