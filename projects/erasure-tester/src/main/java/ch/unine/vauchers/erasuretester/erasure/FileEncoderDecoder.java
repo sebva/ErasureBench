@@ -168,7 +168,7 @@ public class FileEncoderDecoder {
         }
     }
 
-    private void readPart(List<Long> blockKeys, ByteBuffer outBuffer, int size, int offset) throws TooManyErasedLocations {
+    private synchronized void readPart(List<Long> blockKeys, ByteBuffer outBuffer, int size, int offset) throws TooManyErasedLocations {
         erasedBlocksIndices.clear();
 
         final Iterator<Boolean> blocksAvailableIterator = blockKeys.stream().map(storageBackend::isBlockAvailable).iterator();
@@ -183,7 +183,7 @@ public class FileEncoderDecoder {
         partData.skip(offset).limit(size).forEach(outBuffer::put);
     }
 
-    private void writePart(List<Long> blockKeys, ByteBuffer fileBuffer, int size, int offset) {
+    private synchronized void writePart(List<Long> blockKeys, ByteBuffer fileBuffer, int size, int offset) {
         for (int i = 0; i < erasureCode.stripeSize(); i++) {
             if (i < offset || i >= offset + size) { // Restore existing data
                 final Long key = blockKeys.get(i + erasureCode.paritySize());
