@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 import random
+import re
 import string
 import subprocess
-
-import re
 
 
 class BenchmarksImpl:
@@ -16,14 +15,25 @@ class BenchmarksImpl:
         'name of metric 2': (9876, 'writes/s')
     }
     """
+
     def __init__(self, mountpoint):
         self.mount = mountpoint
 
     def generate_file_name(self):
         return self.mount + ''.join(random.choice(string.ascii_letters) for _ in range(12))
 
-    def bench_dd_write(self):
-        out = subprocess.check_output(("dd if=/dev/zero of=%s bs=4096 count=25" % self.generate_file_name())
-                                      .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
-        match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
-        return {'100 kB write (4k blocks)': (match.groups())}
+    def bench_dd(self):
+        results = {}
+        for count in range(25, 125, 25):
+            filename = self.generate_file_name()
+            out = subprocess.check_output(("dd if=/dev/zero of=%s bs=4kB count=%d" % (filename, count))
+                                                .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
+            match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
+            results['%d kB write (4k blocks)' % (count * 4)] = (match.groups())
+
+            out = subprocess.check_output(("dd if=%s of=/dev/null bs=4kB count=%d" % (filename, count))
+                                               .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
+            match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
+            results['%d kB read (4k blocks)' % (count * 4)] = (match.groups())
+
+        return results
