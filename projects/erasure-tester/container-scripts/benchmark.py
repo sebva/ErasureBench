@@ -52,7 +52,7 @@ class Benchmarks:
         with open(self.log_file_base + datetime.today().isoformat() + '.json', 'w') as out:
             json.dump(self.results, out, indent=4)
 
-    def trim_redis(self, cluster_size):
+    def trim_redis(self, cluster_size, brutal=False):
         if cluster_size <= 1:
             return True
 
@@ -61,7 +61,10 @@ class Benchmarks:
         if len(nodes) < cluster_size:
             return False
         while len(nodes) > cluster_size:
-            self.kill_a_redis_node(nodes)
+            if brutal:
+                self.kill_a_redis_node(nodes)
+            else:
+                self.remove_a_redis_node(nodes)
 
         return True
 
@@ -75,7 +78,7 @@ class Benchmarks:
                     'is_number_1': 'myself' in x[2]
                 } for x in nodes]
 
-    def kill_a_redis_node(self, nodes):
+    def elect_redis_victim(self, nodes):
         victim = None
         nodes_iter = iter(nodes)
         while victim is None:
@@ -83,7 +86,22 @@ class Benchmarks:
             if victim['is_number_1']:
                 victim = None
         nodes.remove(victim)
+        return victim
 
+    def kill_a_redis_node(self, nodes):
+        victim = self.elect_redis_victim(nodes)
+
+        # Brutally kill the node
+        subprocess.check_call(['redis-cli', '-h', victim['ip_port'].split(':')[0], 'SHUTDOWN'])
+        for node in nodes:
+            subprocess.check_call(['redis-cli', '-h', node['ip_port'].split(':')[0], 'CLUSTER', 'FORGET', victim['id']])
+
+        redistrib = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', nodes[0]['ip_port']], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
+        redistrib.communicate(b'yes\n')
+        redistrib.wait()
+
+    def remove_a_redis_node(self, nodes):
+        victim = self.elect_redis_victim(nodes)
         master_ip_port = [x['ip_port'] for x in nodes if x['is_number_1']][0]
         info = subprocess.check_output(['ruby', 'redis-trib.rb', 'info', master_ip_port]).decode('UTF-8').splitlines()
         slots_to_remove = int(
