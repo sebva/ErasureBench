@@ -46,7 +46,7 @@ class Benchmarks:
     def _run_benchmark(self, bench, config):
         bench_name = bench.__name__
         print("    " + bench_name)
-        self.results.setdefault(bench_name, {})[str(config)] = bench()
+        self.results.setdefault(bench_name, {})[str(config)] = bench(config)
 
     def save_results_to_file(self):
         with open(self.log_file_base + datetime.today().isoformat() + '.json', 'w') as out:
