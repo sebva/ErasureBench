@@ -192,7 +192,7 @@ public class FileEncoderDecoder {
                 } else {
                     stripeBuffer[i] = 0;
                 }
-            } else {
+            } else if (fileBuffer.hasRemaining()) {
                 stripeBuffer[i] = Byte.toUnsignedInt(fileBuffer.get());
             }
         }
