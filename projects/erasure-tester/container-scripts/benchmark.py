@@ -70,7 +70,7 @@ class Benchmarks:
 
     def get_redis_masters(self):
         nodes = [x.split(' ') for x in
-                 subprocess.check_output('redis-cli -h 172.18.0.2 CLUSTER NODES'.split(' ')).decode(
+                 subprocess.check_output('redis-cli -h erasuretester_redis-master_1 CLUSTER NODES'.split(' ')).decode(
                          'UTF-8').splitlines()]
         return [{
                     'id': x[0],
