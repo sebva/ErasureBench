@@ -3,7 +3,8 @@ FROM debian:jessie
 RUN echo 'deb http://mirror.switch.ch/ftp/mirror/debian/ jessie-backports main' >> /etc/apt/sources.list
 RUN apt-get -yqq update
 RUN apt-get -yqq dist-upgrade
-RUN apt-get -yqq install --no-install-recommends openjdk-8-jre-headless libfuse2 nfs-kernel-server ruby-redis python3-pip redis-tools
+RUN apt-get -yqq install --no-install-recommends openjdk-8-jre-headless libfuse2 nfs-kernel-server ruby-redis python3-pip redis-tools gnuplot5-nox
+RUN apt-get -yqq clean
 
 RUN mkdir /mnt/erasure
 RUN echo "/mnt/erasure\t*(rw,fsid=0,no_subtree_check,no_root_squash)" > /etc/exports
