@@ -8,6 +8,7 @@ from datetime import datetime
 
 import signal
 from benchmarks_impl import BenchmarksImpl
+from plot_results import main as output_plots
 from time import sleep
 
 
@@ -18,12 +19,13 @@ class Benchmarks:
         self.java = java
 
         # 2 is forbidden due to Redis limitation on Cluster size
-        self.redis_size = [5, 3, 1, 0]
-        self.erasure_codes = ['Null']
+        self.redis_size = [5, 4, 3, 1, 0]
+        self.erasure_codes = ['Null', 'ReedSolomon']
         self.stripe_sizes = [10]
-        self.parity_sizes = [0]
+        self.parity_sizes = [4]
         self.first = True
-        self.results = {}
+        self.results = []
+        self.log_file_base += datetime.today().isoformat()
 
         benchmarks_impl = BenchmarksImpl('/mnt/erasure/')
         self.benches = [getattr(benchmarks_impl, m) for m in dir(benchmarks_impl) if m.startswith('bench_')]
@@ -35,7 +37,7 @@ class Benchmarks:
                     for ss in self.stripe_sizes:
                         for ps in self.parity_sizes:
                             sb = 'Jedis' if rs > 0 else 'Memory'
-                            config = (ec, rs, sb, ss, ps)
+                            config = [ec, rs, sb, ss, ps]
                             print("Running with " + str(config))
                             self.restart(*config)
                             for b in self.benches:
@@ -46,10 +48,14 @@ class Benchmarks:
     def _run_benchmark(self, bench, config):
         bench_name = bench.__name__
         print("    " + bench_name)
-        self.results.setdefault(bench_name, {})[str(config)] = bench(config)
+        self.results.append({
+            'bench': bench_name,
+            'config': config,
+            'results': bench(config)
+        })
 
     def save_results_to_file(self):
-        with open(self.log_file_base + datetime.today().isoformat() + '.json', 'w') as out:
+        with open(self.log_file_base + '.json', 'w') as out:
             json.dump(self.results, out, indent=4)
 
     def trim_redis(self, cluster_size, brutal=False):
@@ -214,3 +220,4 @@ if __name__ == '__main__':
     benchmarks.run_benchmarks()
     print("Benchmarks ended, saving results to JSON file")
     benchmarks.save_results_to_file()
+    output_plots(benchmarks.log_file_base + '.pdf')

@@ -8,11 +8,14 @@ import subprocess
 class BenchmarksImpl:
     """
     Collection of benchmarks to run against the filesystem. Each method defined in this class will be executed as a
-    benchmark, provided that its name begins with bench_. Each method takes no parameters, and must return a dict. The
-    dict contains the results of the execution in the following format:
+    benchmark, provided that its name begins with bench_. Each method takes a single parameter in the form of a tuple.
+    It contains the configuration in which the test is running, like this:
+    (Erasure code name, Number of nodes in the Redis cluster, Storage backend name, Stripe size, Parity size)
+
+    Each bench_ method must return a dict formed like the following:
     {
-        'name of metric 1': (1234, 'kB/s'),
-        'name of metric 2': (9876, 'writes/s')
+        'name of metric 1': 1234,
+        'name of metric 2': 9876,
     }
     """
 
@@ -22,20 +25,34 @@ class BenchmarksImpl:
     def generate_file_name(self):
         return self.mount + ''.join(random.choice(string.ascii_letters) for _ in range(12))
 
-    def bench_dd(self, config):
-        results = {}
-        for count in range(25, 75, 25):
-            block_count = count * 20 if config[1] == 0 else count  # More data for the memory backend
+    @staticmethod
+    def _convert_to_kb(value, unit):
+        if unit.startswith('M'):
+            return float(value) * 1000.0
+        elif unit.startswith('k'):
+            return float(value)
+        else:
+            raise Exception('Unit not supported, please complete the _convert_to_kb method')
 
+    def bench_dd(self, config):
+        write_speed = read_speed = 0
+        count = 70
+        redis_size = config[1]
+        block_count = count * 10 if redis_size == 0 else count  # More data for the memory backend
+
+        for _ in range(3):
             filename = self.generate_file_name()
             out = subprocess.check_output(("dd if=/dev/zero of=%s bs=4kB count=%d" % (filename, block_count))
-                                                .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
+                                          .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
             match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
-            results['%d kB write (4k blocks)' % (block_count * 4)] = (match.groups())
+            write_speed = max(self._convert_to_kb(*match.groups()), write_speed)
 
             out = subprocess.check_output(("dd if=%s of=/dev/null bs=4kB count=%d" % (filename, block_count))
-                                               .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
+                                          .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
             match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
-            results['%d kB read (4k blocks)' % (block_count * 4)] = (match.groups())
+            read_speed = max(self._convert_to_kb(*match.groups()), read_speed)
 
-        return results
+        return {
+            'read': read_speed,
+            'write': write_speed
+        }
