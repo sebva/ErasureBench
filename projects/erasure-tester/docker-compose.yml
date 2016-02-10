@@ -1,12 +1,12 @@
 version: '2'
 services:
   redis-master:
-    image: redis:3
+    image: redis:alpine
     volumes:
      - ./redis-cluster/redis.conf:/usr/local/etc/redis/redis.conf:ro
     command: redis-server /usr/local/etc/redis/redis.conf
   redis-standalone:
-    image: redis:3
+    image: redis:alpine
   erasure:
     image: erasuretester:latest
     cap_add:
