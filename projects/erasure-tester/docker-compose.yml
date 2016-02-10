@@ -1,22 +1,24 @@
-redis-master:
-  image: redis:3
-  volumes:
-   - ./redis-cluster/redis.conf:/usr/local/etc/redis/redis.conf:ro
-  command: redis-server /usr/local/etc/redis/redis.conf
-redis-standalone:
-  image: redis:3
-erasure:
-  image: erasuretester:latest
-  cap_add:
-    - SYS_ADMIN
-  devices:
-    - "/dev/fuse"
-benchmark:
-  image: erasuretester:latest
-  command: python3 -u /opt/erasuretester/benchmark.py
-  cap_add:
-    - SYS_ADMIN
-  devices:
-    - "/dev/fuse"
-  volumes:
-    - ./results:/opt/erasuretester/results
+version: '2'
+services:
+  redis-master:
+    image: redis:3
+    volumes:
+     - ./redis-cluster/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+  redis-standalone:
+    image: redis:3
+  erasure:
+    image: erasuretester:latest
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - "/dev/fuse"
+  benchmark:
+    image: erasuretester:latest
+    command: python3 -u /opt/erasuretester/benchmark.py
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - "/dev/fuse"
+    volumes:
+      - ./results:/opt/erasuretester/results
