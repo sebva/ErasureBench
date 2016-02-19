@@ -73,7 +73,7 @@ public class JedisStorageBackend extends StorageBackend {
 
     @Override
     public boolean isBlockAvailable(long key) {
-        return redis.exists(String.valueOf(key));
+        return redis.exists(BLOCKS_PREFIX.concat(String.valueOf(key)));
     }
 
     @Override
