@@ -10,7 +10,7 @@ class BenchmarksImpl:
     Collection of benchmarks to run against the filesystem. Each method defined in this class will be executed as a
     benchmark, provided that its name begins with bench_. Each method takes a single parameter in the form of a tuple.
     It contains the configuration in which the test is running, like this:
-    (Erasure code name, Number of nodes in the Redis cluster, Storage backend name, Stripe size, Parity size)
+    (Erasure code name, Number of nodes in the Redis cluster, Storage backend name, Stripe size, Parity size, SRC size)
 
     Each bench_ method must return a dict formed like the following:
     {

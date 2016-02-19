@@ -20,9 +20,10 @@ class Benchmarks:
 
         # 2 is forbidden due to Redis limitation on Cluster size
         self.redis_size = [5, 4, 3, 1, 0]
-        self.erasure_codes = ['Null', 'ReedSolomon']
+        self.erasure_codes = ['Null', 'ReedSolomon', 'SimpleRegenerating']
         self.stripe_sizes = [10]
-        self.parity_sizes = [4]
+        self.parity_sizes = [2, 4, 6]
+        self.src_sizes = [5]
         self.first = True
         self.results = []
         self.log_file_base += datetime.today().isoformat()
@@ -36,12 +37,13 @@ class Benchmarks:
                 for ec in self.erasure_codes:
                     for ss in self.stripe_sizes:
                         for ps in self.parity_sizes:
-                            sb = 'Jedis' if rs > 0 else 'Memory'
-                            config = [ec, rs, sb, ss, ps]
-                            print("Running with " + str(config))
-                            self.restart(*config)
-                            for b in self.benches:
-                                self._run_benchmark(b, config)
+                            for src in self.src_sizes:
+                                sb = 'Jedis' if rs > 0 else 'Memory'
+                                config = [ec, rs, sb, ss, ps, src]
+                                print("Running with " + str(config))
+                                self.restart(*config)
+                                for b in self.benches:
+                                    self._run_benchmark(b, config)
             else:
                 print("Cannot run benchmark on %d Redis nodes: not enough slaves" % rs)
 
