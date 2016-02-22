@@ -57,22 +57,18 @@ public class JedisStorageBackend extends StorageBackend {
     }
 
     @Override
-    public Optional<Integer> retrieveBlock(long key) {
+    public Optional<String> retrieveAggregatedBlocks(long key) {
         final String value = redis.get(BLOCKS_PREFIX.concat(String.valueOf(key)));
-        if (value == null) {
-            return Optional.empty();
-        } else {
-            return Optional.of(Integer.parseInt(value));
-        }
+        return Optional.ofNullable(value);
     }
 
     @Override
-    public void storeBlock(long key, int blockData) {
-        redis.set(BLOCKS_PREFIX.concat(String.valueOf(key)), String.valueOf(blockData));
+    protected void storeAggregatedBlocks(long key, String blockData) {
+        redis.set(BLOCKS_PREFIX.concat(String.valueOf(key)), blockData);
     }
 
     @Override
-    public boolean isBlockAvailable(long key) {
+    public boolean isAggregatedBlockAvailable(long key) {
         return redis.exists(BLOCKS_PREFIX.concat(String.valueOf(key)));
     }
 

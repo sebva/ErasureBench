@@ -13,12 +13,12 @@ public abstract class StorageBackendBenchmark {
 
     @Setup
     public void setup() {
-        sut.storeBlock(32956438563L, 42);
+        sut.storeBlock(329564383, 42);
     }
 
     @Benchmark
     public void storeSync() {
-        sut.storeBlock(32956438563L, 42);
+        sut.storeBlock(329564383, 42);
     }
 
     @Benchmark
