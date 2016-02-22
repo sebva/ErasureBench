@@ -48,6 +48,7 @@ class Benchmarks:
                 print("Cannot run benchmark on %d Redis nodes: not enough slaves" % rs)
 
     def _run_benchmark(self, bench, config):
+        self.redis_flushall(config[1])
         bench_name = bench.__name__
         print("    " + bench_name)
         self.results.append({
@@ -95,6 +96,14 @@ class Benchmarks:
                 victim = None
         nodes.remove(victim)
         return victim
+
+    def redis_flushall(self, rs):
+        if rs == 1:
+            subprocess.check_call(['redis-cli', '-h', 'erasuretester_redis-standalone_1', 'FLUSHALL'])
+        elif rs >= 2:
+            nodes = self.get_redis_masters()
+            for node in nodes:
+                subprocess.check_call(['redis-cli', '-h', node['ip_port'].split(':')[0], 'FLUSHALL'])
 
     def kill_a_redis_node(self, nodes):
         victim = self.elect_redis_victim(nodes)
