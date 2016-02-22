@@ -54,16 +54,24 @@ public abstract class StorageBackend {
         long redisKey = key / BUFFER_SIZE;
         BlocksContainer container = readCache.get(redisKey);
         if (container == null) {
-            final Optional<String> optionalContainer = retrieveAggregatedBlocks(redisKey);
-            if (!optionalContainer.isPresent()) {
-                return Optional.empty();
-            } else {
-                container = BlocksContainer.fromString(optionalContainer.get());
-                readCache.put(redisKey, container);
-            }
+            container = fetchAndCache(redisKey);
         }
+        if (container != null) {
+            return Optional.of(container.get((int) (key % BUFFER_SIZE)));
+        } else {
+            return Optional.empty();
+        }
+    }
 
-        return Optional.of(container.get((int) (key % BUFFER_SIZE)));
+    private BlocksContainer fetchAndCache(long redisKey) {
+        final Optional<String> optionalContainer = retrieveAggregatedBlocks(redisKey);
+        if (!optionalContainer.isPresent()) {
+            return null;
+        } else {
+            BlocksContainer container = BlocksContainer.fromString(optionalContainer.get());
+            readCache.put(redisKey, container);
+            return container;
+        }
     }
 
     public abstract Optional<String> retrieveAggregatedBlocks(long key);
@@ -108,7 +116,8 @@ public abstract class StorageBackend {
      * @return A boolean that specifies whether the block is available
      */
     public boolean isBlockAvailable(long key) {
-        return isAggregatedBlockAvailable(key / BUFFER_SIZE);
+        long redisKey = key / BUFFER_SIZE;
+        return readCache.containsKey(redisKey) || fetchAndCache(redisKey) != null;
     }
 
     protected abstract boolean isAggregatedBlockAvailable(long key);
