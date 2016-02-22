@@ -36,18 +36,17 @@ class BenchmarksImpl:
 
     def bench_dd(self, config):
         write_speed = read_speed = 0
-        count = 70
+        block_count = 100
         redis_size = config[1]
-        block_count = count * 10 if redis_size == 0 else count  # More data for the memory backend
 
         for _ in range(3):
             filename = self.generate_file_name()
-            out = subprocess.check_output(("dd if=/dev/zero of=%s bs=4kB count=%d" % (filename, block_count))
+            out = subprocess.check_output(("dd if=/dev/zero of=%s bs=128kB count=%d" % (filename, block_count))
                                           .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
             match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
             write_speed = max(self._convert_to_kb(*match.groups()), write_speed)
 
-            out = subprocess.check_output(("dd if=%s of=/dev/null bs=4kB count=%d" % (filename, block_count))
+            out = subprocess.check_output(("dd if=%s of=/dev/null bs=128kB count=%d" % (filename, block_count))
                                           .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
             match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
             read_speed = max(self._convert_to_kb(*match.groups()), read_speed)

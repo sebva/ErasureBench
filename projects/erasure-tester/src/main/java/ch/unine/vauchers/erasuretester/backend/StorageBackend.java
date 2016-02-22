@@ -12,8 +12,8 @@ import java.util.Optional;
  * Remember to call disconnect() after usage.
  */
 public abstract class StorageBackend {
-    public static final int BUFFER_SIZE = 2000;
-    private static final int CACHE_SIZE = 10;
+    public static final int BUFFER_SIZE = 9363;
+    private static final int CACHE_SIZE = 50;
     private BlocksContainer[] writeBuffers;
     private LinkedHashMap<Long, BlocksContainer> readCache;
     private long[] counters;
