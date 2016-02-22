@@ -36,7 +36,7 @@ class BenchmarksImpl:
 
     def bench_dd(self, config):
         write_speed = read_speed = 0
-        block_count = 100
+        block_count = 50
         redis_size = config[1]
 
         for _ in range(3):
