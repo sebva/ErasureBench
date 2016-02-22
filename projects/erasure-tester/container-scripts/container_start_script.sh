@@ -9,4 +9,4 @@ echo Filesystem access using NFS at `ip -4 addr | grep inet | tail -n 1 | sed -r
 sleep 3
 
 echo Starting Java program...
-exec java -cp '*' ch.unine.vauchers.erasuretester.Main -s Memory /mnt/erasure
+exec java -cp '*' ch.unine.vauchers.erasuretester.Main -q -s Memory /mnt/erasure
