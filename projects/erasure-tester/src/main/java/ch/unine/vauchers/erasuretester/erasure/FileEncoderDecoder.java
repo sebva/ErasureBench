@@ -46,6 +46,7 @@ public class FileEncoderDecoder {
         // Only works with bytes
         assert(erasureCode.symbolSize() == 8);
         totalSize = erasureCode.stripeSize() + erasureCode.paritySize();
+        storageBackend.defineTotalSize(totalSize);
 
         erasedBlocksIndices = new ArrayList<>();
         stripeBuffer = new int[erasureCode.stripeSize()];
@@ -110,6 +111,7 @@ public class FileEncoderDecoder {
 
         metadata.setBlockKeys(blockKeys);
         storageBackend.setFileMetadata(path, metadata);
+        storageBackend.flushAll();
     }
 
     /**
@@ -200,13 +202,11 @@ public class FileEncoderDecoder {
         erasureCode.encode(stripeBuffer, parityBuffer);
 
         for (int i = 0; i < erasureCode.paritySize(); i++) {
-            long key = generateKey();
-            storageBackend.storeBlock(key, parityBuffer[i]);
+            long key = storageBackend.storeBlock(parityBuffer[i], i);
             blockKeys.set(i, key);
         }
         for (int i = 0; i < erasureCode.stripeSize(); i++) {
-            long key = generateKey();
-            storageBackend.storeBlock(key, stripeBuffer[i]);
+            long key = storageBackend.storeBlock(stripeBuffer[i], i + erasureCode.paritySize());
             blockKeys.set(i + erasureCode.paritySize(), key);
         }
     }

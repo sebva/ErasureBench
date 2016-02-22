@@ -4,14 +4,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -24,6 +24,7 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     @Before
     public void setup() {
         sut = createInstance();
+        sut.defineTotalSize(2);
     }
 
     @After
@@ -41,22 +42,20 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
         assertFalse(sut.isBlockAvailable(32432134214L));
     }
 
-    private static void testReadWrite(BiConsumer<Long, Integer> storeFunction, Function<Long, Integer> retrieveFunction) {
-        final Random rnd = new Random();
-        long key1 = new BigInteger(40, rnd).longValue();
-        long key2 = new BigInteger(40, rnd).longValue();
+    private void testReadWrite(BiFunction<Integer, Integer, Long> storeFunction, Function<Long, Integer> retrieveFunction) {
+        final int testSize = 4 * sut.BUFFER_SIZE;
+        List<Long> keys = new ArrayList<>(testSize);
+        List<Integer> values = new ArrayList<>(testSize);
+        Random random = new Random();
+        for (int i = 0; i < testSize; i++) {
+            values.add(random.nextInt());
+        }
 
-        int value1 = 42;
-        int value2 = -122;
+        values.stream().forEachOrdered(value -> keys.add(storeFunction.apply(value, Math.abs(value % 2))));
 
-        storeFunction.accept(key1, value1);
-        storeFunction.accept(key2, value2);
+        sut.flushAll();
 
-        assertEquals(value1, (int) retrieveFunction.apply(key1));
-        assertEquals(value2, (int) retrieveFunction.apply(key2));
-
-        storeFunction.accept(key1, value2);
-        assertEquals(value2, (int) retrieveFunction.apply(key1));
+        IntStream.range(0, testSize).forEach(i -> assertEquals(values.get(i), retrieveFunction.apply(keys.get(i))));
     }
 
     @Test

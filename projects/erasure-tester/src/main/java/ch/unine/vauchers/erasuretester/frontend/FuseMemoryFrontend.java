@@ -225,6 +225,14 @@ public class FuseMemoryFrontend extends FuseFilesystemAdapterAssumeImplemented {
         return path.substring(path.lastIndexOf("/") + 1);
     }
 
+    @Override
+    protected String[] getOptions() {
+        return new String[] {
+                "-o", "big_writes",
+                "-o", "max_write=131072"
+        };
+    }
+
     private MemoryPath getParentPath(final String path) {
         return rootDirectory.find(path.substring(0, path.lastIndexOf("/")));
     }

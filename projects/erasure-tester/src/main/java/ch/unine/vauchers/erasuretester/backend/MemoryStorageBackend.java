@@ -11,7 +11,7 @@ import java.util.Optional;
  * Asynchronous operations are done synchronously.
  */
 public class MemoryStorageBackend extends StorageBackend {
-    protected Map<Long, Integer> blocksStorage;
+    protected Map<Long, String> blocksStorage;
     protected Map<String, FileMetadata> metadataStorage;
 
     public MemoryStorageBackend() {
@@ -30,17 +30,17 @@ public class MemoryStorageBackend extends StorageBackend {
     }
 
     @Override
-    public Optional<Integer> retrieveBlock(long key) {
+    public Optional<String> retrieveAggregatedBlocks(long key) {
         return Optional.ofNullable(blocksStorage.get(key));
     }
 
     @Override
-    public void storeBlock(long key, int blockData) {
+    protected void storeAggregatedBlocks(long key, String blockData) {
         blocksStorage.put(key, blockData);
     }
 
     @Override
-    public boolean isBlockAvailable(long key) {
+    public boolean isAggregatedBlockAvailable(long key) {
         return blocksStorage.containsKey(key);
     }
 
