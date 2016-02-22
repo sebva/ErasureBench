@@ -1,6 +1,7 @@
 package ch.unine.vauchers.erasuretester.backend;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -47,7 +48,7 @@ public abstract class StorageBackend {
 
     /**
      * Retrieve a data block from storage
-     * @param key The unique identifier of the block
+     * @param key The unique identifier of the block, given by storeBlock
      * @return The block wrapped in an Optional (not present if not found)
      */
     public Optional<Integer> retrieveBlock(long key) {
@@ -63,6 +64,12 @@ public abstract class StorageBackend {
         }
     }
 
+    /**
+     * Fetch the aggregated block from the backend and cache it in readCache
+     * @param redisKey
+     * @return The corresponding block, or null
+     */
+    @Nullable
     private BlocksContainer fetchAndCache(long redisKey) {
         final Optional<String> optionalContainer = retrieveAggregatedBlocks(redisKey);
         if (!optionalContainer.isPresent()) {
@@ -74,12 +81,22 @@ public abstract class StorageBackend {
         }
     }
 
-    public abstract Optional<String> retrieveAggregatedBlocks(long key);
+    /**
+     * Retrieve an aggregation of blocks in String form (to deserialize)
+     * @param key The key
+     * @return The String wrapped in an Optional
+     */
+    protected abstract Optional<String> retrieveAggregatedBlocks(long key);
 
+    /**
+     * Store a serialized aggregation of blocks
+     * @param key The key
+     * @param blockData The data
+     */
     protected abstract void storeAggregatedBlocks(long key, String blockData);
 
     /**
-     * Store a data block. If a block with the same identifier already exists, it is overwritten.
+     * Store a data block. This returns a key to later ask for the data.
      * @param blockData The data to store
      * @param position Position in [0; (stripeSize + paritySize)]. Used to effectively distribute the load on nodes.
      * @return The unique identifier of the block
@@ -127,6 +144,11 @@ public abstract class StorageBackend {
      */
     public abstract void disconnect();
 
+    /**
+     * Set the total size (stripe size + parity size) to use.
+     * This method MUST be called before any usage of the object.
+     * @param totalSize The total size (stripe size + parity size)
+     */
     public void defineTotalSize(int totalSize) {
         this.totalSize = totalSize;
         writeBuffers = new BlocksContainer[totalSize];
@@ -138,6 +160,9 @@ public abstract class StorageBackend {
         }
     }
 
+    /**
+     * Force write all temporary blocks to the storage backend.
+     */
     public void flushAll() {
         for (int i = 0; i < totalSize; i++) {
             flush(i);
