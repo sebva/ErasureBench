@@ -1,10 +1,7 @@
 version: '2'
 services:
   redis-master:
-    image: redis:alpine
-    volumes:
-     - ./redis-cluster/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    command: redis-server /usr/local/etc/redis/redis.conf
+    image: redis-master:latest
   redis-standalone:
     image: redis:alpine
   erasure:
@@ -22,3 +19,4 @@ services:
       - "/dev/fuse"
     volumes:
       - ./results:/opt/erasuretester/results
+      - /var/run/docker.sock:/var/run/docker.sock
