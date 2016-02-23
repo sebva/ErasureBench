@@ -6,6 +6,8 @@ RUN apt-get -yqq dist-upgrade
 RUN apt-get -yqq install --no-install-recommends openjdk-8-jre-headless libfuse2 nfs-kernel-server ruby-redis python3-pip redis-tools gnuplot5-nox
 RUN apt-get -yqq clean
 
+RUN pip3 install docker-compose
+
 RUN mkdir /mnt/erasure
 RUN echo "/mnt/erasure\t*(rw,fsid=0,no_subtree_check,no_root_squash)" > /etc/exports
 
@@ -14,6 +16,7 @@ COPY *-all.jar /opt/erasuretester/
 COPY *.sh /opt/erasuretester/
 COPY *.py /opt/erasuretester/
 COPY *.rb /opt/erasuretester/
+COPY docker-compose.yml /opt/erasuretester/
 RUN chmod +x /opt/erasuretester/benchmark.py
 RUN chmod +x /opt/erasuretester/container_start_script.sh
 WORKDIR /opt/erasuretester
