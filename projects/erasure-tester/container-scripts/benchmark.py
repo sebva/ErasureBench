@@ -33,19 +33,17 @@ class Benchmarks:
 
     def run_benchmarks(self):
         for rs in self.redis_size:
-            if self.trim_redis(rs):
-                for ec in self.erasure_codes:
-                    for ss in self.stripe_sizes:
-                        for ps in self.parity_sizes:
-                            for src in self.src_sizes:
-                                sb = 'Jedis' if rs > 0 else 'Memory'
-                                config = [ec, rs, sb, ss, ps, src]
-                                print("Running with " + str(config))
-                                self.restart(*config)
-                                for b in self.benches:
-                                    self._run_benchmark(b, config)
-            else:
-                print("Cannot run benchmark on %d Redis nodes: not enough slaves" % rs)
+            self.scale_redis(rs)
+            for ec in self.erasure_codes:
+                for ss in self.stripe_sizes:
+                    for ps in self.parity_sizes:
+                        for src in self.src_sizes:
+                            sb = 'Jedis' if rs > 0 else 'Memory'
+                            config = [ec, rs, sb, ss, ps, src]
+                            print("Running with " + str(config))
+                            self.restart(*config)
+                            for b in self.benches:
+                                self._run_benchmark(b, config)
 
     def _run_benchmark(self, bench, config):
         self.redis_flushall(config[1])
@@ -61,21 +59,48 @@ class Benchmarks:
         with open(self.log_file_base + '.json', 'w') as out:
             json.dump(self.results, out, indent=4)
 
-    def trim_redis(self, cluster_size, brutal=False):
+    def scale_redis(self, cluster_size, brutal=False):
         if cluster_size <= 1:
             return True
 
-        print("Trimming Redis to %d nodes" % cluster_size)
+        print("Scaling Redis to %d nodes" % cluster_size)
         nodes = self.get_redis_masters()
         if len(nodes) < cluster_size:
-            return False
-        while len(nodes) > cluster_size:
-            if brutal:
-                self.kill_a_redis_node(nodes)
-            else:
-                self.remove_a_redis_node(nodes)
+            self.add_new_redis_masters(cluster_size, nodes)
+        else:
+            while len(nodes) > cluster_size:
+                if brutal:
+                    self.kill_a_redis_node(nodes)
+                else:
+                    self.remove_a_redis_node(nodes)
 
         return True
+
+    def add_new_redis_masters(self, cluster_size, old_nodes):
+        subprocess.check_call(['docker-compose', 'scale', 'redis-master=%d' % cluster_size])
+        nb_new_nodes = cluster_size - len(old_nodes)
+
+        new_ips = [':'.join(map(str, x)) for x in get_redis_nodes()[-nb_new_nodes:]]
+        print(new_ips)
+        master_ip_port = old_nodes[0]['ip_port']
+
+        for ip in new_ips:
+            sleep(1)
+            subprocess.check_call(['ruby', 'redis-trib.rb', 'add-node', ip, master_ip_port])
+
+        sleep(2)
+        new_nodes = [x for x in self.get_redis_masters() if x['ip_port'] in new_ips]
+        shards_to_move_per_node = round(16384 / cluster_size / len(old_nodes))
+
+        for new_node in new_nodes:
+            for old_node in old_nodes:
+                sleep(0.5)
+                fix = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', master_ip_port], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
+                fix.communicate(b'yes\n')
+                fix.wait()
+                self.transfer_slots(old_node['id'], new_node['id'], shards_to_move_per_node, master_ip_port)
+
+        subprocess.check_call(['ruby', 'redis-trib.rb', 'info', master_ip_port])
 
     def get_redis_masters(self):
         nodes = [x.split(' ') for x in
@@ -88,14 +113,7 @@ class Benchmarks:
                 } for x in nodes]
 
     def elect_redis_victim(self, nodes):
-        victim = None
-        nodes_iter = iter(nodes)
-        while victim is None:
-            victim = next(nodes_iter)
-            if victim['is_number_1']:
-                victim = None
-        nodes.remove(victim)
-        return victim
+        return nodes[-1]
 
     def redis_flushall(self, rs):
         if rs == 1:
@@ -134,6 +152,7 @@ class Benchmarks:
         subprocess.check_call(['ruby', 'redis-trib.rb', 'del-node', master_ip_port, victim['id']])
 
     def transfer_slots(self, from_id, to_id, amount, master_ip_port):
+        print('Transfering %d slots...' % amount)
         subprocess.check_call(('ruby redis-trib.rb reshard --from %s --to %s --slots %d --yes %s' % (
             from_id, to_id, amount, master_ip_port)).split(' '), stdout=subprocess.DEVNULL)
 
