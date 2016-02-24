@@ -1,13 +1,13 @@
 package ch.unine.vauchers.erasuretester.backend;
 
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntListIterator;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
@@ -41,12 +41,12 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
 
     @Test
     public void testAbsentKey() throws ExecutionException, InterruptedException {
-        assertFalse(sut.isBlockAvailable(32432134214L));
+        assertFalse(sut.isBlockAvailable(439754395));
     }
 
-    private void testReadWrite(BiFunction<Integer, Integer, Long> storeFunction, Function<Long, Integer> retrieveFunction) {
+    private void testReadWrite(BiFunction<Integer, Integer, Integer> storeFunction, Function<Integer, Integer> retrieveFunction) {
         final int testSize = 4 * sut.bufferSize;
-        List<Long> keys = new ArrayList<>(testSize);
+        List<Integer> keys = new ArrayList<>(testSize);
         List<Integer> values = new ArrayList<>(testSize);
         Random random = new Random();
         for (int i = 0; i < testSize; i++) {
@@ -63,9 +63,9 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     @Test
     public void testFileMetadataStorage() {
         FileMetadata expected = new FileMetadata();
-        LongList blockKeys = new LongArrayList(30);
+        IntList blockKeys = new IntArrayList(30);
         for (int i = 0; i < 30; i++) {
-            blockKeys.add((long) (Math.random() * (double) Long.MAX_VALUE));
+            blockKeys.add((int) (Math.random() * (double) Long.MAX_VALUE));
         }
 
         expected.setContentsSize(291643824);
@@ -75,9 +75,9 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
         FileMetadata actual = sut.getFileMetadata("somewhere").get();
         assertEquals(291643824, actual.getContentsSize());
 
-        final Iterator<Long> iterator1 = blockKeys.iterator();
-        final List<Long> actualBlocks = actual.getBlockKeys().get();
-        final Iterator<Long> iterator2 = actualBlocks.iterator();
+        final IntListIterator iterator1 = blockKeys.iterator();
+        final IntList actualBlocks = actual.getBlockKeys().get();
+        final IntListIterator iterator2 = actualBlocks.iterator();
 
         while (iterator1.hasNext() && iterator2.hasNext()) {
             assertEquals(iterator1.next(), iterator2.next());

@@ -23,6 +23,6 @@ public abstract class StorageBackendBenchmark {
 
     @Benchmark
     public int retrieveSync() {
-        return sut.retrieveBlock(32956438563L).orElseThrow(() -> new RuntimeException("key not added during setup"));
+        return sut.retrieveBlock(329564383).orElseThrow(() -> new RuntimeException("key not added during setup"));
     }
 }

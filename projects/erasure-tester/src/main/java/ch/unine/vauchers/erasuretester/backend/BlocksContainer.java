@@ -1,25 +1,26 @@
 package ch.unine.vauchers.erasuretester.backend;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
-import java.util.ArrayList;
 import java.util.Base64;
 
 /**
  *
  */
 public class BlocksContainer implements Serializable {
-    private ArrayList<Integer> blocks;
+    private IntList blocks;
     private final int bufferSize;
 
     public BlocksContainer(int bufferSize) {
         this.bufferSize = bufferSize;
-        blocks = new ArrayList<>(bufferSize);
+        blocks = new IntArrayList(bufferSize);
     }
 
     public int get(int key) {
-        return blocks.get(key);
+        return blocks.getInt(key);
     }
 
     public void put(int blockData) {
@@ -30,7 +31,6 @@ public class BlocksContainer implements Serializable {
         return blocks.size() == bufferSize;
     }
 
-    @NotNull
     public static BlocksContainer fromString(String serialize) {
         try {
             byte[] bytes = Base64.getDecoder().decode(serialize);

@@ -1,6 +1,6 @@
 package ch.unine.vauchers.erasuretester.backend;
 
-import it.unimi.dsi.fastutil.longs.LongList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
@@ -15,7 +15,7 @@ public class FileMetadata {
      * <br/>
      * The last stripe can contain meaningless data blocks, to always have complete stripes with parity blocks.
      */
-    private LongList blockKeys;
+    private IntList blockKeys;
     /**
      * Size of the real contents of the file.
      */
@@ -27,7 +27,7 @@ public class FileMetadata {
      * retrieved from the storage backend.
      * @return The list of block keys
      */
-    public @NotNull Optional<LongList> getBlockKeys() {
+    public @NotNull Optional<IntList> getBlockKeys() {
         return Optional.ofNullable(blockKeys);
     }
 
@@ -36,7 +36,7 @@ public class FileMetadata {
      * @param blockKeys The new list of block keys
      * @return This object for call chaining
      */
-    public FileMetadata setBlockKeys(LongList blockKeys) {
+    public FileMetadata setBlockKeys(IntList blockKeys) {
         this.blockKeys = blockKeys;
         return this;
     }

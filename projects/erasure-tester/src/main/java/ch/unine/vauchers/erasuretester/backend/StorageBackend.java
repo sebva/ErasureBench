@@ -17,17 +17,17 @@ public abstract class StorageBackend {
     private static final int FUSE_READ_SIZE = 1024 * 128; // Update accordingly
     private static final int CACHE_SIZE = 50;
     private BlocksContainer[] writeBuffers;
-    private LinkedHashMap<Long, BlocksContainer> readCache;
-    private long[] counters;
+    private LinkedHashMap<Integer, BlocksContainer> readCache;
+    private int[] counters;
     private int totalSize;
 
     /**
      * You NEED to call defineTotalSize before any other action on this object!
      */
     public StorageBackend() {
-        readCache = new LinkedHashMap<Long, BlocksContainer>(CACHE_SIZE + 1, .75f, true) {
+        readCache = new LinkedHashMap<Integer, BlocksContainer>(CACHE_SIZE + 1, .75f, true) {
             @Override
-            public boolean removeEldestEntry(Map.Entry<Long, BlocksContainer> eldest) {
+            public boolean removeEldestEntry(Map.Entry<Integer, BlocksContainer> eldest) {
                 return size() > CACHE_SIZE;
             }
         };
@@ -52,14 +52,14 @@ public abstract class StorageBackend {
      * @param key The unique identifier of the block, given by storeBlock
      * @return The block wrapped in an Optional (not present if not found)
      */
-    public Optional<Integer> retrieveBlock(long key) {
-        long redisKey = key / bufferSize;
+    public Optional<Integer> retrieveBlock(int key) {
+        int redisKey = key / bufferSize;
         BlocksContainer container = readCache.get(redisKey);
         if (container == null) {
             container = fetchAndCache(redisKey);
         }
         if (container != null) {
-            return Optional.of(container.get((int) (key % bufferSize)));
+            return Optional.of(container.get(key % bufferSize));
         } else {
             return Optional.empty();
         }
@@ -71,7 +71,7 @@ public abstract class StorageBackend {
      * @return The corresponding block, or null
      */
     @Nullable
-    private BlocksContainer fetchAndCache(long redisKey) {
+    private BlocksContainer fetchAndCache(int redisKey) {
         final Optional<String> optionalContainer = retrieveAggregatedBlocks(redisKey);
         if (!optionalContainer.isPresent()) {
             return null;
@@ -87,14 +87,14 @@ public abstract class StorageBackend {
      * @param key The key
      * @return The String wrapped in an Optional
      */
-    protected abstract Optional<String> retrieveAggregatedBlocks(long key);
+    protected abstract Optional<String> retrieveAggregatedBlocks(int key);
 
     /**
      * Store a serialized aggregation of blocks
      * @param key The key
      * @param blockData The data
      */
-    protected abstract void storeAggregatedBlocks(long key, String blockData);
+    protected abstract void storeAggregatedBlocks(int key, String blockData);
 
     /**
      * Store a data block. This returns a key to later ask for the data.
@@ -102,8 +102,8 @@ public abstract class StorageBackend {
      * @param position Position in [0; (stripeSize + paritySize)]. Used to effectively distribute the load on nodes.
      * @return The unique identifier of the block
      */
-    public long storeBlock(int blockData, int position) {
-        long key = counters[position];
+    public int storeBlock(int blockData, int position) {
+        int key = counters[position];
 
         writeBuffers[position].put(blockData);
 
@@ -119,8 +119,8 @@ public abstract class StorageBackend {
     private void flush(int position) {
         String aggregatedBlocks = BlocksContainer.toString(writeBuffers[position]);
         writeBuffers[position] = new BlocksContainer(bufferSize);
-        final long counter = counters[position];
-        final long redisKey = counter / bufferSize;
+        final int counter = counters[position];
+        final int redisKey = counter / bufferSize;
         storeAggregatedBlocks(redisKey, aggregatedBlocks);
 
         counters[position] = redisKey * bufferSize + totalSize * bufferSize;
@@ -133,12 +133,12 @@ public abstract class StorageBackend {
      * @param key The unique identifier of the block
      * @return A boolean that specifies whether the block is available
      */
-    public boolean isBlockAvailable(long key) {
-        long redisKey = key / bufferSize;
+    public boolean isBlockAvailable(int key) {
+        int redisKey = key / bufferSize;
         return readCache.containsKey(redisKey) || fetchAndCache(redisKey) != null;
     }
 
-    protected abstract boolean isAggregatedBlockAvailable(long key);
+    protected abstract boolean isAggregatedBlockAvailable(int key);
 
     /**
      * Disconnect and free-up resources used by this object.
@@ -153,7 +153,7 @@ public abstract class StorageBackend {
     public void defineTotalSize(int totalSize) {
         this.totalSize = totalSize;
         writeBuffers = new BlocksContainer[totalSize];
-        counters = new long[totalSize];
+        counters = new int[totalSize];
         bufferSize = (int) Math.ceil(FUSE_READ_SIZE / (double) totalSize);
 
         for (int i = 0; i < totalSize; i++) {

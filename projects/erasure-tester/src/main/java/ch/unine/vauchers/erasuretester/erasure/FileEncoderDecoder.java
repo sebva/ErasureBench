@@ -6,8 +6,6 @@ import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.TooManyErasedLocations;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
@@ -34,7 +32,6 @@ public class FileEncoderDecoder {
     private final int[] dataBuffer;
     private final int stripeSize;
     private final int paritySize;
-    private long keyCounter = 0L;
 
     private enum Modes {
         READ_FILE, WRITE_FILE
@@ -81,7 +78,7 @@ public class FileEncoderDecoder {
         if (contentsSize <= 0) {
             return;
         }
-        final LongList allBlockKeys = metadata.getBlockKeys().get();
+        final IntList allBlockKeys = metadata.getBlockKeys().get();
 
         iterate(contentsSize, offset, outBuffer, allBlockKeys, Modes.READ_FILE);
     }
@@ -101,14 +98,14 @@ public class FileEncoderDecoder {
         final int oldContentSize = metadata.getContentsSize();
         final int contentsSize = Math.max(iterationSize + offset, oldContentSize);
         metadata.setContentsSize(contentsSize);
-        LongArrayList blockKeys = (LongArrayList) metadata.getBlockKeys().orElseGet(LongArrayList::new);
+        IntArrayList blockKeys = (IntArrayList) metadata.getBlockKeys().orElseGet(IntArrayList::new);
 
         final int nextBoundary = nextBoundary(contentsSize);
         blockKeys.ensureCapacity(nextBoundary);
 
         for (int i = oldContentSize; i < nextBoundary; i++) {
             // Grow the blockKeys list to fit the size/offset given in parameter
-            blockKeys.add(i, -1L);
+            blockKeys.add(i, -1);
         }
 
         try {
@@ -125,7 +122,7 @@ public class FileEncoderDecoder {
      * @param path String uniquely identifying a file
      * @return The size of the contents of the file, in bytes
      */
-    public long sizeOfFile(String path) {
+    public int sizeOfFile(String path) {
         return storageBackend.getFileMetadata(path).orElse(FileMetadata.EMPTY_METADATA).getContentsSize();
     }
 
@@ -143,7 +140,7 @@ public class FileEncoderDecoder {
         });
     }
 
-    private void iterate(int size, int offset, ByteBuffer fileBuffer, LongList blockKeys, Modes mode) throws TooManyErasedLocations {
+    private void iterate(int size, int offset, ByteBuffer fileBuffer, IntList blockKeys, Modes mode) throws TooManyErasedLocations {
         final int firstLowerBoundary = previousBoundary(offset);
         final int lastLowerBoundary = previousBoundary(offset + size);
         final int blocksToDiscardBeginning = lowerBytesToDrop(offset);
@@ -167,7 +164,7 @@ public class FileEncoderDecoder {
             if (i < lastLowerBoundary) {
                 fileBuffer.position(fileBuffer.position() + sizePart);
             }
-            final LongList keysSublist = blockKeys.subList(i, i + totalSize);
+            final IntList keysSublist = blockKeys.subList(i, i + totalSize);
             if (mode == Modes.READ_FILE) {
                 readPart(keysSublist, buffer, sizePart, offsetPart);
             } else if (mode == Modes.WRITE_FILE) {
@@ -176,7 +173,7 @@ public class FileEncoderDecoder {
         }
     }
 
-    private synchronized void readPart(LongList blockKeys, ByteBuffer outBuffer, int size, int offset) throws TooManyErasedLocations {
+    private synchronized void readPart(IntList blockKeys, ByteBuffer outBuffer, int size, int offset) throws TooManyErasedLocations {
         erasedBlocksIndices.clear();
 
         final Iterator<Boolean> blocksAvailableIterator = blockKeys.stream().map(storageBackend::isBlockAvailable).iterator();
@@ -191,10 +188,10 @@ public class FileEncoderDecoder {
         partData.skip(offset).limit(size).forEach(outBuffer::put);
     }
 
-    private synchronized void writePart(LongList blockKeys, ByteBuffer fileBuffer, int size, int offset) {
+    private synchronized void writePart(IntList blockKeys, ByteBuffer fileBuffer, int size, int offset) {
         for (int i = 0; i < stripeSize; i++) {
             if (i < offset || i >= offset + size) { // Restore existing data
-                final long key = blockKeys.getLong(i + paritySize);
+                final int key = blockKeys.getInt(i + paritySize);
                 if (key != -1) {
                     stripeBuffer[i] = storageBackend.retrieveBlock(key).orElse(0);
                 } else {
@@ -208,21 +205,21 @@ public class FileEncoderDecoder {
         erasureCode.encode(stripeBuffer, parityBuffer);
 
         for (int i = 0; i < paritySize; i++) {
-            long key = storageBackend.storeBlock(parityBuffer[i], i);
+            int key = storageBackend.storeBlock(parityBuffer[i], i);
             blockKeys.set(i, key);
         }
         for (int i = 0; i < stripeSize; i++) {
-            long key = storageBackend.storeBlock(stripeBuffer[i], i + paritySize);
+            int key = storageBackend.storeBlock(stripeBuffer[i], i + paritySize);
             blockKeys.set(i + paritySize, key);
         }
     }
 
-    private Stream<Byte> decodeFileData(LongList blockKeys, IntList erasedIndices) throws TooManyErasedLocations {
+    private Stream<Byte> decodeFileData(IntList blockKeys, IntList erasedIndices) throws TooManyErasedLocations {
         final IntList toReadForDecode = erasureCode.locationsToReadForDecode(erasedIndices);
         toReadForDecode.sort(null);
 
         toReadForDecode.stream().forEach(index -> {
-            final long key = blockKeys.getLong(index);
+            final int key = blockKeys.getInt(index);
             dataBuffer[index] = storageBackend.retrieveBlock(key).orElse(0);
         });
 
