@@ -11,9 +11,11 @@ import java.util.Base64;
  */
 public class BlocksContainer implements Serializable {
     private ArrayList<Integer> blocks;
+    private final int bufferSize;
 
-    public BlocksContainer() {
-        blocks = new ArrayList<>(StorageBackend.BUFFER_SIZE);
+    public BlocksContainer(int bufferSize) {
+        this.bufferSize = bufferSize;
+        blocks = new ArrayList<>(bufferSize);
     }
 
     public int get(int key) {
@@ -25,7 +27,7 @@ public class BlocksContainer implements Serializable {
     }
 
     public boolean isFull() {
-        return blocks.size() == StorageBackend.BUFFER_SIZE;
+        return blocks.size() == bufferSize;
     }
 
     @NotNull

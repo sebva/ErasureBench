@@ -43,7 +43,7 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     }
 
     private void testReadWrite(BiFunction<Integer, Integer, Long> storeFunction, Function<Long, Integer> retrieveFunction) {
-        final int testSize = 4 * sut.BUFFER_SIZE;
+        final int testSize = 4 * sut.bufferSize;
         List<Long> keys = new ArrayList<>(testSize);
         List<Integer> values = new ArrayList<>(testSize);
         Random random = new Random();

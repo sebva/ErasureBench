@@ -13,7 +13,8 @@ import java.util.Optional;
  * Remember to call disconnect() after usage.
  */
 public abstract class StorageBackend {
-    public static final int BUFFER_SIZE = 9363;
+    public int bufferSize;
+    private static final int FUSE_READ_SIZE = 1024 * 128; // Update accordingly
     private static final int CACHE_SIZE = 50;
     private BlocksContainer[] writeBuffers;
     private LinkedHashMap<Long, BlocksContainer> readCache;
@@ -52,13 +53,13 @@ public abstract class StorageBackend {
      * @return The block wrapped in an Optional (not present if not found)
      */
     public Optional<Integer> retrieveBlock(long key) {
-        long redisKey = key / BUFFER_SIZE;
+        long redisKey = key / bufferSize;
         BlocksContainer container = readCache.get(redisKey);
         if (container == null) {
             container = fetchAndCache(redisKey);
         }
         if (container != null) {
-            return Optional.of(container.get((int) (key % BUFFER_SIZE)));
+            return Optional.of(container.get((int) (key % bufferSize)));
         } else {
             return Optional.empty();
         }
@@ -117,12 +118,12 @@ public abstract class StorageBackend {
 
     private void flush(int position) {
         String aggregatedBlocks = BlocksContainer.toString(writeBuffers[position]);
-        writeBuffers[position] = new BlocksContainer();
+        writeBuffers[position] = new BlocksContainer(bufferSize);
         final long counter = counters[position];
-        final long redisKey = counter / BUFFER_SIZE;
+        final long redisKey = counter / bufferSize;
         storeAggregatedBlocks(redisKey, aggregatedBlocks);
 
-        counters[position] = redisKey * BUFFER_SIZE + totalSize * BUFFER_SIZE;
+        counters[position] = redisKey * bufferSize + totalSize * bufferSize;
     }
 
     /**
@@ -133,7 +134,7 @@ public abstract class StorageBackend {
      * @return A boolean that specifies whether the block is available
      */
     public boolean isBlockAvailable(long key) {
-        long redisKey = key / BUFFER_SIZE;
+        long redisKey = key / bufferSize;
         return readCache.containsKey(redisKey) || fetchAndCache(redisKey) != null;
     }
 
@@ -153,10 +154,11 @@ public abstract class StorageBackend {
         this.totalSize = totalSize;
         writeBuffers = new BlocksContainer[totalSize];
         counters = new long[totalSize];
+        bufferSize = (int) Math.ceil(FUSE_READ_SIZE / (double) totalSize);
 
         for (int i = 0; i < totalSize; i++) {
-            writeBuffers[i] = new BlocksContainer();
-            counters[i] = i * BUFFER_SIZE;
+            writeBuffers[i] = new BlocksContainer(bufferSize);
+            counters[i] = i * bufferSize;
         }
     }
 
