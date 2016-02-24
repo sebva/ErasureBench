@@ -9,7 +9,9 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.PrimitiveIterator;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -135,8 +137,7 @@ public class FileEncoderDecoder {
         storageBackend.getFileMetadata(filepath).ifPresent(metadata -> {
             final int newSize = Math.min(metadata.getContentsSize(), size);
             metadata.setContentsSize(newSize);
-            metadata.setBlockKeys(metadata.getBlockKeys().orElseThrow(() -> new RuntimeException("Block keys list is null"))
-                    .subList(0, newSize));
+            metadata.getBlockKeys().ifPresent(integers -> integers.size(newSize));
         });
     }
 
@@ -218,7 +219,7 @@ public class FileEncoderDecoder {
         final IntList toReadForDecode = erasureCode.locationsToReadForDecode(erasedIndices);
         toReadForDecode.sort(null);
 
-        toReadForDecode.stream().forEach(index -> {
+        toReadForDecode.parallelStream().forEach(index -> {
             final int key = blockKeys.getInt(index);
             dataBuffer[index] = storageBackend.retrieveBlock(key).orElse(0);
         });
