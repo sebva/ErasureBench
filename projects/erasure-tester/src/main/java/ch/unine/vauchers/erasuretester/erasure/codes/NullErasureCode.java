@@ -1,15 +1,17 @@
 package ch.unine.vauchers.erasuretester.erasure.codes;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.util.List;
 
 public class NullErasureCode extends ErasureCode {
     private final int stripeSize;
-    private final List<Integer> locationsToRead;
+    private final IntList locationsToRead;
 
     public NullErasureCode(int stripeSize) {
         this.stripeSize = stripeSize;
-        this.locationsToRead = new ArrayList<>(stripeSize);
+        this.locationsToRead = new IntArrayList(stripeSize);
         for (int i = 0; i < stripeSize; i++) {
             locationsToRead.add(i);
         }
@@ -31,7 +33,7 @@ public class NullErasureCode extends ErasureCode {
     }
 
     @Override
-    public List<Integer> locationsToReadForDecode(List<Integer> erasedLocations) throws TooManyErasedLocations {
+    public IntList locationsToReadForDecode(List<Integer> erasedLocations) throws TooManyErasedLocations {
         return locationsToRead;
     }
 

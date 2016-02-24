@@ -1,5 +1,7 @@
 package ch.unine.vauchers.erasuretester.backend;
 
+import it.unimi.dsi.fastutil.longs.LongArrayList;
+import it.unimi.dsi.fastutil.longs.LongList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,7 +63,7 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     @Test
     public void testFileMetadataStorage() {
         FileMetadata expected = new FileMetadata();
-        List<Long> blockKeys = new ArrayList<>(30);
+        LongList blockKeys = new LongArrayList(30);
         for (int i = 0; i < 30; i++) {
             blockKeys.add((long) (Math.random() * (double) Long.MAX_VALUE));
         }

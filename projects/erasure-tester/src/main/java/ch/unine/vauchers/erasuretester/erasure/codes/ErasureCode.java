@@ -18,7 +18,9 @@
 
 package ch.unine.vauchers.erasuretester.erasure.codes;
 
-import java.util.ArrayList;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.util.List;
 
 public abstract class ErasureCode {
@@ -74,9 +76,9 @@ public abstract class ErasureCode {
      * @param erasedLocations The erased locations.
      * @return The locations to read.
      */
-    public List<Integer> locationsToReadForDecode(List<Integer> erasedLocations)
+    public IntList locationsToReadForDecode(List<Integer> erasedLocations)
             throws TooManyErasedLocations {
-        List<Integer> locationsToRead = new ArrayList<Integer>(stripeSize());
+        IntList locationsToRead = new IntArrayList(stripeSize());
         int limit = stripeSize() + paritySize();
         // Loop through all possible locations in the stripe.
         for (int loc = limit - 1; loc >= 0; loc--) {

@@ -18,6 +18,9 @@
 
 package ch.unine.vauchers.erasuretester.erasure.codes;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
@@ -291,18 +294,18 @@ public class SimpleRegeneratingCode extends ErasureCode {
      * @return The locations to read.
      */
     @Override
-    public List<Integer> locationsToReadForDecode(List<Integer> erasedLocations)
+    public IntList locationsToReadForDecode(List<Integer> erasedLocations)
             throws TooManyErasedLocations {
 
         //LOG.info("Erased locations: "+erasedLocations.toString());
 
-        List<Integer> locationsToRead;
+        IntList locationsToRead;
 
         // If only one location is erased, return its local (src) group
         if (erasedLocations.size() == 1) {
             //locationsToRead = computeSRCGroupLocations(erasedLocations.get(0));
             int loc = erasedLocations.get(0);
-            locationsToRead = new ArrayList<Integer>(groupsTable[loc].length);
+            locationsToRead = new IntArrayList(groupsTable[loc].length);
             for (int i = 0; i < groupsTable[loc].length; i++) {
                 locationsToRead.add(groupsTable[loc][i]);
             }
@@ -322,7 +325,7 @@ public class SimpleRegeneratingCode extends ErasureCode {
             // we expect approximately simpleParityDegree locations to be read for each
             // erased location.
             locationsToRead =
-                    new ArrayList<Integer>(erasedLocations.size() * simpleParityDegree);
+                    new IntArrayList(erasedLocations.size() * simpleParityDegree);
             // add unique locations
             for (int loc : erasedLocations) {
                 for (int i = 0; i < groupsTable[loc].length; i++) {
@@ -336,7 +339,7 @@ public class SimpleRegeneratingCode extends ErasureCode {
         // If more than one location is erased and there is at least a pair belonging to the
         // same group, we will have to perform Reed Solomon (RS) decoding. Hence, read
         // locations that are necessary for RS decoding.
-        locationsToRead = new ArrayList<Integer>(stripeSize());
+        locationsToRead = new IntArrayList(stripeSize());
         int limit = stripeSize() + paritySize();
 
         //Loop through all possible locations in the stripe, omitting the SRC parities.
