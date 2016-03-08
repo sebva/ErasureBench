@@ -38,6 +38,7 @@
 *.vrb
 *.xdy
 *.tdo
+_minted-main/
 
 
 ### Linux ###
