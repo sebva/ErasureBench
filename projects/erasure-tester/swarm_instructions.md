@@ -83,7 +83,7 @@ consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -node=master -bin
 
 * Start consul member
 ```
-consul agent -data-dir /tmp/consul -node=$HOST -bind=MANAGER_IP
+consul agent -data-dir /tmp/consul -node=$HOST -bind=$IP
 ```
 * Join consul
 ```
@@ -133,8 +133,25 @@ networks:
     driver: overlay
 ```
 
+### Slaves
+
+For faster startup time, pull all required images in advance. Example:
+```
+docker pull swarm-m:5000/CONTAINER_NAME:latest
+```
+
+Also clean any stopped container so that Swarm can correctly schedule the execution on all nodes.
+```
+docker rm $(docker ps -aq)
+```
+
 ### Manager
 
+* Wait until 'swarm-docker info' reports 0 containers
+* Set the default Docker to be the Swarm manager
+```
+export DOCKER_HOST=tcp://0.0.0.0:5732
+```
 * Bring the system up
     * Use the same command as in benchmark_in_docker.sh
 * Collect the results in the slave node that ran the erasuretester container
