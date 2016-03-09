@@ -12,6 +12,10 @@
 ```
 -H tcp://0.0.0.0:2375 -H unix:///var/run/docker.sock --cluster-advertise eth0:2375 --cluster-store consul://127.0.0.1:8500
 ```
+* When running on an environment where IPs in the 172.16.0.0/12 subnet might be in use, it is wise to tell Docker to use another RFC 1918 subnet. Example to add to ExecStart (note that it is a machine IP, not the network IP):
+```
+--bip=10.99.0.1/24
+```
 * Install and configure zsh with zsh-antigen
     * Use the following .zshrc:
 ```zsh
