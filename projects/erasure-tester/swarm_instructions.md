@@ -116,6 +116,13 @@ docker run -d -p 5000:5000 --restart=always --name registry \
 
 ## Deploy an application
 
+Automated deployment + run: _(You still have to collect the results manually from one slave)_
+```
+./benchmark_on_cluster.sh
+```
+
+Following is the manual methodology:
+
 ### Build machine
 
 * Build the app normally
@@ -130,26 +137,18 @@ docker push localhost:5000/CONTAINER_NAME:latest
 ```
 * Copy docker-compose.yml to the manager
     * The file MUST be in a folder called erasuretester
-    * There must be a networks section with the overlay driver
-```yaml
-networks:
-  default:
-    driver: overlay
-```
 
-### Slaves
+### Manager
 
-For faster startup time, pull all required images in advance. Example:
+Pull all required images in advance. Example:
 ```
-docker pull swarm-m:5000/CONTAINER_NAME:latest
+swarm-docker pull swarm-m:5000/CONTAINER_NAME:latest
 ```
 
 Also clean any stopped container so that Swarm can correctly schedule the execution on all nodes.
 ```
-docker rm $(docker ps -aq)
+swarm-docker rm $(swarm-docker ps -aq)
 ```
-
-### Manager
 
 * Wait until 'swarm-docker info' reports 0 containers
 * Set the default Docker to be the Swarm manager
@@ -160,3 +159,4 @@ export DOCKER_HOST=tcp://0.0.0.0:5732
     * Use the same command as in benchmark_in_docker.sh
 * Collect the results in the slave node that ran the erasuretester container
     * Use watch docker ps during the execution to see which node is the wanted one
+    
