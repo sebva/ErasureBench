@@ -1,0 +1,24 @@
+version: '2'
+services:
+  redis-master:
+    image: redis-master:latest
+  redis-standalone:
+    image: redis:alpine
+  erasure:
+    image: erasuretester:latest
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - "/dev/fuse"
+  benchmark:
+    image: erasuretester:latest
+    command: python3 -u /opt/erasuretester/benchmark.py
+    cap_add:
+      - SYS_ADMIN
+    devices:
+      - "/dev/fuse"
+    volumes:
+      - ./results:/opt/erasuretester/results
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DOCKER_HOST:
