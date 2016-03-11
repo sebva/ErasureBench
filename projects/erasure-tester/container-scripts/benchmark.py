@@ -17,9 +17,7 @@ from time import sleep
 class Benchmarks:
     log_file_base = '/opt/erasuretester/results/result_'
 
-    def __init__(self, java):
-        self.java = java
-
+    def __init__(self):
         # 2 is forbidden due to Redis limitation on Cluster size
         self.redis_size = [5, 1, 0]
         self.erasure_codes = ['Null']
@@ -44,12 +42,12 @@ class Benchmarks:
                                     sb = 'Jedis' if rs > 0 else 'Memory'
                                     config = [ec, rs, sb, ss, ps, src]
                                     print("Running with " + str(config))
-                                    self.restart(redis, *config)
-
-                                    try:
-                                        self._run_benchmark(b, config)
-                                    except Exception as ex:
-                                        logging.exception("The benchmark crashed, continuing with the rest...")
+                                    (params, env) = self._get_java_params(redis, *config)
+                                    with JavaProgram(params, env):
+                                        try:
+                                            self._run_benchmark(b, config)
+                                        except Exception as ex:
+                                            logging.exception("The benchmark crashed, continuing with the rest...")
 
     def _run_benchmark(self, bench, config):
         bench_name = bench.__name__
@@ -64,13 +62,8 @@ class Benchmarks:
         with open(self.log_file_base + '.json', 'w') as out:
             json.dump(self.results, out, indent=4)
 
-    def restart(self, redis, erasure, redis_size, storage, stripe=None, parity=None, src=None, quiet=True):
-        if self.first:
-            self.first = False
-        else:
-            self.java.kill()
-            sleep(1)
-
+    @staticmethod
+    def _get_java_params(redis, erasure, redis_size, storage, stripe=None, parity=None, src=None, quiet=True):
         params = [
             '--erasure-code', erasure,
             '--storage', storage
@@ -86,18 +79,24 @@ class Benchmarks:
         if redis_size > 1:
             params += ['--redis-cluster']
 
-        env = {'REDIS_ADDRESS': redis.get_master_node_str(redis_size)}
-        self.java.start(params, env)
+        env = {'REDIS_ADDRESS': redis.get_master_node_str(redis_size)} if redis_size > 0 else {}
+        return params, env
 
 
 class JavaProgram:
     java_with_args = "java -cp * ch.unine.vauchers.erasuretester.Main /mnt/erasure".split(' ')
+    proc = None
 
-    def start(self, more_args, env):
-        self.proc = subprocess.Popen(self.java_with_args + more_args, env=env)
+    def __init__(self, more_args, env):
+        self.more_args = more_args
+        self.env = env
+
+    def __enter__(self):
+        self.proc = subprocess.Popen(self.java_with_args + self.more_args, env=self.env)
         sleep(10)
+        return self
 
-    def kill(self):
+    def __exit__(self, exc_type, exc_val, exc_tb):
         kill_pid(self.proc)
 
 
@@ -124,7 +123,7 @@ def kill_pid(proc):
 if __name__ == '__main__':
     sleep(10)
     print("Python client ready, starting benchmarks")
-    benchmarks = Benchmarks(JavaProgram())
+    benchmarks = Benchmarks()
     benchmarks.run_benchmarks()
     print("Benchmarks ended, saving results to JSON file")
     benchmarks.save_results_to_file()
