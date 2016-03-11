@@ -8,6 +8,7 @@ import subprocess
 from datetime import datetime
 
 import signal
+import sys
 from benchmarks_impl import BenchmarksImpl
 from plot_results import main as output_plots
 from redis_cluster import RedisCluster
@@ -124,7 +125,16 @@ if __name__ == '__main__':
     sleep(10)
     print("Python client ready, starting benchmarks")
     benchmarks = Benchmarks()
-    benchmarks.run_benchmarks()
-    print("Benchmarks ended, saving results to JSON file")
-    benchmarks.save_results_to_file()
-    output_plots(benchmarks.log_file_base + '.pdf')
+
+    def signal_handler(signal, frame):
+        benchmarks.save_results_to_file()
+        sys.exit(0)
+    signal.signal(signal.SIGTERM, signal_handler)
+    signal.signal(signal.SIGINT, signal_handler)
+
+    try:
+        benchmarks.run_benchmarks()
+    finally:
+        print("Benchmarks ended, saving results to JSON file")
+        benchmarks.save_results_to_file()
+        output_plots(benchmarks.log_file_base + '.pdf')
