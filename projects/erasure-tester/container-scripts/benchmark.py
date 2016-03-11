@@ -122,7 +122,6 @@ def kill_pid(proc):
 
 
 if __name__ == '__main__':
-    sleep(10)
     print("Python client ready, starting benchmarks")
     benchmarks = Benchmarks()
 
@@ -134,6 +133,8 @@ if __name__ == '__main__':
 
     try:
         benchmarks.run_benchmarks()
+    except Exception as ex:
+        logging.exception("Something crashed")
     finally:
         print("Benchmarks ended, saving results to JSON file")
         benchmarks.save_results_to_file()
