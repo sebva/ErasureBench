@@ -22,7 +22,15 @@ class RedisCluster:
             sleep(5)
             return self
 
-        self._docker_scale(self.cluster_size)
+        # Ramp up by batches of 30, otherwise we get a timeout exception
+        current = 0
+        remaining = self.cluster_size
+        while remaining > 0:
+            to_add = 30 if remaining > 30 else remaining
+            current += to_add
+            remaining -= to_add
+            self._docker_scale(current)
+
         primitive_nodes = []
         while len(primitive_nodes) < self.cluster_size:
             print("Waiting for all nodes to come alive...")
