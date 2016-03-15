@@ -28,7 +28,7 @@ Read and write calls will be passed through to the encoder/decoder layer.
 The encoder/decoder layer will handle the complicated task of correctly chunking the data.
 Its role includes the handling of aligning read and write operations to the correct boundaries.
 Once the data is chunked in blocks of the correct size, it is passed to the erasure coding algorithm, which will add redundancy blocks.
-The data and parity blocks are then be passed to the storage backend.
+The data and parity blocks are then passed to the storage backend.
 
 The storage backend is the component that interfaces the block storage primitives of our program to operations on a key-value store.
 
