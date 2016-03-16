@@ -67,14 +67,19 @@ For testing purposes, a storage backend using a single Java Map is also availabl
 
 \subsection{Blocks storage}
 
-For performance reasons\footnote{This additional component provides a considerable speed-up comprised between $100\times$ and $1000\times$}, there is an additional layer before the storage of blocks in the key-value store.
-As the size of each block is 1 byte, performing an operation on the key-value store over the network for each block is very costly.
-For this reason, the role of this intermediate layer is to aggregate multiple operations at once.
-Instead of storing one block per key in the key-value store, each key stores an aggregation of multiple blocks.
+The storage backend is designed to operate on 1 byte blocks.
+Our first implementation stored each block individually in the key-value store.
+Its performance proved to be catastrophic, because the overhead of each request to the key-value store server is much bigger than the data itself.
+Therefore, we decided to add an intermediate layer between the encoder/decoder and the storage backend.
+
+This layer is transparent to the encoder/decoder which still deals with single 1 byte blocks.
+Thanks to this new layer, multiple write operations on the key-value store are now aggregated.
+Instead of storing one block per key, each key stores an aggregation of multiple blocks.
 The guarantees offered by the erasure coding process are still kept because one aggregation only stores blocks that belong to the same stripe position.
+This additional component provides a considerable speed-up comprised between $100\times$ and $1000\times$.
 
 A \ac{lru} cache optimizes the retrieval of multiple individuals blocks.
-This way, when reading a file sequentially, each blocks aggregation is only retrieved once from the key-value store.
+This way, when reading a file sequentially, each aggregation of blocks is only retrieved once from the key-value store.
 
 \section{Surrounding components}
 
