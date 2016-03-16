@@ -7,6 +7,6 @@
 The article presents a new family of erasure codes called \acp{lrc}.
 These codes enable local repair of faulty data.
 With traditional erasure codes like Reed-Solomon, the cumulative size of the blocks needed to repair a file has to be bigger or equal than the original size of the file.
-With \ac{lrc}, a failure affecting a small number of blocks can be repaired using less clean blocks.
+With \ac{lrc}, a failure affecting a small number of blocks can be repaired using a smaller number of clean blocks.
 The authors implemented their algorithm in Hadoop HDFS and deployed a test to Facebook clusters.
-They measured that the repair process of \ac{lrc} uses half the disk and network bandwidth compared to Reed-Solomon, at the expense of \SI{14}{\percent} more storage usage.
+They measured that the repair process of \ac{lrc} uses half the disk and network bandwidth compared to Reed-Solomon, at the expense of \SI{14}{\percent} more storage overhead.
