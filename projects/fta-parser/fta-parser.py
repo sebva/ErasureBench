@@ -1,41 +1,60 @@
 #!/usr/bin/env python3
-import os
-import random
+
+import sqlite3
 
 import matplotlib.pyplot as plt
-import sqlite3
+import numpy as np
+from matplotlib import dates
 
 
 def parse_trace(set_name, db_file):
     print(set_name)
     try:
         sql = sqlite3.connect(db_file)
-        #sql.row_factory = sqlite3.Row
 
         cur = sql.cursor()
-        cur.execute(r'SELECT event_start_time, event_type FROM event_trace JOIN component ON event_trace.component_id = component.component_id WHERE (event_type = 0 OR event_type = 1) AND component_type = 0 ORDER BY event_start_time;')
 
-        count = 0
+        cur.execute(r'SELECT event_start_time, event_type FROM event_trace ORDER BY event_start_time;')
+
+        print("End query")
 
         x_axis = list()
         y_axis = list()
 
-        event = cur.fetchone()
-        while event is not None:
+        # In websites_02, the 0 epoch = 26/09/2001 16:11:10
+        # In pyplot, the 0 epoch = 01/01/0001 -1
+        #                   Days    +1   16:11:10
+        pyplot_epoch_diff = 730753 + 1 + 86400. / (16 * 3600 + 11 * 60 + 10)
+        count = 0
+        events = cur.fetchall()
+        for event in events:
             x_axis.append(event[0])
+            y_axis.append(count)
+
             if event[1] == 1:
                 count += 1
-            else:
+            elif event[1] == 0:
                 count -= 1
-            y_axis.append(count)
-            event = cur.fetchone()
 
-        count += cur.rowcount
+            x_axis.append(event[0])
+            y_axis.append(count)
 
         cur.close()
         sql.close()
 
-        plt.plot(x_axis, y_axis)
+        x_axis_np = np.array([x / 86400. + pyplot_epoch_diff for x in x_axis])
+        y_axis_np = np.array(y_axis)
+
+        # Any filter available in scipy.signal can be applied
+        # y_axis_np = signal.medfilt(y_axis_np, 51)
+
+        locator = dates.AutoDateLocator()
+        plt.gca().xaxis.set_major_formatter(dates.AutoDateFormatter(locator))
+        plt.gca().xaxis.set_major_locator(locator)
+        plt.title(set_name.capitalize())
+        plt.ylabel("Alive nodes")
+        plt.plot(x_axis_np, y_axis_np)
+        plt.gcf().autofmt_xdate()
         plt.show()
 
     except ValueError:
@@ -43,7 +62,4 @@ def parse_trace(set_name, db_file):
 
 
 if __name__ == '__main__':
-    databases = [x for x in os.listdir('databases') if x.endswith('.db')]
-    random.shuffle(databases)
-    for db in databases:
-        parse_trace(db[:-3], 'databases/' + db)
+    parse_trace('websites', 'databases/websites02.db')
