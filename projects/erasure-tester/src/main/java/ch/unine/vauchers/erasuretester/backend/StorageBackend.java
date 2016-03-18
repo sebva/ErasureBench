@@ -14,7 +14,7 @@ import java.util.Optional;
  */
 public abstract class StorageBackend {
     public int bufferSize;
-    private static final int FUSE_READ_SIZE = 1024 * 128; // Update accordingly
+    private static final int FUSE_READ_SIZE = 1024 * 128 + 20; // Update accordingly
     private static final int CACHE_SIZE = 50;
     private BlocksContainer[] writeBuffers;
     private LinkedHashMap<Integer, BlocksContainer> readCache;
@@ -169,5 +169,9 @@ public abstract class StorageBackend {
         for (int i = 0; i < totalSize; i++) {
             flush(i);
         }
+    }
+
+    public void clearReadCache() {
+        readCache.clear();
     }
 }
