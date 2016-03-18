@@ -107,7 +107,7 @@ public class FileEncoderDecoder {
 
         for (int i = oldContentSize; i < nextBoundary; i++) {
             // Grow the blockKeys list to fit the size/offset given in parameter
-            blockKeys.add(i, -1);
+            blockKeys.add(-1);
         }
 
         try {
