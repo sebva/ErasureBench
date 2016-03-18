@@ -2,8 +2,8 @@ plugins {
     id 'java'
     id 'com.palantir.docker' version '0.5.2'
     // Plugin to create a Jar with all dependencies in it
-    id 'com.github.johnrengelman.shadow' version '1.2.2'
-    id 'me.champeau.gradle.jmh' version '0.2.0'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+    id 'me.champeau.gradle.jmh' version '0.3.0'
 }
 
 group 'ch.unine.vauchers'
