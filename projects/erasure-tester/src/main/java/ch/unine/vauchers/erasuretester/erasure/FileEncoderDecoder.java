@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.PrimitiveIterator;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -216,20 +216,35 @@ public class FileEncoderDecoder {
     }
 
     private Stream<Byte> decodeFileData(IntList blockKeys, IntList erasedIndices) throws TooManyErasedLocations {
-        final IntList toReadForDecode = erasureCode.locationsToReadForDecode(erasedIndices);
-        toReadForDecode.sort(null);
+        IntList toReadForDecode;
+        boolean retry;
+        do {
+            retry = false;
+            toReadForDecode = erasureCode.locationsToReadForDecode(erasedIndices);
+            toReadForDecode.sort(null);
 
-        toReadForDecode.parallelStream().forEach(index -> {
-            final int key = blockKeys.getInt(index);
-            dataBuffer[index] = storageBackend.retrieveBlock(key).orElse(0);
-        });
+            for (int index : toReadForDecode) {
+                final int key = blockKeys.getInt(index);
+                Optional<Integer> block = storageBackend.retrieveBlock(key);
+                if (block.isPresent()) {
+                    dataBuffer[index] = block.get();
+                } else {
+                    erasedIndices.add(index);
+                    retry = true;
+                    break;
+                }
+            }
+        } while (retry);
 
-        final int[] recoveredValues = new int[erasedIndices.size()];
-        erasureCode.decode(dataBuffer, convertToIntArray(erasedIndices), recoveredValues, convertToIntArray(toReadForDecode), fillNotToRead(toReadForDecode));
+        int[] indicesToRecover = erasedIndices.parallelStream().filter(index -> index >= paritySize).mapToInt(Integer::intValue).toArray();
+
+        final int[] recoveredValues = new int[indicesToRecover.length];
+        erasureCode.decode(dataBuffer, indicesToRecover, recoveredValues, convertToIntArray(toReadForDecode), fillNotToRead(toReadForDecode));
 
         // Restore erased values
-        final PrimitiveIterator.OfInt recoveredValuesIterator = Arrays.stream(recoveredValues).iterator();
-        erasedIndices.forEach(erasedIndex -> dataBuffer[erasedIndex] = recoveredValues[recoveredValuesIterator.next()]);
+        for (int i = 0; i < recoveredValues.length; i++) {
+            dataBuffer[erasedIndices.getInt(i)] = recoveredValues[i];
+        }
 
         return Arrays.stream(dataBuffer).skip(paritySize).boxed().map(Integer::byteValue);
     }
