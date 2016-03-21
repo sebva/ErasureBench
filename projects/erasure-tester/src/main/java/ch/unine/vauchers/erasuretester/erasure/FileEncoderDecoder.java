@@ -186,7 +186,7 @@ public class FileEncoderDecoder {
 
         final Stream<Byte> partData = decodeFileData(blockKeys, erasedBlocksIndices);
 
-        partData.skip(offset).limit(size).forEach(outBuffer::put);
+        partData.skip(offset).limit(size).forEachOrdered(outBuffer::put);
     }
 
     private synchronized void writePart(IntList blockKeys, ByteBuffer fileBuffer, int size, int offset) {
@@ -239,29 +239,14 @@ public class FileEncoderDecoder {
         int[] indicesToRecover = erasedIndices.parallelStream().filter(index -> index >= paritySize).mapToInt(Integer::intValue).toArray();
 
         final int[] recoveredValues = new int[indicesToRecover.length];
-        erasureCode.decode(dataBuffer, indicesToRecover, recoveredValues, convertToIntArray(toReadForDecode), fillNotToRead(toReadForDecode));
+        erasureCode.decode(dataBuffer, indicesToRecover, recoveredValues, convertToIntArray(toReadForDecode), erasedIndices.toIntArray());
 
         // Restore erased values
         for (int i = 0; i < recoveredValues.length; i++) {
-            dataBuffer[erasedIndices.getInt(i)] = recoveredValues[i];
+            dataBuffer[indicesToRecover[i]] = recoveredValues[i];
         }
 
         return Arrays.stream(dataBuffer).skip(paritySize).boxed().map(Integer::byteValue);
-    }
-
-    private int[] fillNotToRead(IntList toReadForDecode) {
-        int[] notToRead = new int[totalSize - toReadForDecode.size()];
-
-        int previousIndex = -1;
-        int notToReadIndex = 0;
-        for (int toReadIndex : toReadForDecode) {
-            for (int i = previousIndex + 1; i < toReadIndex; i++) {
-                notToRead[notToReadIndex++] = i;
-            }
-            previousIndex = toReadIndex;
-        }
-
-        return notToRead;
     }
 
     private static int[] convertToIntArray(IntList integerCollection) {
