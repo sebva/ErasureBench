@@ -36,6 +36,18 @@ class BenchmarksImpl:
         else:
             raise Exception('Unit not supported, please complete the _convert_to_kb method')
 
+    def bench_apache(self, config, redis: RedisCluster, java):
+        subprocess.check_call(['tar', '-xjf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount])
+        results = dict()
+        while redis.cluster_size >= 2:
+            check_output = subprocess.check_output(['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'], stderr=subprocess.DEVNULL)
+            ok_files = check_output.count('OK')
+            failed_files = check_output.count('FAILED')
+            results["Init: %d, Now: %d, Ratio" % (config[1], redis.cluster_size)] = ok_files / failed_files
+
+            redis.scale(redis.cluster_size - 1, brutal=True)
+            java.flush_read_cache()
+
     def bench_kill(self, config, redis: RedisCluster, java):
         if config[1] < 2 or config[0] == 'Null':
             # The benchmark would crash needlessly
