@@ -108,6 +108,7 @@ class RedisCluster:
     def _docker_scale(cluster_size, standalone=False):
         node_type = "standalone" if standalone else "master"
         subprocess.check_call('docker-compose scale redis-%s=%d' % (node_type, cluster_size), shell=True)
+        sleep(3)
 
     @staticmethod
     def _get_running_nodes():

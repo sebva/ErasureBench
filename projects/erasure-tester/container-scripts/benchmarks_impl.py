@@ -4,6 +4,8 @@ import re
 import string
 import subprocess
 
+from redis_cluster import RedisCluster
+
 
 class BenchmarksImpl:
     """
@@ -34,10 +36,8 @@ class BenchmarksImpl:
         else:
             raise Exception('Unit not supported, please complete the _convert_to_kb method')
 
-    def bench_dd(self, config):
+    def bench_dd(self, config=None, redis=None, java=None, block_count=50):
         write_speed = read_speed = 0
-        block_count = 50
-        redis_size = config[1]
 
         for _ in range(3):
             filename = self.generate_file_name()

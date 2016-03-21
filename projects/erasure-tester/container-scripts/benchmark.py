@@ -2,17 +2,16 @@
 import json
 import logging
 import os
-import re
-import socket
 import subprocess
 from datetime import datetime
 
 import signal
 import sys
+from time import sleep
+
 from benchmarks_impl import BenchmarksImpl
 from plot_results import main as output_plots
 from redis_cluster import RedisCluster
-from time import sleep
 
 
 class Benchmarks:
@@ -44,19 +43,19 @@ class Benchmarks:
                                     config = [ec, rs, sb, ss, ps, src]
                                     print("Running with " + str(config))
                                     (params, env) = self._get_java_params(redis, *config)
-                                    with JavaProgram(params, env):
+                                    with JavaProgram(params, env) as java:
                                         try:
-                                            self._run_benchmark(b, config)
+                                            self._run_benchmark(b, config, redis, java)
                                         except Exception as ex:
                                             logging.exception("The benchmark crashed, continuing with the rest...")
 
-    def _run_benchmark(self, bench, config):
+    def _run_benchmark(self, bench, config, redis, java):
         bench_name = bench.__name__
         print("    " + bench_name)
         self.results.append({
             'bench': bench_name,
             'config': config,
-            'results': bench(config)
+            'results': bench(config, redis, java)
         })
 
     def save_results_to_file(self):
@@ -99,6 +98,9 @@ class JavaProgram:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         kill_pid(self.proc)
+
+    def flush_read_cache(self):
+        self.proc.send_signal(signal.SIGUSR2)
 
 
 def kill_pid(proc):
