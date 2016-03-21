@@ -20,9 +20,9 @@ class Benchmarks:
     def __init__(self):
         # 2 is forbidden due to Redis limitation on Cluster size
         self.redis_size = [5, 1, 0]
-        self.erasure_codes = ['Null']
+        self.erasure_codes = ['ReedSolomon']
         self.stripe_sizes = [10]
-        self.parity_sizes = [2]
+        self.parity_sizes = [4]
         self.src_sizes = [5]
         self.first = True
         self.results = []

@@ -36,6 +36,17 @@ class BenchmarksImpl:
         else:
             raise Exception('Unit not supported, please complete the _convert_to_kb method')
 
+    def bench_kill(self, config, redis: RedisCluster, java):
+        if config[1] < 2 or config[0] == 'Null':
+            # The benchmark would crash needlessly
+            return {}
+
+        self.bench_dd(block_count=20)
+        redis.scale(redis.cluster_size - 1, brutal=True)
+        java.flush_read_cache()
+        self.bench_dd(block_count=20)
+        return {}
+
     def bench_dd(self, config=None, redis=None, java=None, block_count=50):
         write_speed = read_speed = 0
 

@@ -115,11 +115,11 @@ class RedisCluster:
         nodes = [x.split(' ') for x in
                  subprocess.check_output('redis-cli -h erasuretester_redis-master_1 CLUSTER NODES'.split(' ')).decode(
                          'UTF-8').splitlines()]
-        return [{
+        return sorted([{
                     'id': x[0],
                     'ip_port': x[1],
                     'is_number_1': 'myself' in x[2]
-                } for x in nodes]
+                } for x in nodes], key=lambda x: x['ip_port'])
 
     @staticmethod
     def _get_nodes_primitive():
@@ -133,11 +133,8 @@ class RedisCluster:
             pass
         return redis_nodes
 
-    def _elect_victim(self):
-        return self.nodes[-1]
-
     def _kill_a_node(self):
-        victim = self._elect_victim()
+        victim = self.nodes.pop()
 
         # Brutally kill the node
         subprocess.check_call(['redis-cli', '-h', victim['ip_port'].split(':')[0], 'SHUTDOWN'])
@@ -147,6 +144,7 @@ class RedisCluster:
         redistrib = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', self.nodes[0]['ip_port']], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
         redistrib.communicate(b'yes\n')
         redistrib.wait()
+        sleep(3)
 
     def _remove_a_node(self):
         victim = self._elect_victim()
