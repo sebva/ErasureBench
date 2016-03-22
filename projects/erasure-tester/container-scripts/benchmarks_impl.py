@@ -38,16 +38,22 @@ class BenchmarksImpl:
             raise Exception('Unit not supported, please complete the _convert_to_kb method')
 
     def bench_apache(self, config, redis: RedisCluster, java):
+        tar_log_lines = 2614
+        sha_log_lines = 2517
+
         print('Uncompressing httpd...')
-        subprocess.check_call(['tar', '-xjf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount])
+        tar_proc = subprocess.Popen(['tar', '-xvjf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount], stdout=subprocess.PIPE, bufsize=1)
+        self._show_subprocess_percent(tar_proc, tar_log_lines)
+
         results = dict()
         while redis.cluster_size >= 2:
             print('Checking files...')
-            sha_output = subprocess.Popen(
+            sha_proc = subprocess.Popen(
                 ['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'],
-                stdout=subprocess.PIPE).communicate()[0]
-            ok_files = sha_output.count(b' OK')
-            failed_files = sha_output.count(b' FAILED')
+                stdout=subprocess.PIPE, bufsize=1)
+            sha_output = self._show_subprocess_percent(sha_proc, sha_log_lines)
+            ok_files = len([x for x in sha_output if b' OK' in x])
+            failed_files = len([x for x in sha_output if b' FAILED' in x])
             print('   Checked. %d correct, %d failed' % (ok_files, failed_files))
             inter_results = {
                 'RS0': config[1],
@@ -58,10 +64,25 @@ class BenchmarksImpl:
 
             if ok_files == 0:  # It's no use to continue
                 break
-            redis.scale(redis.cluster_size - 1, brutal=True)
-            print('Flushing read cache...')
-            java.flush_read_cache()
+            if redis.cluster_size > 2:
+                redis.scale(redis.cluster_size - 1, brutal=True)
+                print('Flushing read cache...')
+                java.flush_read_cache()
         return results
+
+    @staticmethod
+    def _show_subprocess_percent(proc, expected_nb_lines):
+        percent = 0
+        lines = []
+        with proc.stdout:
+            for line in iter(proc.stdout.readline, b''):
+                lines.append(line)
+                new_percent = int(len(lines) / expected_nb_lines * 100)
+                if new_percent != percent and new_percent % 5 == 0:
+                    percent = new_percent
+                    print("%d %%" % percent)
+        proc.wait()
+        return lines
 
     def bench_kill(self, config, redis: RedisCluster, java):
         if config[1] < 2 or config[0] == 'Null':
