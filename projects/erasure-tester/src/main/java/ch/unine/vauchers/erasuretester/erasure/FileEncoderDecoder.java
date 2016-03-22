@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.PrimitiveIterator;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -107,7 +107,7 @@ public class FileEncoderDecoder {
 
         for (int i = oldContentSize; i < nextBoundary; i++) {
             // Grow the blockKeys list to fit the size/offset given in parameter
-            blockKeys.add(i, -1);
+            blockKeys.add(-1);
         }
 
         try {
@@ -186,7 +186,7 @@ public class FileEncoderDecoder {
 
         final Stream<Byte> partData = decodeFileData(blockKeys, erasedBlocksIndices);
 
-        partData.skip(offset).limit(size).forEach(outBuffer::put);
+        partData.skip(offset).limit(size).forEachOrdered(outBuffer::put);
     }
 
     private synchronized void writePart(IntList blockKeys, ByteBuffer fileBuffer, int size, int offset) {
@@ -216,37 +216,37 @@ public class FileEncoderDecoder {
     }
 
     private Stream<Byte> decodeFileData(IntList blockKeys, IntList erasedIndices) throws TooManyErasedLocations {
-        final IntList toReadForDecode = erasureCode.locationsToReadForDecode(erasedIndices);
-        toReadForDecode.sort(null);
+        IntList toReadForDecode;
+        boolean retry;
+        do {
+            retry = false;
+            toReadForDecode = erasureCode.locationsToReadForDecode(erasedIndices);
+            toReadForDecode.sort(null);
 
-        toReadForDecode.parallelStream().forEach(index -> {
-            final int key = blockKeys.getInt(index);
-            dataBuffer[index] = storageBackend.retrieveBlock(key).orElse(0);
-        });
+            for (int index : toReadForDecode) {
+                final int key = blockKeys.getInt(index);
+                Optional<Integer> block = storageBackend.retrieveBlock(key);
+                if (block.isPresent()) {
+                    dataBuffer[index] = block.get();
+                } else {
+                    erasedIndices.add(index);
+                    retry = true;
+                    break;
+                }
+            }
+        } while (retry);
 
-        final int[] recoveredValues = new int[erasedIndices.size()];
-        erasureCode.decode(dataBuffer, convertToIntArray(erasedIndices), recoveredValues, convertToIntArray(toReadForDecode), fillNotToRead(toReadForDecode));
+        int[] indicesToRecover = erasedIndices.parallelStream().filter(index -> index >= paritySize).mapToInt(Integer::intValue).toArray();
+
+        final int[] recoveredValues = new int[indicesToRecover.length];
+        erasureCode.decode(dataBuffer, indicesToRecover, recoveredValues, convertToIntArray(toReadForDecode), erasedIndices.toIntArray());
 
         // Restore erased values
-        final PrimitiveIterator.OfInt recoveredValuesIterator = Arrays.stream(recoveredValues).iterator();
-        erasedIndices.forEach(erasedIndex -> dataBuffer[erasedIndex] = recoveredValues[recoveredValuesIterator.next()]);
-
-        return Arrays.stream(dataBuffer).skip(paritySize).boxed().map(Integer::byteValue);
-    }
-
-    private int[] fillNotToRead(IntList toReadForDecode) {
-        int[] notToRead = new int[totalSize - toReadForDecode.size()];
-
-        int previousIndex = -1;
-        int notToReadIndex = 0;
-        for (int toReadIndex : toReadForDecode) {
-            for (int i = previousIndex + 1; i < toReadIndex; i++) {
-                notToRead[notToReadIndex++] = i;
-            }
-            previousIndex = toReadIndex;
+        for (int i = 0; i < recoveredValues.length; i++) {
+            dataBuffer[indicesToRecover[i]] = recoveredValues[i];
         }
 
-        return notToRead;
+        return Arrays.stream(dataBuffer).skip(paritySize).boxed().map(Integer::byteValue);
     }
 
     private static int[] convertToIntArray(IntList integerCollection) {

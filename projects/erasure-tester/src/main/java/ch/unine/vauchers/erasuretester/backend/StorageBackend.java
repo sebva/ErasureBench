@@ -13,9 +13,9 @@ import java.util.Optional;
  * Remember to call disconnect() after usage.
  */
 public abstract class StorageBackend {
-    public int bufferSize;
-    private static final int FUSE_READ_SIZE = 1024 * 128; // Update accordingly
-    private static final int CACHE_SIZE = 50;
+    protected int bufferSize;
+    public static final int FUSE_READ_SIZE = 1024 * 128 + 20; // Update accordingly
+    public static final int CACHE_SIZE = 50;
     private BlocksContainer[] writeBuffers;
     private LinkedHashMap<Integer, BlocksContainer> readCache;
     private int[] counters;
@@ -169,5 +169,9 @@ public abstract class StorageBackend {
         for (int i = 0; i < totalSize; i++) {
             flush(i);
         }
+    }
+
+    public void clearReadCache() {
+        readCache.clear();
     }
 }

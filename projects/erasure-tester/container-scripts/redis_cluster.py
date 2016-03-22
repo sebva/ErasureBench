@@ -24,10 +24,17 @@ class RedisCluster:
 
         self._docker_scale(self.cluster_size)
         primitive_nodes = []
+        attempt = 0
         while len(primitive_nodes) < self.cluster_size:
             print("Waiting for all nodes to come alive...")
             sleep(5)
             primitive_nodes = self._get_nodes_primitive()
+            attempt += 1
+            if attempt >= 3:
+                print("There has been a problem, trying again...")
+                self._docker_scale(0)
+                self._docker_scale(self.cluster_size)
+                attempt = 0
 
         self._start_cluster()
         self.nodes = self._get_running_nodes()
@@ -108,17 +115,18 @@ class RedisCluster:
     def _docker_scale(cluster_size, standalone=False):
         node_type = "standalone" if standalone else "master"
         subprocess.check_call('docker-compose scale redis-%s=%d' % (node_type, cluster_size), shell=True)
+        sleep(3)
 
     @staticmethod
     def _get_running_nodes():
         nodes = [x.split(' ') for x in
                  subprocess.check_output('redis-cli -h erasuretester_redis-master_1 CLUSTER NODES'.split(' ')).decode(
                          'UTF-8').splitlines()]
-        return [{
+        return sorted([{
                     'id': x[0],
                     'ip_port': x[1],
                     'is_number_1': 'myself' in x[2]
-                } for x in nodes]
+                } for x in nodes], key=lambda x: x['ip_port'])
 
     @staticmethod
     def _get_nodes_primitive():
@@ -132,11 +140,8 @@ class RedisCluster:
             pass
         return redis_nodes
 
-    def _elect_victim(self):
-        return self.nodes[-1]
-
     def _kill_a_node(self):
-        victim = self._elect_victim()
+        victim = self.nodes.pop()
 
         # Brutally kill the node
         subprocess.check_call(['redis-cli', '-h', victim['ip_port'].split(':')[0], 'SHUTDOWN'])
@@ -146,6 +151,7 @@ class RedisCluster:
         redistrib = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', self.nodes[0]['ip_port']], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
         redistrib.communicate(b'yes\n')
         redistrib.wait()
+        sleep(3)
 
     def _remove_a_node(self):
         victim = self._elect_victim()

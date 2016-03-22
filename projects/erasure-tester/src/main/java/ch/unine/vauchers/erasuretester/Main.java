@@ -16,6 +16,7 @@ import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
+import sun.misc.Signal;
 
 import java.io.IOException;
 
@@ -119,6 +120,9 @@ public class Main {
                     e.printStackTrace();
                 }
             }
+        });
+        Signal.handle(new Signal("USR2"), sig -> {
+            storageBackend.clearReadCache();
         });
 
         fuse.mount(namespace.getString("mountpoint"));

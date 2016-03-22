@@ -1,29 +1,29 @@
 package ch.unine.vauchers.erasuretester.erasure;
 
 import ch.unine.vauchers.erasuretester.backend.MemoryStorageBackend;
-import ch.unine.vauchers.erasuretester.erasure.codes.NullErasureCode;
-import org.junit.Assert;
+import ch.unine.vauchers.erasuretester.erasure.codes.ReedSolomonCode;
 import org.junit.Test;
 
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 
-public class FileEncoderDecoderNullErasureTest extends FileEncoderDecoderTest {
+public class FileEncoderDecoderReedSolomonErasureTest extends FileEncoderDecoderTest {
     @Override
     protected FileEncoderDecoder createEncoderDecoder() {
-        return new FileEncoderDecoder(new NullErasureCode(10), new MemoryStorageBackend());
+        return new FileEncoderDecoder(new ReedSolomonCode(10, 4), new MemoryStorageBackend());
     }
 
     @Test
     public void testComputeDataSize() {
-        Assert.assertEquals(0, sut.nextBoundary(0));
-        Assert.assertEquals(10, sut.nextBoundary(1));
-        Assert.assertEquals(10, sut.nextBoundary(9));
-        Assert.assertEquals(10, sut.nextBoundary(10));
-        Assert.assertEquals(20, sut.nextBoundary(11));
-        Assert.assertEquals(20, sut.nextBoundary(20));
-        Assert.assertEquals(30, sut.nextBoundary(21));
+        assertEquals(0, sut.nextBoundary(0));
+        assertEquals(14, sut.nextBoundary(1));
+        assertEquals(14, sut.nextBoundary(9));
+        assertEquals(14, sut.nextBoundary(10));
+        assertEquals(28, sut.nextBoundary(11));
+        assertEquals(28, sut.nextBoundary(20));
+        assertEquals(42, sut.nextBoundary(21));
+        assertEquals(68824, sut.nextBoundary(45056 + 4096));
     }
 
     @Test
@@ -31,15 +31,16 @@ public class FileEncoderDecoderNullErasureTest extends FileEncoderDecoderTest {
         assertEquals(0, sut.previousBoundary(0));
         assertEquals(0, sut.previousBoundary(1));
         assertEquals(0, sut.previousBoundary(9));
-        assertEquals(10, sut.previousBoundary(10));
-        assertEquals(10, sut.previousBoundary(11));
-        assertEquals(10, sut.previousBoundary(13));
-        assertEquals(10, sut.previousBoundary(14));
-        assertEquals(10, sut.previousBoundary(19));
-        assertEquals(20, sut.previousBoundary(20));
-        assertEquals(20, sut.previousBoundary(29));
-        assertEquals(30, sut.previousBoundary(30));
-        assertEquals(30, sut.previousBoundary(34));
+        assertEquals(14, sut.previousBoundary(10));
+        assertEquals(14, sut.previousBoundary(11));
+        assertEquals(14, sut.previousBoundary(13));
+        assertEquals(14, sut.previousBoundary(14));
+        assertEquals(14, sut.previousBoundary(19));
+        assertEquals(28, sut.previousBoundary(20));
+        assertEquals(28, sut.previousBoundary(29));
+        assertEquals(42, sut.previousBoundary(30));
+        assertEquals(42, sut.previousBoundary(34));
+        assertEquals(63070, sut.previousBoundary(45056));
     }
 
     @Test
@@ -50,7 +51,6 @@ public class FileEncoderDecoderNullErasureTest extends FileEncoderDecoderTest {
         IntStream.rangeClosed(30, 39).forEach((index) -> assertEquals(index - 30, sut.lowerBytesToDrop(index)));
     }
 
-    @SuppressWarnings("Duplicates")
     @Test
     public void testHigherBytesToDrop() {
         assertEquals(10, sut.higherBytesToDrop(0));

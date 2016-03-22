@@ -27,7 +27,6 @@ public class XORCode extends ErasureCode {
     private int paritySize;
     private int[] dataBuff;
 
-    @Deprecated
     public XORCode(int stripeSize, int paritySize) {
         assert (paritySize == 1);
         this.stripeSize = stripeSize;
