@@ -24,10 +24,17 @@ class RedisCluster:
 
         self._docker_scale(self.cluster_size)
         primitive_nodes = []
+        attempt = 0
         while len(primitive_nodes) < self.cluster_size:
             print("Waiting for all nodes to come alive...")
             sleep(5)
             primitive_nodes = self._get_nodes_primitive()
+            attempt += 1
+            if attempt >= 3:
+                print("There has been a problem, trying again...")
+                self._docker_scale(0)
+                self._docker_scale(self.cluster_size)
+                attempt = 0
 
         self._start_cluster()
         self.nodes = self._get_running_nodes()

@@ -46,7 +46,7 @@ class BenchmarksImpl:
         self._show_subprocess_percent(tar_proc, tar_log_lines)
 
         results = dict()
-        while redis.cluster_size >= 2:
+        while True:
             print('Checking files...')
             sha_proc = subprocess.Popen(
                 ['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'],
@@ -68,6 +68,8 @@ class BenchmarksImpl:
                 redis.scale(redis.cluster_size - 1, brutal=True)
                 print('Flushing read cache...')
                 java.flush_read_cache()
+            else:
+                break
         return results
 
     @staticmethod
