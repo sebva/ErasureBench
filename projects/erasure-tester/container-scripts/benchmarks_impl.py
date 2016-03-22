@@ -4,6 +4,7 @@ import re
 import string
 import subprocess
 
+import sys
 from redis_cluster import RedisCluster
 
 
@@ -37,16 +38,30 @@ class BenchmarksImpl:
             raise Exception('Unit not supported, please complete the _convert_to_kb method')
 
     def bench_apache(self, config, redis: RedisCluster, java):
+        print('Uncompressing httpd...')
         subprocess.check_call(['tar', '-xjf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount])
         results = dict()
         while redis.cluster_size >= 2:
-            check_output = subprocess.check_output(['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'], stderr=subprocess.DEVNULL)
-            ok_files = check_output.count('OK')
-            failed_files = check_output.count('FAILED')
-            results["Init: %d, Now: %d, Ratio" % (config[1], redis.cluster_size)] = ok_files / failed_files
+            print('Checking files...')
+            sha_output = subprocess.Popen(
+                ['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'],
+                stdout=subprocess.PIPE).communicate()[0]
+            ok_files = sha_output.count(b' OK')
+            failed_files = sha_output.count(b' FAILED')
+            print('   Checked. %d correct, %d failed' % (ok_files, failed_files))
+            inter_results = {
+                'RS0': config[1],
+                'RS': redis.cluster_size,
+                'Failure ratio': failed_files / (ok_files + failed_files),
+            }
+            results['RS=%d' % redis.cluster_size] = inter_results
 
+            if ok_files == 0:  # It's no use to continue
+                break
             redis.scale(redis.cluster_size - 1, brutal=True)
+            print('Flushing read cache...')
             java.flush_read_cache()
+        return results
 
     def bench_kill(self, config, redis: RedisCluster, java):
         if config[1] < 2 or config[0] == 'Null':
