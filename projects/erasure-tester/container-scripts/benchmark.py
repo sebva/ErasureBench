@@ -19,11 +19,19 @@ class Benchmarks:
 
     def __init__(self):
         # 2 is forbidden due to Redis limitation on Cluster size
-        self.redis_size = [5, 1, 0]
-        self.erasure_codes = ['ReedSolomon']
-        self.stripe_sizes = [10]
-        self.parity_sizes = [4]
-        self.src_sizes = [5]
+        self.redis_size = [60]
+        self.erasure_codes = ['Null', 'ReedSolomon', 'SimpleRegenerating']
+        self.erasure_configs = {
+            'ReedSolomon': [
+                (10, 4, 0)
+            ],
+            'SimpleRegenerating': [
+                (10, 6, 5)
+            ],
+            'Null': [
+                (10, 0, 0)
+            ]
+        }
         self.first = True
         self.results = []
         self.log_file_base += datetime.today().isoformat()
@@ -34,20 +42,18 @@ class Benchmarks:
     def run_benchmarks(self):
         for rs in self.redis_size:
             for ec in self.erasure_codes:
-                for ss in self.stripe_sizes:
-                    for ps in self.parity_sizes:
-                        for src in self.src_sizes:
-                            for b in self.benches:
-                                with RedisCluster(rs) as redis:
-                                    sb = 'Jedis' if rs > 0 else 'Memory'
-                                    config = [ec, rs, sb, ss, ps, src]
-                                    print("Running with " + str(config))
-                                    (params, env) = self._get_java_params(redis, *config)
-                                    with JavaProgram(params, env) as java:
-                                        try:
-                                            self._run_benchmark(b, config, redis, java)
-                                        except Exception as ex:
-                                            logging.exception("The benchmark crashed, continuing with the rest...")
+                for (ss, ps, src) in self.erasure_configs[ec]:
+                    for b in self.benches:
+                        with RedisCluster(rs) as redis:
+                            sb = 'Jedis' if rs > 0 else 'Memory'
+                            config = [ec, rs, sb, ss, ps, src]
+                            print("Running with " + str(config))
+                            (params, env) = self._get_java_params(redis, *config)
+                            with JavaProgram(params, env) as java:
+                                try:
+                                    self._run_benchmark(b, config, redis, java)
+                                except Exception as ex:
+                                    logging.exception("The benchmark crashed, continuing with the rest...")
 
     def _run_benchmark(self, bench, config, redis, java):
         bench_name = bench.__name__
