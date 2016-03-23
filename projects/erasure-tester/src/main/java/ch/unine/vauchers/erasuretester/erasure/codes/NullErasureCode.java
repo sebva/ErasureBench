@@ -34,7 +34,11 @@ public class NullErasureCode extends ErasureCode {
 
     @Override
     public IntList locationsToReadForDecode(List<Integer> erasedLocations) throws TooManyErasedLocations {
-        return locationsToRead;
+        if (erasedLocations.size() > 0) {
+            throw new TooManyErasedLocations("No parity with NullErasureCode");
+        } else {
+            return locationsToRead;
+        }
     }
 
     @Override
