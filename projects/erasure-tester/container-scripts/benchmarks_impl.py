@@ -58,11 +58,13 @@ class BenchmarksImpl:
             inter_results = {
                 'RS0': config[1],
                 'RS': redis.cluster_size,
+                'OK Files': ok_files,
+                'Failed files': failed_files,
                 'Failure ratio': failed_files / (ok_files + failed_files),
             }
             results['RS=%d' % redis.cluster_size] = inter_results
 
-            if ok_files == 0:  # It's no use to continue
+            if ok_files <= 1:  # It's no use to continue
                 break
             if redis.cluster_size > 2:
                 redis.scale(redis.cluster_size - 1, brutal=True)
