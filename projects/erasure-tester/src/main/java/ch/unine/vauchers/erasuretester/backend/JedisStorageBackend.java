@@ -22,7 +22,8 @@ import java.util.stream.Stream;
  * Uses the <a href="https://github.com/xetorthio/jedis">Jedis library</a>.
  */
 public class JedisStorageBackend extends StorageBackend {
-    private static final String BLOCKS_PREFIX = "erasure-tester-blocks/";
+    private static final String BLOCKS_PREFIX = "erasure-tester-blocks/{";
+    private static final String BLOCKS_SUFFIX = "}";
 
     private final JedisCommands redis;
     private final Map<String, FileMetadata> metadataMap;
@@ -58,18 +59,18 @@ public class JedisStorageBackend extends StorageBackend {
 
     @Override
     public Optional<String> retrieveAggregatedBlocks(int key) {
-        final String value = redis.get(BLOCKS_PREFIX.concat(String.valueOf(key)));
+        final String value = redis.get(BLOCKS_PREFIX.concat(String.valueOf(key)).concat(BLOCKS_SUFFIX));
         return Optional.ofNullable(value);
     }
 
     @Override
     protected void storeAggregatedBlocks(int key, String blockData) {
-        redis.set(BLOCKS_PREFIX.concat(String.valueOf(key)), blockData);
+        redis.set(BLOCKS_PREFIX.concat(String.valueOf(key)).concat(BLOCKS_SUFFIX), blockData);
     }
 
     @Override
     public boolean isAggregatedBlockAvailable(int key) {
-        return redis.exists(BLOCKS_PREFIX.concat(String.valueOf(key)));
+        return redis.exists(BLOCKS_PREFIX.concat(String.valueOf(key)).concat(BLOCKS_SUFFIX));
     }
 
     @Override
