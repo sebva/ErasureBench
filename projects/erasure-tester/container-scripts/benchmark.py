@@ -54,6 +54,7 @@ class Benchmarks:
                                     self._run_benchmark(b, config, redis, java)
                                 except Exception as ex:
                                     logging.exception("The benchmark crashed, continuing with the rest...")
+                        self.save_results_to_file()
 
     def _run_benchmark(self, bench, config, redis, java):
         bench_name = bench.__name__
