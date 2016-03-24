@@ -91,7 +91,7 @@ class Benchmarks:
 
 
 class JavaProgram:
-    java_with_args = "java -cp * ch.unine.vauchers.erasuretester.Main /mnt/erasure".split(' ')
+    java_with_args = "java -Xmx6G -cp * ch.unine.vauchers.erasuretester.Main /mnt/erasure".split(' ')
     proc = None
 
     def __init__(self, more_args, env):
