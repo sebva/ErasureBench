@@ -6,7 +6,7 @@ RUN echo 'deb http://mirror.switch.ch/ftp/mirror/debian/ jessie-backports main' 
     apt-get -yqq install --no-install-recommends openjdk-8-jre-headless libfuse2 nfs-kernel-server ruby-redis python3-pip redis-tools gnuplot5-nox wget bzip2 && \
     apt-get -yqq clean
 
-RUN pip3 install docker-compose
+RUN pip3 install docker-compose pydevd
 
 RUN mkdir -p /opt/erasuretester/results
 

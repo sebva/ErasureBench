@@ -5,6 +5,7 @@ import os
 import subprocess
 from datetime import datetime
 
+import pydevd as pydevd
 import signal
 import sys
 from time import sleep
@@ -91,7 +92,9 @@ class Benchmarks:
 
 
 class JavaProgram:
-    java_with_args = "java -Xmx6G -cp * ch.unine.vauchers.erasuretester.Main /mnt/erasure".split(' ')
+    java_with_args = ["java"]
+    # java_with_args += ["-agentlib:jdwp=transport=dt_socket,server=n,address=172.16.0.167:5005,suspend=y"]
+    java_with_args += "-Xmx6G -cp * ch.unine.vauchers.erasuretester.Main /mnt/erasure".split(' ')
     proc = None
 
     def __init__(self, more_args, env):
@@ -131,6 +134,7 @@ def kill_pid(proc):
 
 
 if __name__ == '__main__':
+    # pydevd.settrace('172.16.0.167', port=9292, stdoutToServer=True, stderrToServer=True)
     print("Python client ready, starting benchmarks")
     benchmarks = Benchmarks()
 
