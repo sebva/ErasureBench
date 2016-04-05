@@ -1,5 +1,7 @@
 package ch.unine.vauchers.erasuretester.backend;
 
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.HostAndPort;
 import redis.clients.jedis.Jedis;
@@ -22,13 +24,15 @@ import java.util.stream.Stream;
  * Uses the <a href="https://github.com/xetorthio/jedis">Jedis library</a>.
  */
 public class JedisStorageBackend extends StorageBackend {
-    private static final String BLOCKS_PREFIX = "erasure-tester-blocks/{";
-    private static final String BLOCKS_SUFFIX = "}";
+    private static final String BLOCKS_PREFIX = "blocks/";
 
     private final JedisCommands redis;
     private final Map<String, FileMetadata> metadataMap;
+    private final HashFunction hashFunction;
 
     public JedisStorageBackend(boolean is_cluster) {
+        JedisTools.initialize();
+
         final String redis_address = System.getenv("REDIS_ADDRESS");
         if (redis_address == null) {
             redis = new Jedis();
@@ -44,6 +48,7 @@ public class JedisStorageBackend extends StorageBackend {
                 redis = new Jedis(host, port);
             }
         }
+        hashFunction = Hashing.murmur3_32();
         metadataMap = new HashMap<>();
     }
 
@@ -59,18 +64,18 @@ public class JedisStorageBackend extends StorageBackend {
 
     @Override
     public Optional<String> retrieveAggregatedBlocks(int key) {
-        final String value = redis.get(BLOCKS_PREFIX.concat(String.valueOf(key)).concat(BLOCKS_SUFFIX));
+        final String value = redis.get(computeRedisKey(key));
         return Optional.ofNullable(value);
     }
 
     @Override
     protected void storeAggregatedBlocks(int key, String blockData) {
-        redis.set(BLOCKS_PREFIX.concat(String.valueOf(key)).concat(BLOCKS_SUFFIX), blockData);
+        redis.set(computeRedisKey(key), blockData);
     }
 
     @Override
     public boolean isAggregatedBlockAvailable(int key) {
-        return redis.exists(BLOCKS_PREFIX.concat(String.valueOf(key)).concat(BLOCKS_SUFFIX));
+        return redis.exists(computeRedisKey(key));
     }
 
     @Override
@@ -80,5 +85,11 @@ public class JedisStorageBackend extends StorageBackend {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private String computeRedisKey(int key) {
+        final int redisSlot = Math.floorMod(hashFunction.hashInt(key).asInt(), JedisTools.REDIS_KEYS_NUMBER);
+        final String crcHack = JedisTools.CRC16_NUMBERS_CORRESPONDANCES[redisSlot];
+        return "{" + crcHack + "}" + BLOCKS_PREFIX + key;
     }
 }
