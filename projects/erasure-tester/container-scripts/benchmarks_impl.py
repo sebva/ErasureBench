@@ -37,19 +37,16 @@ class BenchmarksImpl:
         else:
             raise Exception('Unit not supported, please complete the _convert_to_kb method')
 
-    def bench_apache(self, config, redis: RedisCluster, java):
-        tar_log_lines = 2614
-        sha_log_lines = 2517
-
-        print('Uncompressing httpd...')
-        tar_proc = subprocess.Popen(['tar', '-xvjf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount], stdout=subprocess.PIPE, bufsize=1)
+    def _bench_checksum(self, config, redis: RedisCluster, java, archive_name, sha_name, tar_log_lines, sha_log_lines):
+        print('Uncompressing archive (%s)...' % archive_name)
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/%s' % archive_name, '-C', self.mount], stdout=subprocess.PIPE, bufsize=1)
         self._show_subprocess_percent(tar_proc, tar_log_lines)
 
         results = dict()
         while True:
             print('Checking files...')
             sha_proc = subprocess.Popen(
-                ['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'],
+                ['sha256sum', '-c', '/opt/erasuretester/%s' % sha_name],
                 stdout=subprocess.PIPE, bufsize=1)
             sha_output = self._show_subprocess_percent(sha_proc, sha_log_lines)
             ok_files = len([x for x in sha_output if b' OK' in x])
@@ -73,6 +70,18 @@ class BenchmarksImpl:
             else:
                 break
         return results
+
+    def bench_apache(self, config, redis: RedisCluster, java):
+        return self._bench_checksum(config, redis, java,
+                                    'httpd.tar.bz2', 'httpd.sha256', tar_log_lines=2614, sha_log_lines=2517)
+
+    def bench_bc(self, config, redis: RedisCluster, java):
+        return self._bench_checksum(config, redis, java,
+                                    'bc.tar.gz', 'bc.sha256', tar_log_lines=94, sha_log_lines=94)
+
+    def bench_10bytes(self, config, redis: RedisCluster, java):
+        return self._bench_checksum(config, redis, java,
+                                    '10bytes.tar.bz2', '10bytes.sha256', tar_log_lines=1001, sha_log_lines=1000)
 
     @staticmethod
     def _show_subprocess_percent(proc, expected_nb_lines):
