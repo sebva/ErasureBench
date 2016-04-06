@@ -6,6 +6,7 @@ import subprocess
 
 import sys
 from redis_cluster import RedisCluster
+from time import sleep
 
 
 class BenchmarksImpl:
@@ -61,12 +62,14 @@ class BenchmarksImpl:
             }
             results['RS=%d' % redis.cluster_size] = inter_results
 
-            if ok_files <= 1:  # It's no use to continue
+            if ok_files == 0:  # It's no use to continue
                 break
             if redis.cluster_size > 2:
                 redis.scale(redis.cluster_size - 1, brutal=True)
                 print('Flushing read cache...')
                 java.flush_read_cache()
+                print('Waiting 5 seconds for things to stabilize...')
+                sleep(5)
             else:
                 break
         return results
