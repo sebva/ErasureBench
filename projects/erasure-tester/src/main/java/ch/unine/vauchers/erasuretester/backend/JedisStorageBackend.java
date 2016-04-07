@@ -3,10 +3,7 @@ package ch.unine.vauchers.erasuretester.backend;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import org.jetbrains.annotations.NotNull;
-import redis.clients.jedis.HostAndPort;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisCluster;
-import redis.clients.jedis.JedisCommands;
+import redis.clients.jedis.*;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -91,5 +88,15 @@ public class JedisStorageBackend extends StorageBackend {
         final int redisSlot = Math.floorMod(hashFunction.hashInt(key).asInt(), JedisTools.REDIS_KEYS_NUMBER);
         final String crcHack = JedisTools.CRC16_NUMBERS_CORRESPONDANCES[redisSlot];
         return "{" + crcHack + "}" + BLOCKS_PREFIX + key;
+    }
+
+    @Override
+    public void clearReadCache() {
+        super.clearReadCache();
+        if (redis instanceof JedisCluster) {
+            final JedisClusterConnectionHandler connectionHandler = ((JedisCluster) redis).getConnectionHandler();
+            connectionHandler.renewSlotCache();
+            connectionHandler.getNodes();
+        }
     }
 }
