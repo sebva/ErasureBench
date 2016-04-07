@@ -186,5 +186,6 @@ public abstract class StorageBackend {
 
     public void clearReadCache() {
         readCache.clear();
+        negativeCache.clear();
     }
 }
