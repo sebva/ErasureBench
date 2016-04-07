@@ -26,7 +26,7 @@ class JedisTools {
         String line = null;
         try {
             while ((line = input.readLine()) != null) {
-                list.add(line);
+                list.add("{" + line + "}");
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

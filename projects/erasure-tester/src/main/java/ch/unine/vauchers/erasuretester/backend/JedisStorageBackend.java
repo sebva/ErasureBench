@@ -19,6 +19,17 @@ import java.util.stream.Stream;
  * The address of the Redis server can be configure using the <i>REDIS_ADDRESS</i> environment variable. The default
  * is to use the server running on the local machine.<br/>
  * Uses the <a href="https://github.com/xetorthio/jedis">Jedis library</a>.
+ *
+ * <h3>Redis slots assignation strategy</h3>
+ * When using Redis in cluster mode, the node that will host a given key is decided by applying the CRC16 function on
+ * the key. By default, the redis-trib program will divide the key space evenly among nodes, in a linear fashion. E.g.
+ * If there are 3 nodes, node 0 gets slots 0-5461, node 1 5462-10921 and node 2 10922-16384. We use this assumption to
+ * make sure that blocks belonging to different positions do not get stored on the same node. To do this, we divide the
+ * Redis slots space in totalSize. There can be more than totalSize nodes in the cluster, so the exact slot is randomized
+ * using a hash function.<br/>
+ * To render this strategy possible, we bypass the CRC16 function by using a table (crc-map.txt) obtained by
+ * brute-forcing the algorithm. The value from this table is coded into the final key between accolades {}, so that it
+ * becomes the only input to Redis' CRC16 function.
  */
 public class JedisStorageBackend extends StorageBackend {
     private static final String BLOCKS_PREFIX = "blocks/";
@@ -26,6 +37,10 @@ public class JedisStorageBackend extends StorageBackend {
     private final JedisCommands redis;
     private final Map<String, FileMetadata> metadataMap;
     private final HashFunction hashFunction;
+    /**
+     * Redis slot space divided by totalSize
+     */
+    private int redisSlotDelta;
 
     public JedisStorageBackend(boolean is_cluster) {
         JedisTools.initialize();
@@ -84,10 +99,11 @@ public class JedisStorageBackend extends StorageBackend {
         }
     }
 
-    private String computeRedisKey(int key) {
-        final int redisSlot = Math.floorMod(hashFunction.hashInt(key).asInt(), JedisTools.REDIS_KEYS_NUMBER);
+    private String computeRedisKey(int redisKey) {
+        final int offset = Math.floorMod(hashFunction.hashInt(redisKey).asInt(), redisSlotDelta);
+        final int redisSlot = computePositionWithRedisKey(redisKey) * redisSlotDelta + offset;
         final String crcHack = JedisTools.CRC16_NUMBERS_CORRESPONDANCES[redisSlot];
-        return "{" + crcHack + "}" + BLOCKS_PREFIX + key;
+        return crcHack + BLOCKS_PREFIX + redisKey;
     }
 
     @Override
@@ -98,5 +114,10 @@ public class JedisStorageBackend extends StorageBackend {
             connectionHandler.renewSlotCache();
             connectionHandler.getNodes();
         }
+    }
+
+    public void defineTotalSize(int totalSize) {
+        super.defineTotalSize(totalSize);
+        redisSlotDelta = JedisTools.REDIS_KEYS_NUMBER / totalSize;
     }
 }

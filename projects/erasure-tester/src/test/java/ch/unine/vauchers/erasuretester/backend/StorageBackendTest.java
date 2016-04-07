@@ -85,4 +85,29 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
 
         assertEquals(blockKeys.size(), actualBlocks.size());
     }
+
+    @Test
+    public void testComputePositionWithBlockKey() {
+        sut.defineTotalSize(14);
+        final Random random = new Random(8174932643728648732L);
+
+        for (int i = 0; i < 2000000; i++) {
+            final int position = random.nextInt(14);
+            final int blockKey = sut.storeBlock(0, position);
+            assertEquals("Key=" + blockKey, position, sut.computePositionWithBlockKey(blockKey));
+        }
+    }
+
+    @Test
+    public void testComputePositionWithRedisKey() {
+        sut.defineTotalSize(14);
+        final Random random = new Random(8174932643728648732L);
+
+        for (int i = 0; i < 2000000; i++) {
+            final int position = random.nextInt(14);
+            final int blockKey = sut.storeBlock(0, position);
+            final int redisKey = blockKey / sut.bufferSize;
+            assertEquals("Key=" + blockKey, position, sut.computePositionWithRedisKey(redisKey));
+        }
+    }
 }

@@ -21,7 +21,7 @@ public abstract class StorageBackend {
     private BlocksContainer[] writeBuffers;
     private LinkedHashMap<Integer, BlocksContainer> readCache;
     private int[] counters;
-    private int totalSize;
+    protected int totalSize;
     private final IntSet negativeCache;
 
     /**
@@ -144,6 +144,14 @@ public abstract class StorageBackend {
     }
 
     protected abstract boolean isAggregatedBlockAvailable(int key);
+
+    public int computePositionWithBlockKey(int key) {
+        return Math.floorMod(key / bufferSize, totalSize);
+    }
+
+    protected int computePositionWithRedisKey(int redisKey) {
+        return Math.floorMod(redisKey, totalSize);
+    }
 
     /**
      * Disconnect and free-up resources used by this object.
