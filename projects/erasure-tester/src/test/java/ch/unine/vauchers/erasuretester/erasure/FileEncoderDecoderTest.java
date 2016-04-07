@@ -7,81 +7,86 @@ import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
-import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.Assert.assertEquals;
 
 public abstract class FileEncoderDecoderTest {
-    protected FileEncoderDecoder sut;
+    protected Iterable<FileEncoderDecoder> suts;
 
-    protected abstract FileEncoderDecoder createEncoderDecoder();
+    protected abstract Iterable<FileEncoderDecoder> createEncoderDecoder();
 
     @Before
     public void setup() {
-        sut = createEncoderDecoder();
+        suts = createEncoderDecoder();
     }
 
     @Test
     public void testBasic() throws TooManyErasedLocations, UnsupportedEncodingException {
-        byte[] test = "This is a test message!".getBytes("UTF-8");
-        final String path = "path";
-        sut.writeFile(path, test.length, 0, ByteBuffer.wrap(test));
+        for (FileEncoderDecoder sut : suts) {
+            byte[] test = "This is a test message!".getBytes("UTF-8");
+            final String path = "path";
+            sut.writeFile(path, test.length, 0, ByteBuffer.wrap(test));
 
-        ByteBuffer results = ByteBuffer.allocate(test.length);
-        sut.readFile(path, test.length, 0, results);
-        Assert.assertArrayEquals(test, results.array());
+            ByteBuffer results = ByteBuffer.allocate(test.length);
+            sut.readFile(path, test.length, 0, results);
+            Assert.assertArrayEquals(test, results.array());
+        }
     }
 
     @Test
     public void testAlignedFile() throws TooManyErasedLocations {
-        testUnalignedFile(23000, 500, Optional.empty());
-    }
-
-    @Test
-    public void testRealLifeFile() throws TooManyErasedLocations {
-        testUnalignedFile(4096, 16384, Optional.of(ByteBuffer.allocateDirect(4096)));
+        testUnalignedFile(23000, 500);
     }
 
     @Test
     public void testUnalignedFileBeginEnd() throws TooManyErasedLocations {
-        testUnalignedFile(23000, 502, Optional.empty());
+        testUnalignedFile(23000, 502);
     }
 
     @Test
     public void testUnalignedFileBegin() throws TooManyErasedLocations {
-        testUnalignedFile(22998, 502, Optional.empty());
+        testUnalignedFile(22998, 502);
     }
 
     @Test
     public void testUnalignedFileEnd() throws TooManyErasedLocations {
-        testUnalignedFile(23015, 500, Optional.empty());
+        testUnalignedFile(23015, 500);
     }
 
-    private void testUnalignedFile(int size, int offset, Optional<ByteBuffer> inBuffer) throws TooManyErasedLocations {
-        final ByteBuffer byteBuffer = inBuffer.orElseGet(FileEncoderDecoderTest::createRandomBigByteBuffer);
+    @Test
+    public void test10bytesFile() throws TooManyErasedLocations {
+        final byte[] array = new byte[10];
+        new Random().nextBytes(array);
+        testUnalignedFile(10, 0, array);
+    }
 
-        sut.writeFile("path", size, offset, byteBuffer);
-        final ByteBuffer byteBufferOut = ByteBuffer.allocate(byteBuffer.capacity());
-        sut.readFile("path", size, offset, byteBufferOut);
+    private void testUnalignedFile(int size, int offset) throws TooManyErasedLocations {
+        testUnalignedFile(size, offset, createRandomBigByteBuffer());
+    }
 
-        byteBuffer.rewind();
-        byteBufferOut.rewind();
+    private void testUnalignedFile(int size, int offset, byte[] inBuffer) throws TooManyErasedLocations {
+        for (FileEncoderDecoder sut : suts) {
+            final ByteBuffer byteBuffer = ByteBuffer.wrap(inBuffer);
 
-        for (int i = 0; i < size; i++) {
-            assertEquals("Inequality at index " + byteBuffer.position(), byteBuffer.get(), byteBufferOut.get());
+            sut.writeFile("path", size, offset, byteBuffer);
+            final ByteBuffer byteBufferOut = ByteBuffer.allocate(byteBuffer.capacity());
+            sut.readFile("path", size, offset, byteBufferOut);
+
+            byteBuffer.rewind();
+            byteBufferOut.rewind();
+
+            for (int i = 0; i < size; i++) {
+                assertEquals("Inequality at index " + byteBuffer.position(), byteBuffer.get(), byteBufferOut.get());
+            }
         }
     }
 
-    private static ByteBuffer createRandomBigByteBuffer() {
+    private static byte[] createRandomBigByteBuffer() {
         final int size = 24000;
-        final ByteBuffer byteBuffer = ByteBuffer.allocate(size);
+        final byte[] byteBuffer = new byte[size];
         final Random random = new Random();
-        for (int i = 0; i < size / Integer.BYTES; i++) {
-            byteBuffer.putInt(random.nextInt());
-        }
-        byteBuffer.put(size - 1, (byte) 42);
-        byteBuffer.rewind();
+        random.nextBytes(byteBuffer);
         return byteBuffer;
     }
 }

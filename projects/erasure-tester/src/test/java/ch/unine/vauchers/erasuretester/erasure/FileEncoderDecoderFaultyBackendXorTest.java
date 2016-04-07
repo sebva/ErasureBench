@@ -11,7 +11,8 @@ public class FileEncoderDecoderFaultyBackendXorTest extends FileEncoderDecoderFa
     }
 
     @Override
-    protected boolean isPositionAvailable(int position) {
-        return position != 1;
+    protected int getMaxFaults() {
+        return 1;
     }
+
 }
