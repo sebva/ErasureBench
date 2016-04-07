@@ -5,6 +5,7 @@ import os
 import subprocess
 from datetime import datetime
 
+import pydevd as pydevd
 import signal
 import sys
 from time import sleep
@@ -19,11 +20,19 @@ class Benchmarks:
 
     def __init__(self):
         # 2 is forbidden due to Redis limitation on Cluster size
-        self.redis_size = [5, 1, 0]
-        self.erasure_codes = ['ReedSolomon']
-        self.stripe_sizes = [10]
-        self.parity_sizes = [4]
-        self.src_sizes = [5]
+        self.redis_size = [60]
+        self.erasure_codes = ['Null', 'ReedSolomon', 'SimpleRegenerating']
+        self.erasure_configs = {
+            'ReedSolomon': [
+                (10, 4, 0)
+            ],
+            'SimpleRegenerating': [
+                (10, 6, 5)
+            ],
+            'Null': [
+                (10, 0, 0)
+            ]
+        }
         self.first = True
         self.results = []
         self.log_file_base += datetime.today().isoformat()
@@ -34,20 +43,19 @@ class Benchmarks:
     def run_benchmarks(self):
         for rs in self.redis_size:
             for ec in self.erasure_codes:
-                for ss in self.stripe_sizes:
-                    for ps in self.parity_sizes:
-                        for src in self.src_sizes:
-                            for b in self.benches:
-                                with RedisCluster(rs) as redis:
-                                    sb = 'Jedis' if rs > 0 else 'Memory'
-                                    config = [ec, rs, sb, ss, ps, src]
-                                    print("Running with " + str(config))
-                                    (params, env) = self._get_java_params(redis, *config)
-                                    with JavaProgram(params, env) as java:
-                                        try:
-                                            self._run_benchmark(b, config, redis, java)
-                                        except Exception as ex:
-                                            logging.exception("The benchmark crashed, continuing with the rest...")
+                for (ss, ps, src) in self.erasure_configs[ec]:
+                    for b in self.benches:
+                        with RedisCluster(rs) as redis:
+                            sb = 'Jedis' if rs > 0 else 'Memory'
+                            config = [ec, rs, sb, ss, ps, src]
+                            print("Running with " + str(config))
+                            (params, env) = self._get_java_params(redis, *config)
+                            with JavaProgram(params, env) as java:
+                                try:
+                                    self._run_benchmark(b, config, redis, java)
+                                except Exception as ex:
+                                    logging.exception("The benchmark crashed, continuing with the rest...")
+                        self.save_results_to_file()
 
     def _run_benchmark(self, bench, config, redis, java):
         bench_name = bench.__name__
@@ -84,7 +92,9 @@ class Benchmarks:
 
 
 class JavaProgram:
-    java_with_args = "java -cp * ch.unine.vauchers.erasuretester.Main /mnt/erasure".split(' ')
+    java_with_args = ["java"]
+    # java_with_args += ["-agentlib:jdwp=transport=dt_socket,server=n,address=172.16.0.167:5005,suspend=y"]
+    java_with_args += "-Xmx6G -cp * ch.unine.vauchers.erasuretester.Main /mnt/erasure".split(' ')
     proc = None
 
     def __init__(self, more_args, env):
@@ -124,6 +134,7 @@ def kill_pid(proc):
 
 
 if __name__ == '__main__':
+    # pydevd.settrace('172.16.0.167', port=9292, stdoutToServer=True, stderrToServer=True)
     print("Python client ready, starting benchmarks")
     benchmarks = Benchmarks()
 

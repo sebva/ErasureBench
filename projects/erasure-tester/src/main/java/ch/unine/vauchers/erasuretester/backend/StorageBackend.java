@@ -1,5 +1,7 @@
 package ch.unine.vauchers.erasuretester.backend;
 
+import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,7 +21,8 @@ public abstract class StorageBackend {
     private BlocksContainer[] writeBuffers;
     private LinkedHashMap<Integer, BlocksContainer> readCache;
     private int[] counters;
-    private int totalSize;
+    protected int totalSize;
+    private final IntSet negativeCache;
 
     /**
      * You NEED to call defineTotalSize before any other action on this object!
@@ -31,6 +34,7 @@ public abstract class StorageBackend {
                 return size() > CACHE_SIZE;
             }
         };
+        negativeCache = new IntOpenHashSet();
     }
 
     /**
@@ -74,6 +78,7 @@ public abstract class StorageBackend {
     private BlocksContainer fetchAndCache(int redisKey) {
         final Optional<String> optionalContainer = retrieveAggregatedBlocks(redisKey);
         if (!optionalContainer.isPresent()) {
+            negativeCache.add(redisKey);
             return null;
         } else {
             BlocksContainer container = BlocksContainer.fromString(optionalContainer.get());
@@ -135,10 +140,18 @@ public abstract class StorageBackend {
      */
     public boolean isBlockAvailable(int key) {
         int redisKey = key / bufferSize;
-        return readCache.containsKey(redisKey) || fetchAndCache(redisKey) != null;
+        return !negativeCache.contains(redisKey) && (readCache.containsKey(redisKey) || fetchAndCache(redisKey) != null);
     }
 
     protected abstract boolean isAggregatedBlockAvailable(int key);
+
+    public int computePositionWithBlockKey(int key) {
+        return Math.floorMod(key / bufferSize, totalSize);
+    }
+
+    protected int computePositionWithRedisKey(int redisKey) {
+        return Math.floorMod(redisKey, totalSize);
+    }
 
     /**
      * Disconnect and free-up resources used by this object.
@@ -173,5 +186,6 @@ public abstract class StorageBackend {
 
     public void clearReadCache() {
         readCache.clear();
+        negativeCache.clear();
     }
 }

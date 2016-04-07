@@ -1,4 +1,5 @@
 import os
+import random
 import socket
 import subprocess
 
@@ -130,11 +131,16 @@ class RedisCluster:
         nodes = [x.split(' ') for x in
                  subprocess.check_output('redis-cli -h erasuretester_redis-master_1 CLUSTER NODES'.split(' ')).decode(
                          'UTF-8').splitlines()]
-        return sorted([{
+        all_nodes = [{
                     'id': x[0],
                     'ip_port': x[1],
                     'is_number_1': 'myself' in x[2]
-                } for x in nodes], key=lambda x: x['ip_port'])
+                } for x in nodes]
+        # Sort randomly, but ensure that the master is always in [0]
+        master = [x for x in all_nodes if x['is_number_1']]
+        slaves = [x for x in all_nodes if not x['is_number_1']]
+        random.shuffle(slaves)
+        return master + slaves
 
     @staticmethod
     def _get_nodes_primitive():
@@ -162,7 +168,7 @@ class RedisCluster:
         sleep(3)
 
     def _remove_a_node(self):
-        victim = self._elect_victim()
+        victim = self.nodes.pop()
         master_ip_port = [x['ip_port'] for x in self.nodes if x['is_number_1']][0]
         info = subprocess.check_output(['ruby', 'redis-trib.rb', 'info', master_ip_port]).decode('UTF-8').splitlines()
         slots_to_remove = int(

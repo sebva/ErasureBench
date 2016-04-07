@@ -39,6 +39,7 @@ public class SimpleRegeneratingCode extends ErasureCode {
     private int[] errSignature;
     private int[] dataBuff;
     private int[][] groupsTable;
+    private final IntList locationsToReadZeroFailure;
 
     public SimpleRegeneratingCode(int stripeSize, int paritySize, int paritySizeSRC) {
         this.paritySizeSRC = paritySizeSRC;
@@ -48,6 +49,11 @@ public class SimpleRegeneratingCode extends ErasureCode {
 
         assert (stripeSize + paritySizeRS < GF.getFieldSize());
         assert (paritySize >= paritySizeSRC);
+
+        locationsToReadZeroFailure = new IntArrayList(stripeSize);
+        for (int i = paritySize; i < paritySize + stripeSize; i++) {
+            locationsToReadZeroFailure.add(i);
+        }
 
         // The degree of a simple parity is the number of locations
         // combined into the single parity. The degree is a function
@@ -301,8 +307,11 @@ public class SimpleRegeneratingCode extends ErasureCode {
 
         IntList locationsToRead;
 
-        // If only one location is erased, return its local (src) group
-        if (erasedLocations.size() == 1) {
+        if (erasedLocations.size() == 0) {
+            return locationsToReadZeroFailure;
+        }
+        else if (erasedLocations.size() == 1) {
+            // If only one location is erased, return its local (src) group
             //locationsToRead = computeSRCGroupLocations(erasedLocations.get(0));
             int loc = erasedLocations.get(0);
             locationsToRead = new IntArrayList(groupsTable[loc].length);
