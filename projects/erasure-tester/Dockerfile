@@ -10,8 +10,8 @@ RUN pip3 install docker-compose pydevd
 
 RUN mkdir -p /opt/erasuretester/results
 
-RUN echo '271a129f2f04e3aa694e5c2091df9b707bf8ef80 /opt/erasuretester/httpd.tar.bz2' > /opt/erasuretester/httpd-2.4.18.tar.bz2.sha1 && \
-    wget -q -O /opt/erasuretester/httpd.tar.bz2 http://mirror.switch.ch/mirror/apache/dist/httpd/httpd-2.4.18.tar.bz2 && \
+RUN echo '79c1a9d34e904413f5fb659980df60fc6d7f199e /opt/erasuretester/httpd.tar.bz2' > /opt/erasuretester/httpd-2.4.18.tar.bz2.sha1 && \
+    wget -q -O /opt/erasuretester/httpd.tar.bz2 https://dl.dropboxusercontent.com/u/31349479/thesis/httpd-2.4.18.tar.bz2 && \
     sha1sum -c /opt/erasuretester/httpd-2.4.18.tar.bz2.sha1 && \
     tar -jxf /opt/erasuretester/httpd.tar.bz2 -C /tmp && \
     find /tmp/httpd-2.4.18 -type f -exec sha256sum {} \; | sed s-/tmp/-/mnt/erasure/- > /opt/erasuretester/httpd.sha256 && \
