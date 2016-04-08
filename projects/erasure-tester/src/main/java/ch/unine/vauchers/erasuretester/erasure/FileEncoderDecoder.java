@@ -250,12 +250,16 @@ public class FileEncoderDecoder {
     }
 
     private int[] fillNotToRead(IntList toReadForDecode) {
-        int[] notToRead = new int[totalSize - toReadForDecode.size()];
+        final int trSize = toReadForDecode.size();
+        int[] notToRead = new int[totalSize - trSize];
 
         int ntrIndex = 0;
-        for (int i = 0; i < totalSize; i++) {
-            if (!toReadForDecode.contains(i)) {
-                notToRead[ntrIndex++] = i;
+        int trIndex = 0;
+        for (int globIndex = 0; globIndex < totalSize; globIndex++) {
+            if (trIndex < trSize && toReadForDecode.getInt(trIndex) == globIndex) {
+                trIndex++;
+            } else {
+                notToRead[ntrIndex++] = globIndex;
             }
         }
 
