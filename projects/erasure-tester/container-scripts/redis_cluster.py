@@ -23,27 +23,37 @@ class RedisCluster:
             sleep(5)
             return self
 
-        # Ramp up by batches of 30, otherwise we get a timeout exception
-        current = 0
-        remaining = self.cluster_size
-        while remaining > 0:
-            to_add = 30 if remaining > 30 else remaining
-            current += to_add
-            remaining -= to_add
-            self._docker_scale(current)
+        # Workaround to force docker-compose to start with identifier 1
+        self._docker_scale(0)
+        self._docker_scale(1)
+        self._docker_scale(0)
 
-        primitive_nodes = []
         attempt = 0
-        while len(primitive_nodes) < self.cluster_size:
+        success = False
+        while not success:
+            attempt += 1
+
+            # Ramp up by batches of 30, otherwise we get a timeout exception
+            current = 0
+            remaining = self.cluster_size
+            while remaining > 0:
+                to_add = 30 if remaining > 30 else remaining
+                current += to_add
+                remaining -= to_add
+                self._docker_scale(current)
+
             print("Waiting for all nodes to come alive...")
             sleep(5)
             primitive_nodes = self._get_nodes_primitive()
-            attempt += 1
-            if attempt >= 3:
-                print("There has been a problem, trying again...")
-                self._docker_scale(0)
-                self._docker_scale(self.cluster_size)
-                attempt = 0
+
+            if len(primitive_nodes) < self.cluster_size:
+                if attempt > 3:
+                    raise Exception("Too much unsuccessful attempts at starting the Redis cluster")
+                else:
+                    print("There has been a problem, trying again...")
+                    self._docker_scale(0)
+            else:
+                success = True
 
         self._start_cluster()
         self.nodes = self._get_running_nodes()
