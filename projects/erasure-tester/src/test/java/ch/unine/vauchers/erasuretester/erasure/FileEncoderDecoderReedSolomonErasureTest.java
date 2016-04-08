@@ -4,14 +4,19 @@ import ch.unine.vauchers.erasuretester.backend.MemoryStorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.codes.ReedSolomonCode;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 
 public class FileEncoderDecoderReedSolomonErasureTest extends FileEncoderDecoderTest {
+
+    private FileEncoderDecoder sut;
+
     @Override
-    protected FileEncoderDecoder createEncoderDecoder() {
-        return new FileEncoderDecoder(new ReedSolomonCode(10, 4), new MemoryStorageBackend());
+    protected Iterable<FileEncoderDecoder> createEncoderDecoder() {
+        sut = new FileEncoderDecoder(new ReedSolomonCode(10, 4), new MemoryStorageBackend());
+        return Collections.singleton(sut);
     }
 
     @Test

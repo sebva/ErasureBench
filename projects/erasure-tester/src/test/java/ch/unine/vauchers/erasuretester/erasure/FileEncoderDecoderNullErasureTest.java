@@ -5,14 +5,19 @@ import ch.unine.vauchers.erasuretester.erasure.codes.NullErasureCode;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.stream.IntStream;
 
 import static org.junit.Assert.assertEquals;
 
 public class FileEncoderDecoderNullErasureTest extends FileEncoderDecoderTest {
+
+    private FileEncoderDecoder sut;
+
     @Override
-    protected FileEncoderDecoder createEncoderDecoder() {
-        return new FileEncoderDecoder(new NullErasureCode(10), new MemoryStorageBackend());
+    protected Iterable<FileEncoderDecoder> createEncoderDecoder() {
+        sut = new FileEncoderDecoder(new NullErasureCode(10), new MemoryStorageBackend());
+        return Collections.singleton(sut);
     }
 
     @Test

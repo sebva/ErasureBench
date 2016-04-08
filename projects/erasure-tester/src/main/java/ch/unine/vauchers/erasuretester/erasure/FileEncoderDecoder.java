@@ -239,7 +239,7 @@ public class FileEncoderDecoder {
         int[] indicesToRecover = erasedIndices.parallelStream().filter(index -> index >= paritySize).mapToInt(Integer::intValue).toArray();
 
         final int[] recoveredValues = new int[indicesToRecover.length];
-        erasureCode.decode(dataBuffer, indicesToRecover, recoveredValues, convertToIntArray(toReadForDecode), erasedIndices.toIntArray());
+        erasureCode.decode(dataBuffer, indicesToRecover, recoveredValues, convertToIntArray(toReadForDecode), fillNotToRead(toReadForDecode));
 
         // Restore erased values
         for (int i = 0; i < recoveredValues.length; i++) {
@@ -247,6 +247,23 @@ public class FileEncoderDecoder {
         }
 
         return Arrays.stream(dataBuffer).skip(paritySize).boxed().map(Integer::byteValue);
+    }
+
+    private int[] fillNotToRead(IntList toReadForDecode) {
+        final int trSize = toReadForDecode.size();
+        int[] notToRead = new int[totalSize - trSize];
+
+        int ntrIndex = 0;
+        int trIndex = 0;
+        for (int globIndex = 0; globIndex < totalSize; globIndex++) {
+            if (trIndex < trSize && toReadForDecode.getInt(trIndex) == globIndex) {
+                trIndex++;
+            } else {
+                notToRead[ntrIndex++] = globIndex;
+            }
+        }
+
+        return notToRead;
     }
 
     private static int[] convertToIntArray(IntList integerCollection) {
@@ -277,5 +294,13 @@ public class FileEncoderDecoder {
             return 0;
         }
         return stripeSize - lowerBytesToDrop;
+    }
+
+    @Override
+    public String toString() {
+        return "FileEncoderDecoder{" +
+                "storageBackend=" + storageBackend +
+                ", erasureCode=" + erasureCode +
+                '}';
     }
 }

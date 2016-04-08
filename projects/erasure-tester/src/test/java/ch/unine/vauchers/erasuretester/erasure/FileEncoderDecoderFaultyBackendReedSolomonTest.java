@@ -11,7 +11,7 @@ public class FileEncoderDecoderFaultyBackendReedSolomonTest extends FileEncoderD
     }
 
     @Override
-    protected boolean isPositionAvailable(int position) {
-        return position >= 2 && position <= 11;
+    protected int getMaxFaults() {
+        return 4;
     }
 }
