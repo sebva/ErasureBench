@@ -188,4 +188,11 @@ public abstract class StorageBackend {
         readCache.clear();
         negativeCache.clear();
     }
+
+    @Override
+    public String toString() {
+        return "StorageBackend{" +
+                "totalSize=" + totalSize +
+                '}';
+    }
 }

@@ -49,7 +49,7 @@ public abstract class FileEncoderDecoderFaultyBackendTest extends FileEncoderDec
         }
 
         private boolean isKeyAvailable(int key) {
-            int position = (key / bufferSize) % totalSize;
+            int position = Math.floorMod(key / bufferSize, totalSize);
             return !faultyPositions.contains(position);
         }
 
@@ -65,6 +65,13 @@ public abstract class FileEncoderDecoderFaultyBackendTest extends FileEncoderDec
             } else {
                 return Optional.empty();
             }
+        }
+
+        @Override
+        public String toString() {
+            return "FaultyStorageBackend{" +
+                    "faultyPositions=" + faultyPositions +
+                    '}';
         }
     }
 }

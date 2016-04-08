@@ -6,6 +6,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Random;
 
@@ -13,11 +14,13 @@ import static org.junit.Assert.assertEquals;
 
 public abstract class FileEncoderDecoderTest {
     protected Iterable<FileEncoderDecoder> suts;
+    private Random random;
 
     protected abstract Iterable<FileEncoderDecoder> createEncoderDecoder();
 
     @Before
     public void setup() {
+        random = new Random(8543925432L);
         suts = createEncoderDecoder();
     }
 
@@ -57,7 +60,7 @@ public abstract class FileEncoderDecoderTest {
     @Test
     public void test10bytesFile() throws TooManyErasedLocations {
         final byte[] array = new byte[10];
-        new Random().nextBytes(array);
+        random.nextBytes(array);
         testUnalignedFile(10, 0, array);
     }
 
@@ -68,24 +71,28 @@ public abstract class FileEncoderDecoderTest {
     private void testUnalignedFile(int size, int offset, byte[] inBuffer) throws TooManyErasedLocations {
         for (FileEncoderDecoder sut : suts) {
             final ByteBuffer byteBuffer = ByteBuffer.wrap(inBuffer);
+            final String path = generateRandomPath();
 
-            sut.writeFile("path", size, offset, byteBuffer);
+            sut.writeFile(path, size, offset, byteBuffer);
             final ByteBuffer byteBufferOut = ByteBuffer.allocate(byteBuffer.capacity());
-            sut.readFile("path", size, offset, byteBufferOut);
+            sut.readFile(path, size, offset, byteBufferOut);
 
             byteBuffer.rewind();
             byteBufferOut.rewind();
 
             for (int i = 0; i < size; i++) {
-                assertEquals("Inequality at index " + byteBuffer.position(), byteBuffer.get(), byteBufferOut.get());
+                assertEquals("Inequality at index " + byteBuffer.position() + "\nEncoderDecoder: " + sut.toString(), byteBuffer.get(), byteBufferOut.get());
             }
         }
     }
 
-    private static byte[] createRandomBigByteBuffer() {
+    private String generateRandomPath() {
+        return new BigInteger(80, random).toString(32);
+    }
+
+    private byte[] createRandomBigByteBuffer() {
         final int size = 24000;
         final byte[] byteBuffer = new byte[size];
-        final Random random = new Random();
         random.nextBytes(byteBuffer);
         return byteBuffer;
     }

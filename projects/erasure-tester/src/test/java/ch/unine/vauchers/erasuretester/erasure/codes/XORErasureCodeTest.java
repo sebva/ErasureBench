@@ -6,7 +6,7 @@ package ch.unine.vauchers.erasuretester.erasure.codes;
 public class XORErasureCodeTest extends ErasureCodeTest<XORCode> {
     @Override
     public int getStripeSize() {
-        return 2;
+        return 4;
     }
 
     @Override
