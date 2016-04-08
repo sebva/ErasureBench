@@ -186,7 +186,7 @@ public class FileEncoderDecoder {
 
         final Stream<Byte> partData = decodeFileData(blockKeys, erasedBlocksIndices);
 
-        partData.skip(offset).limit(size).forEach(outBuffer::put);
+        partData.skip(offset).limit(size).forEachOrdered(outBuffer::put);
     }
 
     private synchronized void writePart(IntList blockKeys, ByteBuffer fileBuffer, int size, int offset) {
@@ -243,7 +243,7 @@ public class FileEncoderDecoder {
 
         // Restore erased values
         for (int i = 0; i < recoveredValues.length; i++) {
-            dataBuffer[erasedIndices.getInt(i)] = recoveredValues[i];
+            dataBuffer[indicesToRecover[i]] = recoveredValues[i];
         }
 
         return Arrays.stream(dataBuffer).skip(paritySize).boxed().map(Integer::byteValue);
@@ -252,13 +252,11 @@ public class FileEncoderDecoder {
     private int[] fillNotToRead(IntList toReadForDecode) {
         int[] notToRead = new int[totalSize - toReadForDecode.size()];
 
-        int previousIndex = -1;
-        int notToReadIndex = 0;
-        for (int toReadIndex : toReadForDecode) {
-            for (int i = previousIndex + 1; i < toReadIndex; i++) {
-                notToRead[notToReadIndex++] = i;
+        int ntrIndex = 0;
+        for (int i = 0; i < totalSize; i++) {
+            if (!toReadForDecode.contains(i)) {
+                notToRead[ntrIndex++] = i;
             }
-            previousIndex = toReadIndex;
         }
 
         return notToRead;
@@ -292,5 +290,13 @@ public class FileEncoderDecoder {
             return 0;
         }
         return stripeSize - lowerBytesToDrop;
+    }
+
+    @Override
+    public String toString() {
+        return "FileEncoderDecoder{" +
+                "storageBackend=" + storageBackend +
+                ", erasureCode=" + erasureCode +
+                '}';
     }
 }
