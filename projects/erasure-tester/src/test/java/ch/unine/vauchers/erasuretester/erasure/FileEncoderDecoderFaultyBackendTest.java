@@ -2,11 +2,9 @@ package ch.unine.vauchers.erasuretester.erasure;
 
 import ch.unine.vauchers.erasuretester.backend.MemoryStorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
+import ch.unine.vauchers.erasuretester.erasure.codes.SimpleRegeneratingCode;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -19,10 +17,16 @@ public abstract class FileEncoderDecoderFaultyBackendTest extends FileEncoderDec
         final ErasureCode erasureCode = getErasureCode();
         totalSize = erasureCode.stripeSize() + erasureCode.paritySize();
         return IntStream
-                .rangeClosed(0, getMaxFaults())
+                .rangeClosed(0, totalSize)
                 .boxed()
                 .flatMap(this::instantiateFaultyBackends)
-                .map(faultyStorageBackend -> new FileEncoderDecoder(getErasureCode(), faultyStorageBackend))
+                .map(faultyStorageBackend -> {
+                    if (erasureCode instanceof SimpleRegeneratingCode) {
+                        return new SimpleRegeneratingFileEncoderDecoder((SimpleRegeneratingCode) erasureCode, faultyStorageBackend);
+                    } else {
+                        return new FileEncoderDecoder(erasureCode, faultyStorageBackend);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 

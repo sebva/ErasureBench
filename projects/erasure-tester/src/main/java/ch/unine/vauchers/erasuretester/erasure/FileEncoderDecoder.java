@@ -21,19 +21,19 @@ import java.util.stream.Stream;
  */
 public class FileEncoderDecoder {
     @NotNull
-    private final ErasureCode erasureCode;
+    protected final ErasureCode erasureCode;
     @NotNull
-    private final StorageBackend storageBackend;
-    private final Logger log = Logger.getLogger(FileEncoderDecoder.class.getName());
-    private final int totalSize;
+    protected final StorageBackend storageBackend;
+    protected final Logger log = Logger.getLogger(FileEncoderDecoder.class.getName());
+    protected final int totalSize;
 
     // Field used in decode/encode methods, declared globally for better performance
-    private final IntList erasedBlocksIndices;
-    private final int[] stripeBuffer;
-    private final int[] parityBuffer;
-    private final int[] dataBuffer;
-    private final int stripeSize;
-    private final int paritySize;
+    protected final IntList erasedBlocksIndices;
+    protected final int[] stripeBuffer;
+    protected final int[] parityBuffer;
+    protected final int[] dataBuffer;
+    protected final int stripeSize;
+    protected final int paritySize;
 
     private enum Modes {
         READ_FILE, WRITE_FILE
@@ -215,7 +215,7 @@ public class FileEncoderDecoder {
         }
     }
 
-    private Stream<Byte> decodeFileData(IntList blockKeys, IntList erasedIndices) throws TooManyErasedLocations {
+    protected Stream<Byte> decodeFileData(IntList blockKeys, IntList erasedIndices) throws TooManyErasedLocations {
         IntList toReadForDecode;
         boolean retry;
         do {
@@ -249,7 +249,7 @@ public class FileEncoderDecoder {
         return Arrays.stream(dataBuffer).skip(paritySize).boxed().map(Integer::byteValue);
     }
 
-    private int[] fillNotToRead(IntList toReadForDecode) {
+    protected int[] fillNotToRead(IntList toReadForDecode) {
         final int trSize = toReadForDecode.size();
         int[] notToRead = new int[totalSize - trSize];
 
