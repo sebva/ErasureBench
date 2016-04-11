@@ -3,7 +3,13 @@ package ch.unine.vauchers.erasuretester.erasure.codes;
 /**
  *
  */
-public class ReedSolomonErasureCodeTest extends ErasureCodeTest<ReedSolomonCode> {
+public class ReedSolomonErasureCodeInstance extends ErasureCodeInstance {
+    private final ReedSolomonCode realSut;
+
+    public ReedSolomonErasureCodeInstance() {
+        this.realSut = new ReedSolomonCode(getStripeSize(), getParitySize());
+    }
+
     @Override
     public int getStripeSize() {
         return 10;
@@ -20,7 +26,7 @@ public class ReedSolomonErasureCodeTest extends ErasureCodeTest<ReedSolomonCode>
     }
 
     @Override
-    protected ReedSolomonCode newSut() {
-        return new ReedSolomonCode(getStripeSize(), getParitySize());
+    protected ReedSolomonCode getRealSut() {
+        return realSut;
     }
 }
