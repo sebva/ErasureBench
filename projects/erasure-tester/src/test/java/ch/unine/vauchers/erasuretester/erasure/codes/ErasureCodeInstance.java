@@ -10,5 +10,8 @@ public abstract class ErasureCodeInstance {
 
     public abstract int getMaxErasures();
 
-    protected abstract ErasureCode getRealSut();
+    protected abstract ErasureCode newSut();
+
+    @Override
+    public abstract String toString();
 }

@@ -5,12 +5,6 @@ package ch.unine.vauchers.erasuretester.erasure.codes;
  */
 public class XORErasureCodeInstance extends ErasureCodeInstance {
 
-    private final XORCode realSut;
-
-    public XORErasureCodeInstance() {
-        realSut = new XORCode(getStripeSize(), getParitySize());
-    }
-
     @Override
     public int getStripeSize() {
         return 4;
@@ -27,7 +21,12 @@ public class XORErasureCodeInstance extends ErasureCodeInstance {
     }
 
     @Override
-    protected XORCode getRealSut() {
-        return realSut;
+    protected XORCode newSut() {
+        return new XORCode(getStripeSize(), getParitySize());
+    }
+
+    @Override
+    public String toString() {
+        return "XOR";
     }
 }

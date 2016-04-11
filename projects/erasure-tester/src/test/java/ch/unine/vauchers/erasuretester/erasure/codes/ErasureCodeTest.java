@@ -34,11 +34,11 @@ public class ErasureCodeTest {
 
     public ErasureCodeTest(ErasureCodeInstance sutWrapper, int numberOfErasures) {
         this.sutWrapper = sutWrapper;
-        this.sut = sutWrapper.getRealSut();
+        this.sut = sutWrapper.newSut();
         this.numberOfErasures = numberOfErasures;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "{0}, {1} erasures")
     public static Collection<Object[]> parameters() {
         return Arrays.stream(new ErasureCodeInstance[]{
                 new XORErasureCodeInstance(),
@@ -62,6 +62,11 @@ public class ErasureCodeTest {
             data[i] = data2[i] = Byte.toUnsignedInt(bytesData[i]);
         }
         parity = new int[sutWrapper.getParitySize()];
+    }
+
+    @Test
+    public void testSymbolSize() {
+        Assert.assertEquals(8, sut.symbolSize());
     }
 
     @Test
@@ -92,7 +97,7 @@ public class ErasureCodeTest {
                 locationsToReadForDecode = sut.locationsToReadForDecode(Arrays.stream(erasures).boxed().collect(Collectors.toList()));
                 locationsToReadForDecode.sort(null);
             } catch (TooManyErasedLocations e) {
-                if (erasures.length <= sutWrapper.getMaxErasures()) {
+                if (erasures.length <= sutWrapper.getMaxErasures() && !(sutWrapper instanceof SimpleRegeneratingErasureCodeInstance)) {
                     Assert.fail();
                     return;
                 } else {
