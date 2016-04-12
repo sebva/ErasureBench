@@ -20,6 +20,7 @@ import static org.junit.Assert.assertFalse;
 
 public abstract class StorageBackendTest<T extends StorageBackend> {
     private T sut;
+    private static final Random random = new Random(3294328756L);
 
     protected abstract T createInstance();
 
@@ -48,7 +49,6 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
         final int testSize = 4 * sut.bufferSize;
         List<Integer> keys = new ArrayList<>(testSize);
         List<Integer> values = new ArrayList<>(testSize);
-        Random random = new Random();
         for (int i = 0; i < testSize; i++) {
             values.add(random.nextInt());
         }
@@ -89,7 +89,6 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     @Test
     public void testComputePositionWithBlockKey() {
         sut.defineTotalSize(14);
-        final Random random = new Random(8174932643728648732L);
 
         for (int i = 0; i < 2000000; i++) {
             final int position = random.nextInt(14);
@@ -101,7 +100,6 @@ public abstract class StorageBackendTest<T extends StorageBackend> {
     @Test
     public void testComputePositionWithRedisKey() {
         sut.defineTotalSize(14);
-        final Random random = new Random(8174932643728648732L);
 
         for (int i = 0; i < 2000000; i++) {
             final int position = random.nextInt(14);

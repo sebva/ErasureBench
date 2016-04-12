@@ -3,7 +3,10 @@ package ch.unine.vauchers.erasuretester.erasure.codes;
 /**
  *
  */
-public class SimpleRegeneratingErasureCodeTest extends ErasureCodeTest<SimpleRegeneratingCode> {
+public class SimpleRegeneratingErasureCodeInstance extends ErasureCodeInstance {
+
+    private static final int src = 5;
+
     @Override
     public int getStripeSize() {
         return 10;
@@ -21,6 +24,11 @@ public class SimpleRegeneratingErasureCodeTest extends ErasureCodeTest<SimpleReg
 
     @Override
     protected SimpleRegeneratingCode newSut() {
-        return new SimpleRegeneratingCode(getStripeSize(), getParitySize(), 2);
+        return new SimpleRegeneratingCode(getStripeSize(), getParitySize(), src);
+    }
+
+    @Override
+    public String toString() {
+        return "SimpleRegenerating";
     }
 }

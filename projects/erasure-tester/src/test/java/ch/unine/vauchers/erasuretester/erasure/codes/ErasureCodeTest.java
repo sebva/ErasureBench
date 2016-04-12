@@ -4,27 +4,25 @@ import it.unimi.dsi.fastutil.ints.IntList;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
 
 import java.util.Arrays;
-import java.util.PrimitiveIterator;
+import java.util.Collection;
 import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+
 /**
  *
  */
-public abstract class ErasureCodeTest<T extends ErasureCode> {
-    private T sut;
-    private Random random;
-
-    public abstract int getStripeSize();
-
-    public abstract int getParitySize();
-
-    public abstract int getMaxErasures();
-
-    protected abstract T newSut();
+@RunWith(Parameterized.class)
+public class ErasureCodeTest {
+    private final int numberOfErasures;
+    private ErasureCodeInstance sutWrapper;
+    private ErasureCode sut;
+    private static Random random = new Random(945709326542L);
 
     // data and data2 contain the same values. Use one for input and one for checking.
     private int[] data;
@@ -33,18 +31,40 @@ public abstract class ErasureCodeTest<T extends ErasureCode> {
     private int[] stripe;
     private int[] parity;
 
+    public ErasureCodeTest(ErasureCodeInstance sutWrapper, int numberOfErasures) {
+        this.sutWrapper = sutWrapper;
+        this.sut = sutWrapper.newSut();
+        this.numberOfErasures = numberOfErasures;
+    }
+
+    @Parameterized.Parameters(name = "{0}, {1} erasures")
+    public static Collection<Object[]> parameters() {
+        return Arrays.stream(new ErasureCodeInstance[]{
+                new XORErasureCodeInstance(),
+                new ReedSolomonErasureCodeInstance(),
+                new SimpleRegeneratingErasureCodeInstance()
+        }).flatMap(erasureCodeInstance ->
+                IntStream.rangeClosed(0, erasureCodeInstance.getStripeSize() + erasureCodeInstance.getParitySize())
+                        .boxed()
+                        .map(value -> new Object[]{erasureCodeInstance, value})
+        ).collect(Collectors.toList());
+    }
+
     @Before
     public void setup() {
-        this.sut = newSut();
-        random = new Random();
-        data = new int[getStripeSize()];
-        data2 = new int[getStripeSize()];
-        byte[] bytesData = new byte[getStripeSize()];
+        data = new int[sutWrapper.getStripeSize()];
+        data2 = new int[sutWrapper.getStripeSize()];
+        byte[] bytesData = new byte[sutWrapper.getStripeSize()];
         random.nextBytes(bytesData);
-        for (int i = 0; i < getStripeSize(); i++) {
+        for (int i = 0; i < sutWrapper.getStripeSize(); i++) {
             data[i] = data2[i] = Byte.toUnsignedInt(bytesData[i]);
         }
-        parity = new int[getParitySize()];
+        parity = new int[sutWrapper.getParitySize()];
+    }
+
+    @Test
+    public void testSymbolSize() {
+        Assert.assertEquals(8, sut.symbolSize());
     }
 
     @Test
@@ -58,37 +78,63 @@ public abstract class ErasureCodeTest<T extends ErasureCode> {
     @Test
     public void testWithErasures() {
         sut.encode(data, parity);
-        for (int j = 0; j < 10000; j++) {
-            for (int i = 0; i < getParitySize() + getStripeSize(); i++) {
-                checkData();
+        for (int iteration = 0; iteration < 10000; iteration++) {
+            System.arraycopy(data2, 0, data, 0, data.length);
+            checkData();
 
-                int[] mergedParityData = mergeArrays(parity, data);
-                int[] erasures = generateErasures(i);
+            int[] erasures = generateErasures(numberOfErasures);
 
-                for (int erasure : erasures) {
-                    mergedParityData[erasure] = 0;
+            int[] mergedParityData = mergeArrays(parity, data);
+            for (int erasure : erasures) {
+                mergedParityData[erasure] = 0;
+                if (erasure >= sutWrapper.getParitySize()) {
+                    data[erasure - sutWrapper.getParitySize()] = 0;
                 }
-                int[] dataErasures = Arrays.stream(erasures).filter(value -> value >= getParitySize()).toArray();
+            }
 
-
-                final IntList locationsToReadForDecode;
-                try {
-                    locationsToReadForDecode = sut.locationsToReadForDecode(Arrays.stream(erasures).boxed().collect(Collectors.toList()));
-                } catch (TooManyErasedLocations e) {
-                    if (erasures.length <= getMaxErasures()) {
-                        Assert.fail();
-                        return;
-                    } else {
-                        break;
-                    }
+            final IntList locationsToReadForDecode;
+            try {
+                sut.locationsToReadForDecode(Arrays.stream(erasures).boxed().collect(Collectors.toList()));
+                locationsToReadForDecode = sut.locationsToReadForDecode(Arrays.stream(erasures).boxed().collect(Collectors.toList()));
+                locationsToReadForDecode.sort(null);
+            } catch (TooManyErasedLocations e) {
+                if (erasures.length <= sutWrapper.getMaxErasures() && !(sutWrapper instanceof SimpleRegeneratingErasureCodeInstance)) {
+                    Assert.fail();
+                    return;
+                } else {
+                    continue;
                 }
+            }
+            final int[] locationsNotToRead = fillNotToRead(locationsToReadForDecode);
+            for (int ntr : locationsNotToRead) {
+                mergedParityData[ntr] = 0;
+            }
 
-                int[] recoveredValues = new int[dataErasures.length];
-                sut.decode(mergedParityData, dataErasures, recoveredValues, locationsToReadForDecode.toIntArray(), erasures);
-                restoreValues(data, erasures, recoveredValues);
-                checkData(i);
+            int[] recoveredValues = new int[erasures.length];
+
+            sut.decode(mergedParityData, erasures, recoveredValues, locationsToReadForDecode.toIntArray(), locationsNotToRead);
+            restoreValues(data, erasures, recoveredValues);
+            checkData(numberOfErasures);
+        }
+    }
+
+    private int[] fillNotToRead(IntList toReadForDecode) {
+        final int totalSize = sutWrapper.getStripeSize() + sutWrapper.getParitySize();
+
+        final int trSize = toReadForDecode.size();
+        int[] notToRead = new int[totalSize - trSize];
+
+        int ntrIndex = 0;
+        int trIndex = 0;
+        for (int globIndex = 0; globIndex < totalSize; globIndex++) {
+            if (trIndex < trSize && toReadForDecode.getInt(trIndex) == globIndex) {
+                trIndex++;
+            } else {
+                notToRead[ntrIndex++] = globIndex;
             }
         }
+
+        return notToRead;
     }
 
     private int[] mergeArrays(int[] parity, int[] data) {
@@ -96,11 +142,12 @@ public abstract class ErasureCodeTest<T extends ErasureCode> {
     }
 
     private void restoreValues(int[] data, int[] recoveredIndices, int[] recoveredValues) {
-        final PrimitiveIterator.OfInt iterator = Arrays.stream(recoveredValues).iterator();
-        Arrays.stream(recoveredIndices)
-                .filter(value -> value >= getParitySize())
-                .map(value -> value - getParitySize())
-                .forEachOrdered(value -> data[value] = iterator.nextInt());
+        final int paritySize = sutWrapper.getParitySize();
+        for (int i = 0; i < recoveredIndices.length; i++) {
+            if (recoveredIndices[i] >= paritySize) {
+                data[recoveredIndices[i] - paritySize] = recoveredValues[i];
+            }
+        }
     }
 
     private void checkData(int i) {
@@ -109,12 +156,14 @@ public abstract class ErasureCodeTest<T extends ErasureCode> {
     }
 
     private void checkData() {
-        Assert.assertArrayEquals(data2, data);
+        Assert.assertEquals(Arrays.toString(data2), Arrays.toString(data));
     }
 
     private int[] generateErasures(int amount) {
-        return random.ints(amount * 2, 0, getParitySize() + getStripeSize())
+        final int[] erasures = random.ints(250, 0, sutWrapper.getParitySize() + sutWrapper.getStripeSize())
                 .distinct().limit(amount)
                 .toArray();
+        Assert.assertEquals(amount, erasures.length);
+        return erasures;
     }
 }

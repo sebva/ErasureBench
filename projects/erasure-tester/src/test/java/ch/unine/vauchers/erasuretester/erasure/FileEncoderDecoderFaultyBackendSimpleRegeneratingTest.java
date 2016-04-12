@@ -7,7 +7,7 @@ public class FileEncoderDecoderFaultyBackendSimpleRegeneratingTest extends FileE
 
     @Override
     protected ErasureCode getErasureCode() {
-        return new SimpleRegeneratingCode(10, 6, 2);
+        return new SimpleRegeneratingCode(10, 6, 5);
     }
 
     @Override

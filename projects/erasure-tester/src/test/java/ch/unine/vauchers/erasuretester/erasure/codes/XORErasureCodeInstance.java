@@ -3,7 +3,8 @@ package ch.unine.vauchers.erasuretester.erasure.codes;
 /**
  *
  */
-public class XORErasureCodeTest extends ErasureCodeTest<XORCode> {
+public class XORErasureCodeInstance extends ErasureCodeInstance {
+
     @Override
     public int getStripeSize() {
         return 4;
@@ -22,5 +23,10 @@ public class XORErasureCodeTest extends ErasureCodeTest<XORCode> {
     @Override
     protected XORCode newSut() {
         return new XORCode(getStripeSize(), getParitySize());
+    }
+
+    @Override
+    public String toString() {
+        return "XOR";
     }
 }

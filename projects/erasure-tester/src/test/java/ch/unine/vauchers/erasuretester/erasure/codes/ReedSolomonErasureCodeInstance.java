@@ -3,7 +3,8 @@ package ch.unine.vauchers.erasuretester.erasure.codes;
 /**
  *
  */
-public class ReedSolomonErasureCodeTest extends ErasureCodeTest<ReedSolomonCode> {
+public class ReedSolomonErasureCodeInstance extends ErasureCodeInstance {
+
     @Override
     public int getStripeSize() {
         return 10;
@@ -22,5 +23,10 @@ public class ReedSolomonErasureCodeTest extends ErasureCodeTest<ReedSolomonCode>
     @Override
     protected ReedSolomonCode newSut() {
         return new ReedSolomonCode(getStripeSize(), getParitySize());
+    }
+
+    @Override
+    public String toString() {
+        return "ReedSolomon";
     }
 }

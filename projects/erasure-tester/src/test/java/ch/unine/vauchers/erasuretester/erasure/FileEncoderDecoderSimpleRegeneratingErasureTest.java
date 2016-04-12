@@ -8,6 +8,6 @@ import java.util.Collections;
 public class FileEncoderDecoderSimpleRegeneratingErasureTest extends FileEncoderDecoderTest {
     @Override
     protected Iterable<FileEncoderDecoder> createEncoderDecoder() {
-        return Collections.singleton(new FileEncoderDecoder(new SimpleRegeneratingCode(10, 6, 5), new MemoryStorageBackend()));
+        return Collections.singleton(new SimpleRegeneratingFileEncoderDecoder(new SimpleRegeneratingCode(10, 6, 5), new MemoryStorageBackend()));
     }
 }
