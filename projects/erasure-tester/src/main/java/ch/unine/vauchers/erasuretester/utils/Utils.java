@@ -1,4 +1,4 @@
-package ch.unine.vauchers.erasuretester;
+package ch.unine.vauchers.erasuretester.utils;
 
 import org.jetbrains.annotations.NotNull;
 

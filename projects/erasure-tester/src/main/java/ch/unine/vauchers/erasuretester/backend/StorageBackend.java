@@ -1,7 +1,6 @@
 package ch.unine.vauchers.erasuretester.backend;
 
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
+import ch.unine.vauchers.erasuretester.utils.IntCacheSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,24 +16,27 @@ import java.util.Optional;
 public abstract class StorageBackend {
     protected int bufferSize;
     public static final int FUSE_READ_SIZE = 1024 * 128 + 20; // Update accordingly
-    public static final int CACHE_SIZE = 50;
+    public static final int READ_CACHE_SIZE = 50;
+    public static final int STATUS_CACHE_SIZE = 50;
     private BlocksContainer[] writeBuffers;
     private LinkedHashMap<Integer, BlocksContainer> readCache;
     private int[] counters;
     protected int totalSize;
-    private final IntSet negativeCache;
+    private final IntCacheSet positiveCache;
+    private final IntCacheSet negativeCache;
 
     /**
      * You NEED to call defineTotalSize before any other action on this object!
      */
     public StorageBackend() {
-        readCache = new LinkedHashMap<Integer, BlocksContainer>(CACHE_SIZE + 1, .75f, true) {
+        readCache = new LinkedHashMap<Integer, BlocksContainer>(READ_CACHE_SIZE + 1, .75f, true) {
             @Override
             public boolean removeEldestEntry(Map.Entry<Integer, BlocksContainer> eldest) {
-                return size() > CACHE_SIZE;
+                return size() > READ_CACHE_SIZE;
             }
         };
-        negativeCache = new IntOpenHashSet();
+        positiveCache = new IntCacheSet(STATUS_CACHE_SIZE);
+        negativeCache = new IntCacheSet(STATUS_CACHE_SIZE);
     }
 
     /**
@@ -140,7 +142,19 @@ public abstract class StorageBackend {
      */
     public boolean isBlockAvailable(int key) {
         int redisKey = key / bufferSize;
-        return !negativeCache.contains(redisKey) && (readCache.containsKey(redisKey) || fetchAndCache(redisKey) != null);
+        if (positiveCache.contains(redisKey)) {
+            return true;
+        } else if (negativeCache.contains(redisKey)) {
+            return false;
+        } else {
+            if (isAggregatedBlockAvailable(redisKey)) {
+                positiveCache.add(redisKey);
+                return true;
+            } else {
+                negativeCache.add(redisKey);
+                return false;
+            }
+        }
     }
 
     protected abstract boolean isAggregatedBlockAvailable(int key);
@@ -186,6 +200,7 @@ public abstract class StorageBackend {
 
     public void clearReadCache() {
         readCache.clear();
+        positiveCache.clear();
         negativeCache.clear();
     }
 
