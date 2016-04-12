@@ -25,8 +25,7 @@ public class SimpleRegeneratingFileEncoderDecoder extends FileEncoderDecoder {
 
     protected Stream<Byte> decodeFileData(IntList blockKeys, IntList erasedIndices) throws TooManyErasedLocations {
         Arrays.fill(dataBuffer, 0, totalSize, 0);
-
-        System.arraycopy(dataBuffer, paritySize, stripeBuffer, 0, stripeSize);
+        Arrays.fill(stripeBuffer, 0, stripeSize, 0);
 
         final IntList locationsToReadForDecode;
 

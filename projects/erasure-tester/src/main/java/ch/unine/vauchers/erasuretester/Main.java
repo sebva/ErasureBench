@@ -5,6 +5,7 @@ import ch.unine.vauchers.erasuretester.backend.MemoryStorageBackend;
 import ch.unine.vauchers.erasuretester.backend.RedissonStorageBackend;
 import ch.unine.vauchers.erasuretester.backend.StorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.FileEncoderDecoder;
+import ch.unine.vauchers.erasuretester.erasure.SimpleRegeneratingFileEncoderDecoder;
 import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.NullErasureCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.ReedSolomonCode;
@@ -106,7 +107,15 @@ public class Main {
                 break;
         }
 
-        FileEncoderDecoder encdec = new FileEncoderDecoder(erasureCode, storageBackend);
+        final FileEncoderDecoder encdec;
+        switch (namespace.getString("erasure_code")) {
+            case "SimpleRegenerating":
+                encdec = new SimpleRegeneratingFileEncoderDecoder((SimpleRegeneratingCode) erasureCode, storageBackend);
+                break;
+            default:
+                encdec = new FileEncoderDecoder(erasureCode, storageBackend);
+                break;
+        }
 
         final FuseMemoryFrontend fuse = new FuseMemoryFrontend(encdec, !namespace.getBoolean("quiet"));
         // Gracefully quit on Ctrl+C
