@@ -14,7 +14,7 @@ services:
     image: erasuretester:latest
     command: python3 -u /opt/erasuretester/benchmark.py
     cap_add:
-      - SYS_ADMIN
+      - ALL
     devices:
       - "/dev/fuse"
     volumes:

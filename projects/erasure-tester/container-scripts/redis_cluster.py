@@ -23,11 +23,6 @@ class RedisCluster:
             sleep(5)
             return self
 
-        # Workaround to force docker-compose to start with identifier 1
-        self._docker_scale(0)
-        self._docker_scale(1)
-        self._docker_scale(0)
-
         attempt = 0
         success = False
         while not success:
