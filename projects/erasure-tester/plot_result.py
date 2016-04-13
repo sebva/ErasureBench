@@ -4,9 +4,11 @@ import json
 import matplotlib.pyplot as plt
 
 
-def plot_results(filename):
-    with open(filename) as fp:
-        results = json.load(fp)
+def plot_results(filenames):
+    results = []
+    for filename in filenames:
+        with open(filename) as fp:
+            results += json.load(fp)
 
     results = [x for x in results if x['bench'] in ('bench_bc', 'bench_10bytes', 'bench_apache')]
     cluster_sizes = {x['config'][1] for x in results}
@@ -30,6 +32,6 @@ def plot_results(filename):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("JSON results plotter")
-    parser.add_argument('file')
+    parser.add_argument('file', nargs='+')
     args = parser.parse_args()
     plot_results(args.file)
