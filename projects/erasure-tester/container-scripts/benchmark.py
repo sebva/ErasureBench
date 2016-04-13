@@ -10,7 +10,6 @@ import sys
 from time import sleep
 
 from benchmarks_impl import BenchmarksImpl
-from plot_results import main as output_plots
 from redis_cluster import RedisCluster
 from utils import kill_pid
 
@@ -131,4 +130,3 @@ if __name__ == '__main__':
     finally:
         print("Benchmarks ended, saving results to JSON file")
         benchmarks.save_results_to_file()
-        output_plots(benchmarks.log_file_base + '.pdf')
