@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import re
+import subprocess
+
 import matplotlib.pyplot as plt
 
 
@@ -9,7 +12,44 @@ def plot_results(filenames):
     for filename in filenames:
         with open(filename) as fp:
             results += json.load(fp)
+    plot_checksum(results)
+    plot_throughput(results)
 
+
+def plot_throughput(results):
+    results = [x for x in results if x['bench'] == 'bench_net_throughput']
+    cluster_sizes = {x['config'][1] for x in results}
+    for cluster_size in cluster_sizes:
+        for result in [x for x in results if x['config'][1] == cluster_size]:
+            (x_axis, y_axis) = _xy_from_capture(result['results']['write_capture'])
+            plt.plot(x_axis, y_axis, label="%s/write" % result['config'][0])
+
+            for measure in result['results']['measures']:
+                (x_axis, y_axis) = _xy_from_capture(measure['capture'])
+                plt.plot(x_axis, y_axis, label="%s/read/%d dead nodes" % (result['config'][0], measure['redis_initial'] - measure['redis_current']))
+
+        plt.title("Throughput benchmark, %d nodes" % cluster_size)
+        plt.xlabel("Time [s]")
+        plt.ylabel("Throughput [bytes/s]")
+        plt.legend(loc='best')
+        plt.show()
+
+
+def _xy_from_capture(capture_file):
+    regex = re.compile(r'^\|\s*([0-9]+).+\|\s*([0-9]+)\s*\|\s*([0-9]+)\s*\|$')
+    x = []
+    y = []
+
+    tshark_output = subprocess.check_output(['tshark', '-q', '-nr', capture_file, '-t', 'r', '-z', 'io,stat,1'])
+    for line in tshark_output.decode().split('\n'):
+        regex_match = regex.match(line)
+        if regex_match:
+            x.append(regex_match.group(1))
+            y.append(regex_match.group(3))
+    return x, y
+
+
+def plot_checksum(results):
     results = [x for x in results if x['bench'] in ('bench_bc', 'bench_10bytes', 'bench_apache')]
     cluster_sizes = {x['config'][1] for x in results}
     for cluster_size in cluster_sizes:
