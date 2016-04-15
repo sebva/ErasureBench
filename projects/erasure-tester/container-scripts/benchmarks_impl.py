@@ -95,33 +95,34 @@ class BenchmarksImpl:
         isoformat = datetime.today().isoformat()
         capture_dir = '/opt/erasuretester/results/'
         write_capture_file = 'capture_%s_%s_write.pcapng' % (isoformat, config[0])
+        sleep(5)
         dumpcap_proc = subprocess.Popen(dumpcap + [capture_dir + write_capture_file])
-        sleep(5)
+        sleep(10)
         print("Uncompressing archive")
-        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/10bytes.tar.bz2', '-C', self.mount],
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount],
                                     stdout=subprocess.PIPE, bufsize=1)
-        self._show_subprocess_percent(tar_proc, 1001)
-        sleep(5)
+        self._show_subprocess_percent(tar_proc, 2614)
+        sleep(10)
         kill_pid(dumpcap_proc)
         subprocess.check_call(['chmod', '666', capture_dir + write_capture_file])
 
         measures = []
         cs = redis.cluster_size
-        for redis_size in [cs, int(cs - (cs / 5))]:
+        for redis_size in [cs, int(cs - (cs / 20)), int(cs - (cs / 10))]:
             redis.scale(redis_size, brutal=True)
             capture_file = 'capture_%s_%s_read_%d.pcapng' % (isoformat, config[0], redis_size)
 
             dumpcap_proc = subprocess.Popen(dumpcap + [capture_dir + capture_file])
-            sleep(5)
+            sleep(10)
             print('Checking files...')
             sha_proc = subprocess.Popen(
-                ['sha256sum', '-c', '/opt/erasuretester/10bytes.sha256'],
+                ['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'],
                 stdout=subprocess.PIPE, bufsize=1)
-            sha_output = self._show_subprocess_percent(sha_proc, 1000)
+            sha_output = self._show_subprocess_percent(sha_proc, 2517)
             ok_files = len([x for x in sha_output if b' OK' in x])
             failed_files = len([x for x in sha_output if b' FAILED' in x])
 
-            sleep(5)
+            sleep(10)
             kill_pid(dumpcap_proc)
             subprocess.check_call(['chmod', '666', capture_dir + capture_file])
 
