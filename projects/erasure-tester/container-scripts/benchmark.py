@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import json
 import logging
-import os
 import subprocess
 from datetime import datetime
 
@@ -11,8 +10,8 @@ import sys
 from time import sleep
 
 from benchmarks_impl import BenchmarksImpl
-from plot_results import main as output_plots
 from redis_cluster import RedisCluster
+from utils import kill_pid
 
 
 class Benchmarks:
@@ -20,7 +19,7 @@ class Benchmarks:
 
     def __init__(self):
         # 2 is forbidden due to Redis limitation on Cluster size
-        self.redis_size = [60]
+        self.redis_size = [15, 60, 100]
         self.erasure_codes = ['Null', 'ReedSolomon', 'SimpleRegenerating']
         self.erasure_configs = {
             'ReedSolomon': [
@@ -113,26 +112,6 @@ class JavaProgram:
         self.proc.send_signal(signal.SIGUSR2)
 
 
-def kill_pid(proc):
-    """
-    Kill a process. Try SIGTERM first, then SIGKILL
-    :type proc: subprocess.Popen
-    """
-    print("Terminating process %d" % proc.pid)
-    os.kill(proc.pid, signal.SIGTERM)
-    timeout = 10
-    while timeout > 0:
-        sleep(1)
-        timeout -= 1
-        if proc.poll() is not None:
-            timeout = 0
-
-    if proc.poll() is None:
-        print("Process %d still alive, using SIGKILL" % proc.pid)
-        os.kill(proc.pid, signal.SIGKILL)
-        proc.wait()
-
-
 if __name__ == '__main__':
     # pydevd.settrace('172.16.0.167', port=9292, stdoutToServer=True, stderrToServer=True)
     print("Python client ready, starting benchmarks")
@@ -151,4 +130,3 @@ if __name__ == '__main__':
     finally:
         print("Benchmarks ended, saving results to JSON file")
         benchmarks.save_results_to_file()
-        output_plots(benchmarks.log_file_base + '.pdf')

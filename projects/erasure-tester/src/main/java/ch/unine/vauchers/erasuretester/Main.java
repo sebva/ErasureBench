@@ -11,6 +11,7 @@ import ch.unine.vauchers.erasuretester.erasure.codes.NullErasureCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.ReedSolomonCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.SimpleRegeneratingCode;
 import ch.unine.vauchers.erasuretester.frontend.FuseMemoryFrontend;
+import ch.unine.vauchers.erasuretester.utils.Utils;
 import net.fusejna.FuseException;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;

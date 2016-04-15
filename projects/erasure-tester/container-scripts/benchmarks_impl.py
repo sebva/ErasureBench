@@ -3,10 +3,11 @@ import random
 import re
 import string
 import subprocess
+from datetime import datetime
 
-import sys
 from redis_cluster import RedisCluster
 from time import sleep
+from utils import kill_pid
 
 
 class BenchmarksImpl:
@@ -40,7 +41,8 @@ class BenchmarksImpl:
 
     def _bench_checksum(self, config, redis: RedisCluster, java, archive_name, sha_name, tar_log_lines, sha_log_lines):
         print('Uncompressing archive (%s)...' % archive_name)
-        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/%s' % archive_name, '-C', self.mount], stdout=subprocess.PIPE, bufsize=1)
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/%s' % archive_name, '-C', self.mount],
+                                    stdout=subprocess.PIPE, bufsize=1)
         self._show_subprocess_percent(tar_proc, tar_log_lines)
 
         results = dict()
@@ -85,6 +87,57 @@ class BenchmarksImpl:
     def bench_10bytes(self, config, redis: RedisCluster, java):
         return self._bench_checksum(config, redis, java,
                                     '10bytes.tar.bz2', '10bytes.sha256', tar_log_lines=1001, sha_log_lines=1000)
+
+    def bench_net_throughput(self, config, redis: RedisCluster, java):
+        dumpcap = ['/usr/bin/dumpcap', '-q', '-i', 'any', '-f', 'tcp port 6379', '-s', '64', '-w']
+
+        print("Starting dumpcap")
+        isoformat = datetime.today().isoformat()
+        capture_dir = '/opt/erasuretester/results/'
+        write_capture_file = 'capture_%s_%s_write.pcapng' % (isoformat, config[0])
+        sleep(5)
+        dumpcap_proc = subprocess.Popen(dumpcap + [capture_dir + write_capture_file])
+        sleep(10)
+        print("Uncompressing archive")
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount],
+                                    stdout=subprocess.PIPE, bufsize=1)
+        self._show_subprocess_percent(tar_proc, 2614)
+        sleep(10)
+        kill_pid(dumpcap_proc)
+        subprocess.check_call(['chmod', '666', capture_dir + write_capture_file])
+
+        measures = []
+        cs = redis.cluster_size
+        for redis_size in [cs, int(cs - (cs / 20)), int(cs - (cs / 10))]:
+            redis.scale(redis_size, brutal=True)
+            capture_file = 'capture_%s_%s_read_%d.pcapng' % (isoformat, config[0], redis_size)
+
+            dumpcap_proc = subprocess.Popen(dumpcap + [capture_dir + capture_file])
+            sleep(10)
+            print('Checking files...')
+            sha_proc = subprocess.Popen(
+                ['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'],
+                stdout=subprocess.PIPE, bufsize=1)
+            sha_output = self._show_subprocess_percent(sha_proc, 2517)
+            ok_files = len([x for x in sha_output if b' OK' in x])
+            failed_files = len([x for x in sha_output if b' FAILED' in x])
+
+            sleep(10)
+            kill_pid(dumpcap_proc)
+            subprocess.check_call(['chmod', '666', capture_dir + capture_file])
+
+            measures.append({
+                'ok': ok_files,
+                'failed': failed_files,
+                'capture': capture_file,
+                'redis_initial': cs,
+                'redis_current': redis_size
+            })
+
+        return {
+            'write_capture': write_capture_file,
+            'measures': measures
+        }
 
     @staticmethod
     def _show_subprocess_percent(proc, expected_nb_lines):
