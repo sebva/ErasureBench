@@ -3,6 +3,7 @@ package ch.unine.vauchers.erasuretester.erasure;
 import ch.unine.vauchers.erasuretester.backend.FileMetadata;
 import ch.unine.vauchers.erasuretester.backend.StorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
+import ch.unine.vauchers.erasuretester.erasure.codes.SimpleRegeneratingCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.TooManyErasedLocations;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -45,6 +46,10 @@ public class FileEncoderDecoder {
      * @param storageBackend The storage backend implementation to use
      */
     public FileEncoderDecoder(@NotNull ErasureCode erasureCode, @NotNull StorageBackend storageBackend) {
+        if (erasureCode instanceof SimpleRegeneratingCode && !(this instanceof SimpleRegeneratingFileEncoderDecoder)) {
+            throw new IllegalArgumentException("SimpleRegeneratingCode needs a special FileEncoderDecoder");
+        }
+
         this.erasureCode = erasureCode;
         this.storageBackend = storageBackend;
 
