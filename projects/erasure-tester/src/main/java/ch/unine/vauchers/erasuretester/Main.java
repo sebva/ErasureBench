@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 public class Main {
 
     public static void main(String[] argv) throws FuseException {
-        System.out.println("Erasure tester started");
+        System.err.println("Erasure tester started");
 
         ArgumentParser parser = ArgumentParsers.newArgumentParser("Erasure tester");
         parser.addArgument("-c", "--erasure-code")
@@ -125,7 +125,7 @@ public class Main {
         // Gracefully quit on Ctrl+C
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                System.out.println("Gracefully exiting Erasure tester");
+                System.err.println("Gracefully exiting Erasure tester");
                 try {
                     storageBackend.disconnect();
                     fuse.unmount();
