@@ -2,10 +2,7 @@ package ch.unine.vauchers.erasuretester.erasure;
 
 import ch.unine.vauchers.erasuretester.backend.MemoryStorageBackend;
 import ch.unine.vauchers.erasuretester.backend.StorageBackend;
-import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
-import ch.unine.vauchers.erasuretester.erasure.codes.ReedSolomonCode;
-import ch.unine.vauchers.erasuretester.erasure.codes.SimpleRegeneratingCode;
-import ch.unine.vauchers.erasuretester.erasure.codes.TooManyErasedLocations;
+import ch.unine.vauchers.erasuretester.erasure.codes.*;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,13 +22,14 @@ public class FileRepairTest {
     private Mode mode;
     private final int stripeSize;
     private final int paritySize;
+    private final StorageBackend backend;
 
     public FileRepairTest(ErasureCode code) {
         this.mode = Mode.FAULTY;
         this.stripeSize = code.stripeSize();
         this.paritySize = code.paritySize();
 
-        final StorageBackend backend = new SpecialBackend();
+        backend = new SpecialBackend();
         if (code instanceof SimpleRegeneratingCode) {
             this.fed = new SimpleRegeneratingFileEncoderDecoder((SimpleRegeneratingCode) code, backend);
         } else {
@@ -42,6 +40,7 @@ public class FileRepairTest {
     @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> parameters() {
         return new ArrayList<Object[]>() {{
+            add(new Object[] {new XORCode(2, 1)});
             add(new Object[] {new ReedSolomonCode(10, 4)});
             add(new Object[] {new SimpleRegeneratingCode(10, 6, 5)});
         }};
@@ -56,9 +55,13 @@ public class FileRepairTest {
 
         this.mode = Mode.FAULTY;
         fed.writeFile(filepath, dataLength, 0, ByteBuffer.wrap(data));
+        backend.clearReadCache();
         this.mode = Mode.REPAIRING;
-        fed.repairAllFiles();
+        fed.repairFile(filepath);
+        backend.clearReadCache();
         this.mode = Mode.REPAIRED;
+
+        Assert.assertTrue(backend.getFileMetadata(filepath).get().getBlockKeys().get().parallelStream().noneMatch(key -> key == Integer.MAX_VALUE));
 
         final ByteBuffer out = ByteBuffer.allocate(dataLength);
         fed.readFile(filepath, dataLength, 0, out);
@@ -67,6 +70,42 @@ public class FileRepairTest {
 
         for (int i = 0; i < dataLength; i++) {
             Assert.assertEquals("Inequality at index " + i, data2[i], out.get());
+        }
+    }
+
+    @Test
+    public void testRepairMultipleFiles() throws TooManyErasedLocations {
+        final int nbFiles = 1000;
+        final byte[][] data = new byte[nbFiles][];
+        final byte[][] data2 = new byte[nbFiles][];
+        final String[] filepaths = new String[nbFiles];
+        for (int i = 0; i < nbFiles; i++) {
+            data[i] = FileEncoderDecoderTestUtils.createRandomBigByteBuffer();
+            data2[i] = data[i].clone();
+            filepaths[i] = FileEncoderDecoderTestUtils.generateRandomPath();
+        }
+
+        this.mode = Mode.FAULTY;
+        for (int i = 0; i < nbFiles; i++) {
+            fed.writeFile(filepaths[i], data[i].length, 0, ByteBuffer.wrap(data[i]));
+        }
+        backend.clearReadCache();
+        this.mode = Mode.REPAIRING;
+        fed.repairAllFiles();
+        backend.clearReadCache();
+        this.mode = Mode.REPAIRED;
+
+        for (int i = 0; i < nbFiles; i++) {
+            final String filepath = filepaths[i];
+            Assert.assertTrue(backend.getFileMetadata(filepath).get().getBlockKeys().get().parallelStream().noneMatch(key -> key == Integer.MAX_VALUE));
+
+            final ByteBuffer out = ByteBuffer.allocate(data2.length);
+            fed.readFile(filepath, data2.length, 0, out);
+            out.rewind();
+
+            for (int j = 0; j < data2.length; j++) {
+                Assert.assertEquals("Inequality at index " + j, data2[i][j], out.get());
+            }
         }
     }
 
@@ -101,7 +140,8 @@ public class FileRepairTest {
         }
 
         private boolean isPositionFaulty(int position) {
-            return position == paritySize / 2 || position == (stripeSize + paritySize) / 2;
+            if (paritySize == 1) return position == 1;
+            return position == paritySize / 2 || position ==  paritySize + (stripeSize / 2);
         }
     }
 }

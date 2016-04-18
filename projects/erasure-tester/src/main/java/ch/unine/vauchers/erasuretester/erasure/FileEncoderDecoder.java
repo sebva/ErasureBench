@@ -152,12 +152,50 @@ public class FileEncoderDecoder {
     }
 
     protected void repairFile(FileMetadata metadata) {
-        // TODO Code me
+        metadata.getBlockKeys().ifPresent(blockKeys -> {
+            final int nbKeys = blockKeys.size();
+            assert nbKeys % totalSize == 0;
+            final int nbStripes = nbKeys / totalSize;
+
+            for (int i = 0; i < nbStripes; i++) {
+                final int offset = i * totalSize;
+                final IntList subKeys = blockKeys.subList(offset, offset + totalSize);
+                final IntList availableBlocks = new IntArrayList(totalSize);
+                for (int j = 0; j < totalSize; j++) {
+                    if (storageBackend.isBlockAvailable(subKeys.getInt(j))) {
+                        availableBlocks.add(j);
+                    }
+                }
+                if (availableBlocks.size() < totalSize) {
+                    final IntList erasedBlocks = IntArrayList.wrap(fillNotToRead(availableBlocks));
+                    try {
+                        final IntList toReadForDecode = erasureCode.locationsToReadForDecode(erasedBlocks);
+                        toReadForDecode.sort(null);
+                        Arrays.fill(dataBuffer, 0);
+                        for (Integer position : toReadForDecode) {
+                            dataBuffer[position] = storageBackend.retrieveBlock(subKeys.getInt(position)).orElse(0);
+                        }
+                        final int[] erasedValues = new int[erasedBlocks.size()];
+                        erasureCode.decode(dataBuffer, erasedBlocks.toIntArray(), erasedValues, toReadForDecode.toIntArray(), fillNotToRead(toReadForDecode));
+                        for (int j = 0; j < erasedValues.length; j++) {
+                            final int position = erasedBlocks.get(j);
+                            final int restoredValue = erasedValues[j];
+                            final int blockKey = storageBackend.storeBlock(restoredValue, position);
+                            subKeys.set(position, blockKey);
+                        }
+                    } catch (TooManyErasedLocations e) {
+                        log.warning("The file cannot be repaired");
+                    }
+                }
+            }
+
+            storageBackend.flushAll();
+        });
     }
 
     public void repairAllFiles() {
         final Collection<String> filePaths = storageBackend.getAllFilePaths();
-        filePaths.parallelStream()
+        filePaths.stream()
                 .map(storageBackend::getFileMetadata)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
