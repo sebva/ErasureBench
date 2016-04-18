@@ -101,7 +101,7 @@ class JavaProgram:
         self.env = env
 
     def __enter__(self):
-        self.proc = subprocess.Popen(self.java_with_args + self.more_args, env=self.env)
+        self.proc = subprocess.Popen(self.java_with_args + self.more_args, env=self.env, stdin=subprocess.PIPE)
         sleep(10)
         return self
 
@@ -109,7 +109,16 @@ class JavaProgram:
         kill_pid(self.proc)
 
     def flush_read_cache(self):
-        self.proc.send_signal(signal.SIGUSR2)
+        self.proc.stdin.write(b"clearCache\n")
+        self.proc.stdin.flush()
+
+    def repair_all_files(self):
+        self.proc.stdin.write(b"repairAll\n")
+        self.proc.stdin.flush()
+
+    def repair_file(self, filepath):
+        self.proc.stdin.write(("repair %s\n" % filepath).encode())
+        self.proc.stdin.flush()
 
 
 if __name__ == '__main__':
