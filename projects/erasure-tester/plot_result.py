@@ -19,6 +19,7 @@ def plot_results(filenames):
 
 
 def plot_throughput(results):
+    total_files = results[0]['results']['measures'][0]['ok']
     with PdfPages('throughput_%s.pdf' % datetime.today().isoformat()) as pdf:
         all_results = [x for x in results if x['bench'] == 'bench_net_throughput']
         cluster_sizes = {x['config'][1] for x in results}
@@ -39,7 +40,7 @@ def plot_throughput(results):
                 for result in results:
                     for measure in [x for x in result['results']['measures'] if x['redis_current'] == redis_current]:
                         (x_axis, y_axis) = _xy_from_capture(measure['capture'])
-                        plt.plot(x_axis, y_axis, label=("%s (%d%% files OK)" % (result['config'][0], measure['ok'] / 10)))
+                        plt.plot(x_axis, y_axis, label=("%s (%d%% files OK)" % (result['config'][0], measure['ok'] / total_files * 100)))
 
                 plt.title("Read on %d out of %d nodes" % (redis_current, cluster_size))
                 plt.xlabel("Time [s]")
@@ -56,7 +57,7 @@ def _xy_from_capture(capture_file):
     x = []
     y = []
 
-    tshark_output = subprocess.check_output(['tshark', '-q', '-nr', capture_file, '-t', 'r', '-z', 'io,stat,1'])
+    tshark_output = subprocess.check_output(['tshark', '-q', '-nr', capture_file, '-t', 'r', '-z', 'io,stat,5'])
     for line in tshark_output.decode().split('\n'):
         regex_match = regex.match(line)
         if regex_match:
