@@ -4,6 +4,7 @@ import ch.unine.vauchers.erasuretester.utils.IntCacheSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -52,6 +53,8 @@ public abstract class StorageBackend {
      * @param metadata The new metadata object
      */
     public abstract void setFileMetadata(@NotNull String path, @NotNull FileMetadata metadata);
+
+    public abstract Collection<String> getAllFilePaths();
 
     /**
      * Retrieve a data block from storage

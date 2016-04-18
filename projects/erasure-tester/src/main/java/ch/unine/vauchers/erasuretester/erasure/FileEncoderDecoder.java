@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
@@ -144,6 +145,23 @@ public class FileEncoderDecoder {
             metadata.setContentsSize(newSize);
             metadata.getBlockKeys().ifPresent(integers -> integers.size(newSize));
         });
+    }
+
+    public void repairFile(String path) {
+        storageBackend.getFileMetadata(path).ifPresent(this::repairFile);
+    }
+
+    protected void repairFile(FileMetadata metadata) {
+        // TODO Code me
+    }
+
+    public void repairAllFiles() {
+        final Collection<String> filePaths = storageBackend.getAllFilePaths();
+        filePaths.parallelStream()
+                .map(storageBackend::getFileMetadata)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .forEach(this::repairFile);
     }
 
     private void iterate(int size, int offset, ByteBuffer fileBuffer, IntList blockKeys, Modes mode) throws TooManyErasedLocations {

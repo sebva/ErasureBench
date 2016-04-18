@@ -2,9 +2,7 @@ package ch.unine.vauchers.erasuretester.backend;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Storage backend implementation backed by a plain old Java Map object.
@@ -27,6 +25,11 @@ public class MemoryStorageBackend extends StorageBackend {
     @Override
     public void setFileMetadata(@NotNull String path, @NotNull FileMetadata metadata) {
         metadataStorage.put(path, metadata);
+    }
+
+    @Override
+    public Collection<String> getAllFilePaths() {
+        return new ArrayList<>(metadataStorage.keySet());
     }
 
     @Override
