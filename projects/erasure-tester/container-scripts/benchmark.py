@@ -101,7 +101,7 @@ class JavaProgram:
         self.env = env
 
     def __enter__(self):
-        self.proc = subprocess.Popen(self.java_with_args + self.more_args, env=self.env)
+        self.proc = subprocess.Popen(self.java_with_args + self.more_args, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         sleep(10)
         return self
 
@@ -109,7 +109,26 @@ class JavaProgram:
         kill_pid(self.proc)
 
     def flush_read_cache(self):
-        self.proc.send_signal(signal.SIGUSR2)
+        self.proc.stdin.write(b"clearCache\n")
+        self._wait_command_completion()
+
+    def repair_all_files(self):
+        self.proc.stdin.write(b"repairAll\n")
+        self._wait_command_completion()
+
+    def repair_file(self, filepath):
+        self.proc.stdin.write(("repair %s\n" % filepath).encode())
+        self._wait_command_completion()
+
+    def _wait_command_completion(self):
+        self.proc.stdout.flush()
+        self.proc.stdin.flush()
+        limit = 3
+        while limit > 0 and self.proc.stdout.readline() != b"Done\n":
+            limit -= 1
+            print("Waiting for the command to complete...")
+        if limit <= 0:
+            print("The command did not complete!")
 
 
 if __name__ == '__main__':

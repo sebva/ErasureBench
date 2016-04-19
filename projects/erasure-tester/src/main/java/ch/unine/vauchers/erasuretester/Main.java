@@ -18,9 +18,12 @@ import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
-import sun.misc.Signal;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Entry-point of the application
@@ -28,7 +31,7 @@ import java.io.IOException;
 public class Main {
 
     public static void main(String[] argv) throws FuseException {
-        System.out.println("Erasure tester started");
+        System.err.println("Erasure tester started");
 
         ArgumentParser parser = ArgumentParsers.newArgumentParser("Erasure tester");
         parser.addArgument("-c", "--erasure-code")
@@ -122,7 +125,7 @@ public class Main {
         // Gracefully quit on Ctrl+C
         Runtime.getRuntime().addShutdownHook(new Thread() {
             public void run() {
-                System.out.println("Gracefully exiting Erasure tester");
+                System.err.println("Gracefully exiting Erasure tester");
                 try {
                     storageBackend.disconnect();
                     fuse.unmount();
@@ -131,11 +134,29 @@ public class Main {
                 }
             }
         });
-        Signal.handle(new Signal("USR2"), sig -> {
-            storageBackend.clearReadCache();
-        });
 
-        fuse.mount(namespace.getString("mountpoint"));
+        fuse.mount(new File(namespace.getString("mountpoint")), false);
+
+        final Scanner reader = new Scanner(System.in);
+        final Pattern pattern = Pattern.compile("^repair (.+)$");
+        while (true) {
+            final String line = reader.nextLine();
+            if ("repairAll".equals(line)) {
+                encdec.repairAllFiles();
+                System.out.println("Done");
+            } else if ("clearCache".equals(line)) {
+                storageBackend.clearReadCache();
+                System.out.println("Done");
+            } else {
+                final Matcher matcher = pattern.matcher(line);
+                if (matcher.matches()) {
+                    encdec.repairFile(matcher.group(1));
+                    System.out.println("Done");
+                } else {
+                    System.out.println("Unknown command");
+                }
+            }
+        }
     }
 
 }

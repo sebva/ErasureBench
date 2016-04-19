@@ -3,6 +3,7 @@ package ch.unine.vauchers.erasuretester.erasure;
 import ch.unine.vauchers.erasuretester.backend.FileMetadata;
 import ch.unine.vauchers.erasuretester.backend.StorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
+import ch.unine.vauchers.erasuretester.erasure.codes.SimpleRegeneratingCode;
 import ch.unine.vauchers.erasuretester.erasure.codes.TooManyErasedLocations;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -10,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.Function;
@@ -45,6 +47,10 @@ public class FileEncoderDecoder {
      * @param storageBackend The storage backend implementation to use
      */
     public FileEncoderDecoder(@NotNull ErasureCode erasureCode, @NotNull StorageBackend storageBackend) {
+        if (erasureCode instanceof SimpleRegeneratingCode && !(this instanceof SimpleRegeneratingFileEncoderDecoder)) {
+            throw new IllegalArgumentException("SimpleRegeneratingCode needs a special FileEncoderDecoder");
+        }
+
         this.erasureCode = erasureCode;
         this.storageBackend = storageBackend;
 
@@ -139,6 +145,61 @@ public class FileEncoderDecoder {
             metadata.setContentsSize(newSize);
             metadata.getBlockKeys().ifPresent(integers -> integers.size(newSize));
         });
+    }
+
+    public void repairFile(String path) {
+        storageBackend.getFileMetadata(path).ifPresent(this::repairFile);
+    }
+
+    protected void repairFile(FileMetadata metadata) {
+        metadata.getBlockKeys().ifPresent(blockKeys -> {
+            final int nbKeys = blockKeys.size();
+            assert nbKeys % totalSize == 0;
+            final int nbStripes = nbKeys / totalSize;
+
+            for (int i = 0; i < nbStripes; i++) {
+                final int offset = i * totalSize;
+                final IntList subKeys = blockKeys.subList(offset, offset + totalSize);
+                final IntList availableBlocks = new IntArrayList(totalSize);
+                for (int j = 0; j < totalSize; j++) {
+                    if (storageBackend.isBlockAvailable(subKeys.getInt(j))) {
+                        availableBlocks.add(j);
+                    }
+                }
+                if (availableBlocks.size() < totalSize) {
+                    final IntList erasedBlocks = IntArrayList.wrap(fillNotToRead(availableBlocks));
+                    try {
+                        final IntList toReadForDecode = erasureCode.locationsToReadForDecode(erasedBlocks);
+                        toReadForDecode.sort(null);
+                        Arrays.fill(dataBuffer, 0);
+                        for (Integer position : toReadForDecode) {
+                            dataBuffer[position] = storageBackend.retrieveBlock(subKeys.getInt(position)).orElse(0);
+                        }
+                        final int[] erasedValues = new int[erasedBlocks.size()];
+                        erasureCode.decode(dataBuffer, erasedBlocks.toIntArray(), erasedValues, toReadForDecode.toIntArray(), fillNotToRead(toReadForDecode));
+                        for (int j = 0; j < erasedValues.length; j++) {
+                            final int position = erasedBlocks.get(j);
+                            final int restoredValue = erasedValues[j];
+                            final int blockKey = storageBackend.storeBlock(restoredValue, position);
+                            subKeys.set(position, blockKey);
+                        }
+                    } catch (TooManyErasedLocations e) {
+                        log.warning("The file cannot be repaired");
+                    }
+                }
+            }
+
+            storageBackend.flushAll();
+        });
+    }
+
+    public void repairAllFiles() {
+        final Collection<String> filePaths = storageBackend.getAllFilePaths();
+        filePaths.stream()
+                .map(storageBackend::getFileMetadata)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .forEach(this::repairFile);
     }
 
     private void iterate(int size, int offset, ByteBuffer fileBuffer, IntList blockKeys, Modes mode) throws TooManyErasedLocations {
