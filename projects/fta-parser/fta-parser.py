@@ -196,7 +196,50 @@ def bar(pdf, x_axis, y_axis, set_name):
     plt.close()
 
 
+def simulate(db_file):
+    sql = sqlite3.connect(db_file)
+    cur = sql.cursor()
+
+    # HUGE performance boost
+    cur.execute(r'CREATE INDEX IF NOT EXISTS start_time_index ON event_trace (event_start_time)')
+    cur.fetchone()
+
+    cur.execute(r'SELECT MIN(event_start_time), MAX(event_start_time) FROM event_trace')
+    mintime, maxtime = cur.fetchone()
+    current = mintime
+
+    cur.execute('''
+      SELECT DISTINCT node_id FROM event_trace
+        WHERE node_id IN (SELECT DISTINCT node_id FROM event_trace WHERE event_start_time=?)
+        ORDER BY node_id
+        ''', (mintime, ))
+    nodes_id = [x[0] for x in cur.fetchall()]
+    reverse_nodes_id = dict(zip(nodes_id, range(len(nodes_id))))
+
+    timeres = 60
+
+    while current + timeres < maxtime:
+        cur.execute('''
+          SELECT node_id, event_type FROM event_trace
+            WHERE event_start_time >= ?
+              AND event_start_time < ?
+              AND node_id IN (SELECT DISTINCT node_id FROM event_trace WHERE event_start_time=?)
+            ORDER BY node_id, event_start_time''',
+                    (current, current + timeres, mintime))
+        events = cur.fetchall()
+        if len(events) != 0:
+            print('At t=%d' % current)
+            for event in events:
+                server_position, is_up = reverse_nodes_id[event[0]], event[1] == 1
+                print("\tServer #%d -> %r" % (server_position, is_up))
+        current += timeres
+
+    cur.close()
+    sql.close()
+
 if __name__ == '__main__':
+    simulate('databases/oneping.db')
+
     with PdfPages('fta.pdf') as pdf:
         plot_trace(pdf, *parse_trace_method1('databases/cae.db'), set_name='cae')
         bar(pdf, *compute_histogram1('databases/cae.db'), set_name='cae')
