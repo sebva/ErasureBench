@@ -23,4 +23,4 @@ kill ${ssh_pid}
 sshpass -p "${password}" ssh debian@${MANAGER_IP} 'docker -H tcp://0.0.0.0:5732 stop $(docker -H tcp://0.0.0.0:5732 ps -q) && docker -H tcp://0.0.0.0:5732 rm $(docker -H tcp://0.0.0.0:5732 ps -aq)'
 
 sshpass -p "${password}" rsync -av --copy-links cluster/ debian@${MANAGER_IP}:~/erasuretester
-sshpass -p "${password}" ssh debian@${MANAGER_IP} 'cd ~/erasuretester && exec ./run_benchmarks.sh'
+#sshpass -p "${password}" ssh debian@${MANAGER_IP} 'cd ~/erasuretester && exec ./run_benchmarks.sh'

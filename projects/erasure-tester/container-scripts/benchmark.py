@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import logging
+import socket
 import subprocess
 from datetime import datetime
 
@@ -132,20 +133,21 @@ class JavaProgram:
 
 
 if __name__ == '__main__':
-    # pydevd.settrace('172.16.0.167', port=9292, stdoutToServer=True, stderrToServer=True)
-    print("Python client ready, starting benchmarks")
-    benchmarks = Benchmarks()
-
-    def signal_handler(signal, frame):
-        benchmarks.save_results_to_file()
-        sys.exit(0)
-    signal.signal(signal.SIGTERM, signal_handler)
-    signal.signal(signal.SIGINT, signal_handler)
-
+    print("Ready, waiting 60 seconds")
+    sleep(60)
     try:
-        benchmarks.run_benchmarks()
-    except Exception as ex:
-        logging.exception("Something crashed")
-    finally:
-        print("Benchmarks ended, saving results to JSON file")
-        benchmarks.save_results_to_file()
+        i = 1
+        while True:
+            ip = socket.getaddrinfo('erasuretester_benchmark_%d' % i, 6379, socket.AF_INET)[0][4][0]
+
+            try:
+                subprocess.check_call(('ping -c 1 -W 3 %s' % ip).split(' '))
+                print("%d OK" % i)
+            except subprocess.CalledProcessError:
+                print("%d KO" % i)
+
+            i += 1
+    except socket.gaierror:
+        pass
+    print("Finished")
+    sleep(60)
