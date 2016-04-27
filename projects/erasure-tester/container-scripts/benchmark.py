@@ -141,7 +141,7 @@ if __name__ == '__main__':
             ip = socket.getaddrinfo('erasuretester_benchmark_%d' % i, 6379, socket.AF_INET)[0][4][0]
 
             try:
-                subprocess.check_call(('ping -c 1 -W 3 %s' % ip).split(' '))
+                subprocess.check_call(('ping -c 1 -W 2 %s' % ip).split(' '))
                 print("%d OK" % i)
             except subprocess.CalledProcessError:
                 print("%d KO" % i)

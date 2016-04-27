@@ -8,7 +8,7 @@ with open('/home/sebastien/dev/matrix/logs.txt') as file:
         results.append(list(range(50)))
 
     for line in file.readlines():
-        match = re.search(r'_([0-9]{1,2}) {1,2}\| .\[0m([0-9]{1,2}) ([OK]{2})', line)
+        match = re.search(r'_([0-9]{1,2}) +\|.\[0m ([0-9]{1,2}) ([OK]{2})', line)
         if match is not None:
             f, t, o = match.groups()
             results[int(f)-1][int(t)-1] = True if o == 'OK' else False
