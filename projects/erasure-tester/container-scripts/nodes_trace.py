@@ -3,6 +3,8 @@
 import sqlite3
 import time
 
+import itertools
+
 
 class NodesTrace:
     synthetic_sizes = None
@@ -91,19 +93,35 @@ class NodesTrace:
     def __next__(self):
         return self.next()
 
+    def initial_size(self):
+        if self.synthetic_sizes is not None:
+            return self.synthetic_sizes[0]
+        else:
+            self.cur.execute('''
+              SELECT COUNT(DISTINCT node_id) FROM event_trace
+                WHERE event_start_time == ?''',
+                             (self.min_time,))
+            return int(self.cur.fetchone()[0])
+
 
 if __name__ == '__main__':
     # Test
     sut = NodesTrace(synthetic=[3, 4, 2, 3])
     count = 0
+    initial = sut.initial_size()
     for r in sut:
+        if count == 0:
+            assert r[0] == initial
         print(r)
         assert count + len(r[1]) - len(r[2]) == r[0]
         count = r[0]
 
     sut = NodesTrace(time_factor=2000000, database='../../fta-parser/databases/oneping.db')
     count = 0
+    initial = sut.initial_size()
     for r in sut:
+        if count == 0:
+            assert r[0] == initial
         print(r)
         assert count + len(r[2]) - len(r[1]) == r[0]
         time.sleep(1)

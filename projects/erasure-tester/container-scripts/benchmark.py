@@ -10,6 +10,7 @@ import sys
 from time import sleep
 
 from benchmarks_impl import BenchmarksImpl
+from nodes_trace import NodesTrace
 from redis_cluster import RedisCluster
 from utils import kill_pid
 
@@ -19,7 +20,11 @@ class Benchmarks:
 
     def __init__(self):
         # 2 is forbidden due to Redis limitation on Cluster size
-        self.redis_size = [15, 60, 100]
+        self.redis_trace_configs = [
+            {'synthetic': list(range(15, 2, -1))},
+            {'synthetic': list(range(60, 2, -1))},
+            {'synthetic': list(range(100, 2, -1))}
+        ]
         self.erasure_codes = ['Null', 'ReedSolomon', 'SimpleRegenerating']
         self.erasure_configs = {
             'ReedSolomon': [
@@ -40,29 +45,32 @@ class Benchmarks:
         self.benches = [getattr(benchmarks_impl, m) for m in dir(benchmarks_impl) if m.startswith('bench_')]
 
     def run_benchmarks(self):
-        for rs in self.redis_size:
-            for ec in self.erasure_codes:
-                for (ss, ps, src) in self.erasure_configs[ec]:
+        for nodes_trace_config in self.redis_trace_configs:
+            for erasure_code in self.erasure_codes:
+                for (stripe_size, parity_size, src) in self.erasure_configs[erasure_code]:
                     for b in self.benches:
-                        with RedisCluster(rs) as redis:
-                            sb = 'Jedis' if rs > 0 else 'Memory'
-                            config = [ec, rs, sb, ss, ps, src]
+                        nodes_trace = NodesTrace(**nodes_trace_config)
+                        initial_redis_size = nodes_trace.initial_size()
+
+                        with RedisCluster(initial_redis_size) as redis:
+                            sb = 'Jedis' if initial_redis_size > 0 else 'Memory'
+                            config = [erasure_code, initial_redis_size, sb, stripe_size, parity_size, src]
                             print("Running with " + str(config))
                             (params, env) = self._get_java_params(redis, *config)
                             with JavaProgram(params, env) as java:
                                 try:
-                                    self._run_benchmark(b, config, redis, java)
+                                    self._run_benchmark(b, config, redis, java, nodes_trace)
                                 except Exception as ex:
                                     logging.exception("The benchmark crashed, continuing with the rest...")
                         self.save_results_to_file()
 
-    def _run_benchmark(self, bench, config, redis, java):
+    def _run_benchmark(self, bench, config, redis, java, nodes_trace):
         bench_name = bench.__name__
         print("    " + bench_name)
         self.results.append({
             'bench': bench_name,
             'config': config,
-            'results': bench(config, redis, java)
+            'results': bench(config, redis, java, nodes_trace)
         })
 
     def save_results_to_file(self):
@@ -101,7 +109,8 @@ class JavaProgram:
         self.env = env
 
     def __enter__(self):
-        self.proc = subprocess.Popen(self.java_with_args + self.more_args, env=self.env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+        self.proc = subprocess.Popen(self.java_with_args + self.more_args, env=self.env, stdout=subprocess.PIPE,
+                                     stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
         sleep(10)
         return self
 
@@ -136,9 +145,12 @@ if __name__ == '__main__':
     print("Python client ready, starting benchmarks")
     benchmarks = Benchmarks()
 
+
     def signal_handler(signal, frame):
         benchmarks.save_results_to_file()
         sys.exit(0)
+
+
     signal.signal(signal.SIGTERM, signal_handler)
     signal.signal(signal.SIGINT, signal_handler)
 
