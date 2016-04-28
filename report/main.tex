@@ -10,7 +10,6 @@
 \usepackage{multirow}
 \usepackage{setspace}
 \usepackage{url}
-\usepackage{titling}
 \usepackage[backend=biber,style=ieee,bibencoding=utf8,sorting=none]{biblatex}
 \usepackage{csquotes}
 \usepackage{pdfpages}
@@ -39,11 +38,13 @@
 
 % Constants
 \def\mytitle{Master Thesis}
+\def\thesistitle{Thesis title}
+\def\thesissubtitle{Thesis subtitle}
 \def\myauthor{Sébastien Vaucher}
 
 \pagestyle{scrheadings}
 
-\author{\myauthor\\ \href{mailto:sebastien.vaucher@unine.ch}{sebastien.vaucher@unine.ch}}
+\author{\myauthor}
 \title{\mytitle}
 
 \addbibresource{references.bib}
@@ -57,13 +58,42 @@
 
 \begin{document}
 
-\begin{titlingpage}
+\begin{titlepage}
+    \begin{otherlanguage}{australian}
+        \begin{center}
+            \begin{figure}[t]
+                \center{\includegraphics[scale=0.2]{logos/MSc_quer.png}}
+                \vspace{0.4in}
+            \end{figure}
 
-\begin{otherlanguage}{australian}
-\maketitle
-\end{otherlanguage}
+            {\bfseries\Huge \thesistitle \par
+                \Large \vspace{0.1in} \thesissubtitle \par}
 
-\end{titlingpage}
+            \vspace{0.3in}
+            \LARGE{\textbf{Master Thesis} \\}
+            \vspace{0.4in}
+
+            {\Large \myauthor}
+
+            \vspace{0.3in}
+            {\Large Université de Neuchâtel \par}
+            \vfill
+            {\Large \today \par}
+
+            \vspace{0.9in}
+
+            % === Logos ==============================================
+            \begin{figure}[htp]
+                \centering
+                \subfloat{\includegraphics[scale=0.60]{logos/UNI_Bern.pdf}}\hfill
+                \subfloat{\includegraphics[scale=0.54]{logos/UNI_Neuchatel.pdf}}\hfill
+                \subfloat{\includegraphics[scale=0.81]{logos/UNI_Fribourg.pdf}}
+            \end{figure}
+            % === // Logos ===========================================
+
+        \end{center}
+    \end{otherlanguage}
+\end{titlepage}
 
 \tableofcontents
 
