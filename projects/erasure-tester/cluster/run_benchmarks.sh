@@ -13,5 +13,5 @@ trap 'docker-compose down && exit' TERM INT
 
 docker-compose up -d benchmark
 docker-compose scale redis-master=0 redis-standalone=0 erasure=0 benchmark=50
-docker-compose logs -f | tee logs.txt
+docker-compose logs | tee logs.txt
 docker-compose down
