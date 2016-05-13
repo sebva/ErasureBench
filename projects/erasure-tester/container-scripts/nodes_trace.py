@@ -3,8 +3,6 @@
 import sqlite3
 import time
 
-import itertools
-
 
 class NodesTrace:
     synthetic_sizes = None
@@ -34,9 +32,9 @@ class NodesTrace:
 
             self.cur.execute('''
               SELECT DISTINCT node_id FROM event_trace
-                WHERE node_id IN (SELECT DISTINCT node_id FROM event_trace WHERE event_start_time <= ?)
+                WHERE event_start_time <= ?
                 ORDER BY node_id
-                ''', (self.min_time,))
+                ''', (self.max_time,))
             self.nodes_id = [x[0] for x in self.cur.fetchall()]
             self.reverse_nodes_id = dict(zip(self.nodes_id, range(len(self.nodes_id))))
         elif synthetic is not None:
@@ -69,9 +67,8 @@ class NodesTrace:
               SELECT node_id, event_type FROM event_trace
                 WHERE event_start_time > ?
                   AND event_start_time <= ?
-                  AND node_id IN (SELECT DISTINCT node_id FROM event_trace WHERE event_start_time <= ?)
                 ORDER BY node_id, event_start_time''',
-                             (self.last_time, now_db, self.min_time))
+                             (self.last_time, now_db))
             events = self.cur.fetchall()
             servers_to_kill = []
             servers_to_create = []
@@ -102,7 +99,7 @@ class NodesTrace:
             return self.synthetic_sizes[0]
         else:
             self.cur.execute('''
-              SELECT COUNT(DISTINCT node_id) FROM event_trace
+              SELECT SUM(CASE event_type WHEN 1 THEN 1 ELSE -1 END) FROM event_trace
                 WHERE event_start_time <= ?''',
                              (self.min_time,))
             return int(self.cur.fetchone()[0])
@@ -120,14 +117,14 @@ if __name__ == '__main__':
         assert count + len(r[1]) - len(r[2]) == r[0]
         count = r[0]
 
-    sut = NodesTrace(time_factor=2000000, database='../../fta-parser/databases/websites02.db', min_time=100000)
+    sut = NodesTrace(time_factor=60, database='../../fta-parser/databases/websites02.db', min_time=6033120, max_time=6035490)
     count = 0
     initial = sut.initial_size()
     print(initial)
     for r in sut:
         if count == 0:
             pass
-            #assert r[0] == initial
+            assert r[0] == initial
         print(r)
         assert count + len(r[2]) - len(r[1]) == r[0]
         time.sleep(1)
