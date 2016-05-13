@@ -156,9 +156,10 @@ class BenchmarksImpl:
             return {}
 
         self.bench_dd(block_count=20)
-        redis.scale(redis.cluster_size - 1, brutal=True)
-        java.flush_read_cache()
-        self.bench_dd(block_count=20)
+        for redis_size in (x[0] for x in nodes_trace):
+            redis.scale(redis_size, brutal=True)
+            java.flush_read_cache()
+            self.bench_dd(block_count=20)
         return {}
 
     def bench_dd(self, config=None, redis=None, java=None, nodes_trace=None, block_count=50):
