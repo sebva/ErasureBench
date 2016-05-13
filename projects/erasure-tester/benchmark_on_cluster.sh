@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-MANAGER_IP=172.16.2.79
-USER=arch
+MANAGER_IP=172.16.0.167
+USER=debian
 
 echo Password:
 read -s password
