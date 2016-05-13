@@ -11,7 +11,5 @@ export DOCKER_HOST=tcp://${IP}:5732
 # Clean everything at Ctrl+C
 trap 'docker-compose down && exit' TERM INT
 
-docker-compose up -d benchmark
-docker-compose scale redis-master=0 redis-standalone=0 erasure=0 benchmark=1
-docker-compose logs -f benchmark
+docker-compose up benchmark
 docker-compose down
