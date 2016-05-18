@@ -31,7 +31,7 @@ docker {
     name 'erasuretester'
     dependsOn tasks.mkdirLibs
     dependsOn tasks.shadowJar
-    files 'build/libs', 'container-scripts', 'docker-compose.yml', 'databases/websites02.db'
+    files 'build/libs', 'container-scripts', 'docker-compose.yml', 'databases/websites02.db', 'databases/generate_dummy_trace.py'
 }
 
 run {

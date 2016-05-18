@@ -21,10 +21,8 @@ class Benchmarks:
     def __init__(self):
         # 2 is forbidden due to Redis limitation on Cluster size
         self.redis_trace_configs = [
-            {'database': 'websites02.db', 'min_time': 6033120, 'max_time': 6035490},
-            {'synthetic': list(range(15, 2, -1))},
-            {'synthetic': list(range(60, 2, -1))},
-            {'synthetic': list(range(100, 2, -1))},
+            {'synthetic': list(range(5, 10, 1)) + list(range(9, 5, -1))},
+            {'database': 'dummy.db'},
         ]
         self.erasure_codes = ['Null', 'ReedSolomon', 'SimpleRegenerating']
         self.erasure_configs = {
