@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MANAGER_IP=172.16.0.167
+MANAGER_IP=10.100.0.22
 
 echo Password:
 read -s password
