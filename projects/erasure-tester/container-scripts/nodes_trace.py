@@ -117,7 +117,7 @@ if __name__ == '__main__':
         assert count + len(r[1]) - len(r[2]) == r[0]
         count = r[0]
 
-    sut = NodesTrace(time_factor=60, database='../../fta-parser/databases/websites02.db', min_time=6033120, max_time=6035490)
+    sut = NodesTrace(time_factor=30, database='./databases/dummy.db')
     count = 0
     initial = sut.initial_size()
     print(initial)
