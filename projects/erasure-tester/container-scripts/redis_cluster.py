@@ -73,7 +73,7 @@ class RedisCluster:
 
         print("Scaling Redis to %d nodes" % new_cluster_size)
         if self.cluster_size < new_cluster_size:
-            self._add_new_nodes(new_cluster_size, self.nodes)
+            self._add_new_nodes(new_cluster_size)
         else:
             while len(self.nodes) > new_cluster_size:
                 if brutal:
@@ -99,11 +99,13 @@ class RedisCluster:
             for node in nodes:
                 subprocess.check_call(['redis-cli', '-h', node['ip_port'].split(':')[0], 'FLUSHALL'])
 
-    def _add_new_nodes(self, cluster_size, old_nodes):
+    def _add_new_nodes(self, cluster_size):
+        old_nodes = self.nodes.copy()
+        nodes_before = self._get_nodes_primitive()
         self._docker_scale(cluster_size)
-        nb_new_nodes = cluster_size - len(old_nodes)
+        nodes_after = self._get_nodes_primitive()
 
-        new_ips = [':'.join(map(str, x)) for x in self.nodes[-nb_new_nodes:]]
+        new_ips = [':'.join(map(str, x)) for x in set(nodes_after) - set(nodes_before)]
         print(new_ips)
         master_ip_port = old_nodes[0]['ip_port']
 
@@ -115,12 +117,12 @@ class RedisCluster:
         new_nodes = [x for x in self._get_running_nodes() if x['ip_port'] in new_ips]
         shards_to_move_per_node = round(16384 / cluster_size / len(old_nodes))
 
+        fix = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', master_ip_port], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
+        fix.communicate(b'yes\n')
+        fix.wait()
         for new_node in new_nodes:
             for old_node in old_nodes:
-                sleep(0.5)
-                fix = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', master_ip_port], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
-                fix.communicate(b'yes\n')
-                fix.wait()
+                sleep(5)
                 self._transfer_slots(old_node['id'], new_node['id'], shards_to_move_per_node, master_ip_port)
 
         subprocess.check_call(['ruby', 'redis-trib.rb', 'info', master_ip_port])
@@ -192,7 +194,7 @@ class RedisCluster:
 
     @staticmethod
     def _transfer_slots(from_id, to_id, amount, master_ip_port):
-        print('Transfering %d slots...' % amount)
+        print('Transfering %d slots from %s to %s...' % (amount, from_id, to_id))
         subprocess.check_call(('ruby redis-trib.rb reshard --from %s --to %s --slots %d --yes %s' % (
             from_id, to_id, amount, master_ip_port)).split(' '), stdout=subprocess.DEVNULL)
 

@@ -34,6 +34,8 @@ RUN echo 'f34d73521f34681ac651f1ddd85a837d70782c45 /opt/erasuretester/10bytes.ta
 RUN mkdir /mnt/erasure && \
     echo "/mnt/erasure\t*(rw,fsid=0,no_subtree_check,no_root_squash)" > /etc/exports
 
+COPY websites02.db generate_dummy_trace.py /opt/erasuretester/
+RUN python3 /opt/erasuretester/generate_dummy_trace.py
 COPY *-all.jar /opt/erasuretester/
 COPY *.sh *.py *.rb docker-compose.yml /opt/erasuretester/
 RUN chmod +x /opt/erasuretester/benchmark.py && \

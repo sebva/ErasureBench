@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-MANAGER_IP=172.16.0.167
+MANAGER_IP=10.100.0.22
 
 echo Password:
 read -s password
@@ -23,4 +23,6 @@ kill ${ssh_pid}
 sshpass -p "${password}" ssh debian@${MANAGER_IP} 'docker -H tcp://0.0.0.0:5732 stop $(docker -H tcp://0.0.0.0:5732 ps -q) && docker -H tcp://0.0.0.0:5732 rm $(docker -H tcp://0.0.0.0:5732 ps -aq)'
 
 sshpass -p "${password}" rsync -av --copy-links cluster/ debian@${MANAGER_IP}:~/erasuretester
-sshpass -p "${password}" ssh debian@${MANAGER_IP} 'cd ~/erasuretester && exec ./run_benchmarks.sh'
+# Uncomment to launch the benchmarks directly
+# It is recommended to launch them separately in e.g. a tmux session
+# sshpass -p "${password}" ssh debian@${MANAGER_IP} 'cd ~/erasuretester && exec ./run_benchmarks.sh'
