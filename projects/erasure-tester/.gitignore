@@ -1,2 +1,3 @@
 results/
 databases/*.db
+benchmarks_config.yml

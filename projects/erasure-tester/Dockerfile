@@ -37,7 +37,7 @@ RUN mkdir /mnt/erasure && \
 COPY websites02.db generate_dummy_trace.py /opt/erasuretester/
 RUN python3 /opt/erasuretester/generate_dummy_trace.py
 COPY *-all.jar /opt/erasuretester/
-COPY *.sh *.py *.rb docker-compose.yml /opt/erasuretester/
+COPY *.sh *.py *.rb benchmarks_config.yml docker-compose.yml /opt/erasuretester/
 RUN chmod +x /opt/erasuretester/benchmark.py && \
     chmod +x /opt/erasuretester/container_start_script.sh
 

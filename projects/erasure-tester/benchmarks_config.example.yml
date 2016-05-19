@@ -1,0 +1,37 @@
+# Configuration file for the benchmarks. Copy it to benchmarks_config.yml before making changes.
+# The benchmark will test every combination of the different parameters defined in this file.
+
+traces:
+  # Either synthetic = a list of the successive sizes of the cluster
+  - synthetic: [5, 6, 7, 8, 9, 9, 8, 7, 6]
+  # Or a trace database in the FTA format
+  - database: dummy.db
+  - database: websites02.db
+  # Available options: min_time, max_time, time_factor
+    min_time: 6033120
+    max_time: 6035490
+
+# List of erasure codes configurations
+erasure_codes:
+  - code: Null
+    stripe: 10
+    parity: 0
+    src: 0
+
+  - code: ReedSolomon
+    stripe: 10
+    parity: 4
+    src: 0
+
+  - code: SimpleRegenerating
+    stripe: 10
+    parity: 6
+    src: 5
+
+# To execute every method starting with bench_ in benchmarks_impl.py
+# benches: bench_
+
+# To selectively enable benchmarks
+benches:
+  - bench_kill
+  - bench_bc

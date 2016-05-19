@@ -9,6 +9,7 @@ import signal
 import sys
 from time import sleep
 
+import yaml
 from benchmarks_impl import BenchmarksImpl
 from nodes_trace import NodesTrace
 from redis_cluster import RedisCluster
@@ -19,49 +20,45 @@ class Benchmarks:
     log_file_base = '/opt/erasuretester/results/result_'
 
     def __init__(self):
-        # 2 is forbidden due to Redis limitation on Cluster size
-        self.redis_trace_configs = [
-            {'synthetic': list(range(5, 10, 1)) + list(range(9, 5, -1))},
-            {'database': 'dummy.db'},
-        ]
-        self.erasure_codes = ['Null', 'ReedSolomon', 'SimpleRegenerating']
-        self.erasure_configs = {
-            'ReedSolomon': [
-                (10, 4, 0)
-            ],
-            'SimpleRegenerating': [
-                (10, 6, 5)
-            ],
-            'Null': [
-                (10, 0, 0)
-            ]
-        }
+        with open('benchmarks_config.yml') as config_file:
+            y = yaml.load(config_file)
+
+        self.redis_trace_configs = y['traces']
+        self.erasure_configs = y['erasure_codes']
+
+        benchmarks_impl = BenchmarksImpl('/mnt/erasure/')
+        if type(y['benches']) == str:
+            self.benches = [getattr(benchmarks_impl, m) for m in dir(benchmarks_impl) if m.startswith(y['benches'])]
+        else:
+            self.benches = [getattr(benchmarks_impl, m) for m in y['benches']]
+
         self.first = True
         self.results = []
         self.log_file_base += datetime.today().isoformat()
 
-        benchmarks_impl = BenchmarksImpl('/mnt/erasure/')
-        self.benches = [getattr(benchmarks_impl, m) for m in dir(benchmarks_impl) if m.startswith('bench_')]
-
     def run_benchmarks(self):
         for nodes_trace_config in self.redis_trace_configs:
-            for erasure_code in self.erasure_codes:
-                for (stripe_size, parity_size, src) in self.erasure_configs[erasure_code]:
-                    for b in self.benches:
-                        nodes_trace = NodesTrace(**nodes_trace_config)
-                        initial_redis_size = nodes_trace.initial_size()
+            for erasure_config in self.erasure_configs:
+                erasure_code = erasure_config['code']
+                stripe_size = erasure_config['stripe']
+                parity_size = erasure_config['parity']
+                src = erasure_config['src']
 
-                        with RedisCluster(initial_redis_size) as redis:
-                            sb = 'Jedis' if initial_redis_size > 0 else 'Memory'
-                            config = [erasure_code, initial_redis_size, sb, stripe_size, parity_size, src]
-                            print("Running with " + str(config))
-                            (params, env) = self._get_java_params(redis, *config)
-                            with JavaProgram(params, env) as java:
-                                try:
-                                    self._run_benchmark(b, config, redis, java, nodes_trace)
-                                except Exception as ex:
-                                    logging.exception("The benchmark crashed, continuing with the rest...")
-                        self.save_results_to_file()
+                for b in self.benches:
+                    nodes_trace = NodesTrace(**nodes_trace_config)
+                    initial_redis_size = nodes_trace.initial_size()
+
+                    with RedisCluster(initial_redis_size) as redis:
+                        sb = 'Jedis' if initial_redis_size > 0 else 'Memory'
+                        config = [erasure_code, initial_redis_size, sb, stripe_size, parity_size, src]
+                        print("Running with " + str(config))
+                        (params, env) = self._get_java_params(redis, *config)
+                        with JavaProgram(params, env) as java:
+                            try:
+                                self._run_benchmark(b, config, redis, java, nodes_trace)
+                            except Exception as ex:
+                                logging.exception("The benchmark crashed, continuing with the rest...")
+                    self.save_results_to_file()
 
     def _run_benchmark(self, bench, config, redis, java, nodes_trace):
         bench_name = bench.__name__
@@ -69,6 +66,7 @@ class Benchmarks:
         self.results.append({
             'bench': bench_name,
             'config': config,
+            'trace': nodes_trace.__repr__(),
             'results': bench(config, redis, java, nodes_trace)
         })
 
