@@ -1,3 +1,4 @@
+import json
 import os
 import random
 import socket
@@ -5,6 +6,8 @@ import subprocess
 
 import re
 from time import sleep
+
+import docker
 
 
 class RedisCluster:
@@ -87,9 +90,11 @@ class RedisCluster:
 
     @staticmethod
     def get_master_node_str(redis_size):
-        container_name = 'standalone' if redis_size <= 1 else 'master'
-        return ':'.join(
-                map(str, socket.getaddrinfo('erasuretester_redis-%s_1' % container_name, 6379, socket.AF_INET)[0][4]))
+        if redis_size == 1:
+            return ':'.join(map(str, socket.getaddrinfo('erasuretester_redis-standalone_1', 6379, socket.AF_INET)[0][4]))
+        container_id = subprocess.check_output('docker-compose ps -q redis-master | head -n 1', shell=True).decode().rstrip()
+        d = docker.Client(base_url=os.environ['DOCKER_HOST'])
+        return d.inspect_container(container_id)['NetworkSettings']['Networks']['erasuretester_default']['IPAddress'] + ":6379"
 
     def flushall(self):
         if self.cluster_size == 1:
@@ -151,15 +156,9 @@ class RedisCluster:
 
     @staticmethod
     def _get_nodes_primitive():
-        redis_nodes = []
-        try:
-            i = 1
-            while True:
-                redis_nodes.append(socket.getaddrinfo('erasuretester_redis-master_%d' % i, 6379, socket.AF_INET)[0][4])
-                i += 1
-        except socket.gaierror:
-            pass
-        return redis_nodes
+        container_ids = subprocess.check_output('docker-compose ps -q redis-master', shell=True).decode().splitlines()
+        d = docker.Client(base_url=os.environ['DOCKER_HOST'])
+        return [(d.inspect_container(c)['NetworkSettings']['Networks']['erasuretester_default']['IPAddress'], 6379) for c in container_ids]
 
     def _kill_a_node(self):
         victim = self.nodes.pop()
