@@ -11,5 +11,6 @@ export DOCKER_HOST=tcp://${IP}:5732
 # Clean everything at Ctrl+C
 trap 'docker-compose down && exit' TERM INT
 
-docker-compose up benchmark
+docker-compose up -d benchmark
+docker-compose logs -f -t --no-color benchmark
 docker-compose down
