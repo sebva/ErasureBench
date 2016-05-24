@@ -4,6 +4,6 @@ group 'ch.unine.vauchers'
 version '1.0-SNAPSHOT'
 
 docker {
-    name 'redis-master'
-    files 'redis.conf'
+    name 'ignite'
+    files 'ignite-cfg.xml', 'run.sh'
 }

@@ -1,9 +1,9 @@
 version: '2'
 services:
-  redis-master:
-    image: redis-master:latest
-  redis-standalone:
-    image: redis:alpine
+  ignite:
+    image: ignite:latest
+  zookeeper:
+    image: jplock/zookeeper:3.4.8
   erasure:
     image: erasuretester:latest
     cap_add:
