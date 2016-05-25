@@ -18,7 +18,10 @@ class RedisCluster:
 
     def __enter__(self):
         print("Starting a Redis cluster of %d nodes" % self.cluster_size)
-        self.dckr = docker.Client(base_url=os.environ['DOCKER_HOST'])
+        try:
+            self.dckr = docker.Client(base_url=os.environ['DOCKER_HOST'])
+        except KeyError:
+            self.dckr = docker.Client()
         if self.cluster_size == 0:
             print("Nothing to do")
             return self
