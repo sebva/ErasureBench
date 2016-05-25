@@ -4,6 +4,6 @@ group 'ch.unine.vauchers'
 version '1.0-SNAPSHOT'
 
 docker {
-    name 'redis-master'
-    files 'redis.conf'
+    name 'riak-master'
+    files 'riak.conf', 'start_script.sh'
 }
