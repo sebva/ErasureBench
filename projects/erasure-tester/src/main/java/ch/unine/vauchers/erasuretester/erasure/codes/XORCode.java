@@ -18,11 +18,7 @@
 
 package ch.unine.vauchers.erasuretester.erasure.codes;
 
-import java.util.logging.Logger;
-
 public class XORCode extends ErasureCode {
-    public static final Logger LOG = Logger.getLogger(XORCode.class.getName());
-
     private int stripeSize;
     private int paritySize;
     private int[] dataBuff;
@@ -32,10 +28,6 @@ public class XORCode extends ErasureCode {
         this.stripeSize = stripeSize;
         this.paritySize = paritySize;
         this.dataBuff = new int[paritySize + stripeSize];
-
-        LOG.info("Initialized " + XORCode.class +
-                " stripeSize:" + stripeSize +
-                " paritySize:" + paritySize);
     }
 
     @Override

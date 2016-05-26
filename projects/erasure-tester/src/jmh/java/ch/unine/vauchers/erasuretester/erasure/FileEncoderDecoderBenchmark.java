@@ -1,6 +1,6 @@
 package ch.unine.vauchers.erasuretester.erasure;
 
-import ch.unine.vauchers.erasuretester.Utils;
+import ch.unine.vauchers.erasuretester.utils.Utils;
 import ch.unine.vauchers.erasuretester.backend.MemoryStorageBackend;
 import ch.unine.vauchers.erasuretester.erasure.codes.NullErasureCode;
 import org.openjdk.jmh.annotations.*;

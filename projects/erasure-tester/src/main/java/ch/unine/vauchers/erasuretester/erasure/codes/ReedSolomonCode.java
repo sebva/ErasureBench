@@ -20,11 +20,8 @@ package ch.unine.vauchers.erasuretester.erasure.codes;
 
 import java.util.Arrays;
 import java.util.Set;
-import java.util.logging.Logger;
 
 public class ReedSolomonCode extends ErasureCode {
-    public static final Logger LOG = Logger.getLogger(ReedSolomonCode.class.getName());
-
     private int stripeSize;
     private int paritySize;
     private int[] generatingPolynomial;
@@ -61,10 +58,6 @@ public class ReedSolomonCode extends ErasureCode {
         }
         // generating polynomial has all generating roots
         generatingPolynomial = gen;
-
-        LOG.info("Initialized " + ReedSolomonCode.class +
-                " stripeSize:" + stripeSize +
-                " paritySize:" + paritySize);
     }
 
     @Override

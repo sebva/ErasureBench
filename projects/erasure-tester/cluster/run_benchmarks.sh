@@ -1,9 +1,9 @@
 #!/bin/sh
 
 docker -H tcp://0.0.0.0:5732 pull swarm-m:5000/erasuretester:latest
-docker -H tcp://0.0.0.0:5732 pull swarm-m:5000/redis-master:latest
+docker -H tcp://0.0.0.0:5732 pull swarm-m:5000/dynomite-master:latest
 docker -H tcp://0.0.0.0:5732 tag swarm-m:5000/erasuretester:latest erasuretester:latest
-docker -H tcp://0.0.0.0:5732 tag swarm-m:5000/redis-master:latest redis-master:latest
+docker -H tcp://0.0.0.0:5732 tag swarm-m:5000/dynomite-master:latest dynomite-master:latest
 
 IP=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
 export DOCKER_HOST=tcp://${IP}:5732

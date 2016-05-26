@@ -16,6 +16,9 @@ from redis_cluster import RedisCluster
 from utils import kill_pid
 
 
+quiet = False
+
+
 class Benchmarks:
     log_file_base = '/opt/erasuretester/results/result_'
 
@@ -75,7 +78,7 @@ class Benchmarks:
             json.dump(self.results, out, indent=4)
 
     @staticmethod
-    def _get_java_params(redis, erasure, redis_size, storage, stripe=None, parity=None, src=None, quiet=True):
+    def _get_java_params(redis, erasure, redis_size, storage, stripe=None, parity=None, src=None):
         params = [
             '--erasure-code', erasure,
             '--storage', storage
@@ -108,7 +111,7 @@ class JavaProgram:
     def __enter__(self):
         self.proc = subprocess.Popen(self.java_with_args + self.more_args, env=self.env, stdout=subprocess.PIPE,
                                      stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
-        sleep(10)
+        self._wait_command_completion()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
@@ -130,9 +133,13 @@ class JavaProgram:
         self.proc.stdout.flush()
         self.proc.stdin.flush()
         limit = 3
-        while limit > 0 and self.proc.stdout.readline() != b"Done\n":
+        line = ""
+        while limit > 0 and line != b"Done\n":
+            line = self.proc.stdout.readline()
             limit -= 1
             print("Waiting for the command to complete...")
+            if len(line) != 0 and line != b"Done\n":
+                print(line.decode().rstrip())
         if limit <= 0:
             print("The command did not complete!")
 

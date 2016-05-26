@@ -137,6 +137,8 @@ public class Main {
 
         fuse.mount(new File(namespace.getString("mountpoint")), false);
 
+        System.out.println("Done");
+
         final Scanner reader = new Scanner(System.in);
         final Pattern pattern = Pattern.compile("^repair (.+)$");
         while (true) {

@@ -1,7 +1,7 @@
 version: '2'
 services:
   redis-master:
-    image: redis-master:latest
+    image: dynomite-master:latest
   redis-standalone:
     image: redis:alpine
   erasure:

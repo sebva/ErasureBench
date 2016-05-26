@@ -1,0 +1,14 @@
+dyn_o_mite:
+ datacenter: dc
+ rack: rack1
+ dyn_listen: 0.0.0.0:8101
+ dyn_seed_provider: florida_provider
+ listen: 0.0.0.0:8102
+ server_retry_timeout: 1000
+ auto_eject_hosts: true
+ servers:
+  - 127.0.0.1:6379:1
+ data_store: 0
+ secure_server_option: datacenter
+ pem_key_file: /opt/dynomite.pem
+ tokens: 'replace_token_here'

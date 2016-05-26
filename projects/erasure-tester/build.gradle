@@ -57,12 +57,20 @@ jmh {
     warmupIterations = 0 // Number of warmup iterations to do.
 }
 
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.name == 'slf4j-lo4j12') {
+            details.useTarget 'org.slf4j:slf4j-jdk14:1.7.21'
+        }
+    }
+}
+
 dependencies {
     compile name: 'fuse-jna-1.0.3-uber'
     compile 'org.jetbrains:annotations:15.0'
     compile 'org.redisson:redisson:2.2.5'
-    compile 'com.github.sebyx31:jedis:1ca4ea8e86a49946acd4d0a0bf155288ee9134cf'
-    compile 'org.slf4j:slf4j-simple:1.7.13'
+    compile 'com.netflix.dyno:dyno-jedis:1.4.3'
+    compile 'org.slf4j:slf4j-jdk14:1.7.21'
     compile 'net.sourceforge.argparse4j:argparse4j:0.7.0'
     compile 'it.unimi.dsi:fastutil:7.0.10'
     compile 'com.google.guava:guava:19.0'

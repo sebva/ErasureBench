@@ -47,7 +47,7 @@ class BenchmarksImpl:
 
         results = dict()
         for redis_size in (x[0] for x in nodes_trace):
-            redis.scale(redis_size, brutal=True)
+            redis.scale(redis_size)
             print('Flushing read cache...')
             java.flush_read_cache()
             print('Waiting 5 seconds for things to stabilize...')
@@ -106,7 +106,7 @@ class BenchmarksImpl:
 
         measures = []
         for redis_size in (x[0] for x in nodes_trace):
-            redis.scale(redis_size, brutal=True)
+            redis.scale(redis_size)
             capture_file = 'capture_%s_%s_read_%d.pcapng' % (isoformat, config[0], redis_size)
 
             dumpcap_proc = subprocess.Popen(dumpcap + [capture_dir + capture_file])
@@ -157,7 +157,7 @@ class BenchmarksImpl:
 
         self.bench_dd(block_count=20)
         for redis_size in (x[0] for x in nodes_trace):
-            redis.scale(redis_size, brutal=True)
+            redis.scale(redis_size)
             java.flush_read_cache()
             self.bench_dd(block_count=20)
         return {}

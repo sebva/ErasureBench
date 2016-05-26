@@ -14,13 +14,13 @@ ssh_pid=$!
 sleep 5
 
 docker tag erasuretester:latest localhost:5000/erasuretester:latest
-docker tag redis-master:latest localhost:5000/redis-master:latest
+docker tag dynomite-master:latest localhost:5000/dynomite-master:latest
 docker push localhost:5000/erasuretester:latest
-docker push localhost:5000/redis-master:latest
+docker push localhost:5000/dynomite-master:latest
 
 kill ${ssh_pid}
 
-sshpass -p "${password}" ssh debian@${MANAGER_IP} 'docker -H tcp://0.0.0.0:5732 stop $(docker -H tcp://0.0.0.0:5732 ps -q) && docker -H tcp://0.0.0.0:5732 rm $(docker -H tcp://0.0.0.0:5732 ps -aq)'
+sshpass -p "${password}" ssh debian@${MANAGER_IP} 'docker -H tcp://0.0.0.0:5732 stop $(docker -H tcp://0.0.0.0:5732 ps -q); docker -H tcp://0.0.0.0:5732 rm $(docker -H tcp://0.0.0.0:5732 ps -aq)'
 
 sshpass -p "${password}" rsync -av --copy-links cluster/ debian@${MANAGER_IP}:~/erasuretester
 # Uncomment to launch the benchmarks directly

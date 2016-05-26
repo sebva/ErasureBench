@@ -23,10 +23,8 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class SimpleRegeneratingCode extends ErasureCode {
-    public static final Logger LOG = Logger.getLogger(SimpleRegeneratingCode.class.getName());
     private int stripeSize;
     private int paritySize;
     private int paritySizeSRC;
@@ -64,9 +62,6 @@ public class SimpleRegeneratingCode extends ErasureCode {
                 (double) (stripeSize + paritySizeRS) / (double) (paritySizeSRC + 1));
 
         while (simpleParityDegree * paritySizeSRC >= stripeSize + paritySizeRS) {
-            LOG.info("\nInvalid code parameters." +
-                    " Reducing SRC parities to " + (paritySizeSRC - 1) +
-                    " Increasing RS parities to " + (paritySizeRS + 1));
             this.paritySizeSRC--;
             this.paritySizeRS++;
             simpleParityDegree = (int) Math.ceil(
@@ -104,11 +99,6 @@ public class SimpleRegeneratingCode extends ErasureCode {
             for (int loc : locationsInGroup)
                 groupsTable[i][k++] = loc;
         }
-
-        LOG.info(" Initialized " + SimpleRegeneratingCode.class +
-                " stripeSize:" + stripeSize +
-                " paritySize:" + paritySize +
-                " SRC parities:" + paritySizeSRC);
     }
 
     @Override
