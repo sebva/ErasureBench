@@ -16,7 +16,7 @@ from redis_cluster import RedisCluster
 from utils import kill_pid
 
 
-quiet = False
+quiet = True
 
 
 class Benchmarks:
