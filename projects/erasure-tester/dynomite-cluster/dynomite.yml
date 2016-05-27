@@ -4,8 +4,12 @@ dyn_o_mite:
  dyn_listen: 0.0.0.0:8101
  dyn_seed_provider: florida_provider
  listen: 0.0.0.0:8102
+ timeout: 3000
  server_retry_timeout: 1000
- auto_eject_hosts: true
+ server_failure_limit: 4
+ auto_eject_hosts: false
+ hash: murmur3
+ distribution: ketama
  servers:
   - 127.0.0.1:6379:1
  data_store: 0

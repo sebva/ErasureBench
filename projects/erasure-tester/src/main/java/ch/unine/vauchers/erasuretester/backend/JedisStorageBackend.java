@@ -1,7 +1,5 @@
 package ch.unine.vauchers.erasuretester.backend;
 
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCommands;
@@ -33,16 +31,10 @@ public class JedisStorageBackend extends StorageBackend {
 
     private final JedisCommands redis;
     private final Map<String, FileMetadata> metadataMap;
-    private final HashFunction hashFunction;
     private final Logger logger;
-    /**
-     * Redis slot space divided by totalSize
-     */
-    private int redisSlotDelta;
 
     public JedisStorageBackend() {
         logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-        JedisTools.initialize();
 
         final String redis_address = System.getenv("REDIS_ADDRESS");
         if (redis_address == null) {
@@ -55,7 +47,6 @@ public class JedisStorageBackend extends StorageBackend {
             redis = new Jedis(host, port);
         }
 
-        hashFunction = Hashing.murmur3_32();
         metadataMap = new HashMap<>();
     }
 
@@ -100,14 +91,6 @@ public class JedisStorageBackend extends StorageBackend {
     }
 
     private String computeRedisKey(int redisKey) {
-        final int offset = Math.floorMod(hashFunction.hashInt(redisKey).asInt(), redisSlotDelta);
-        final int redisSlot = computePositionWithRedisKey(redisKey) * redisSlotDelta + offset;
-        final String crcHack = JedisTools.CRC16_NUMBERS_CORRESPONDANCES[redisSlot];
-        return crcHack + BLOCKS_PREFIX + redisKey;
-    }
-
-    public void defineTotalSize(int totalSize) {
-        super.defineTotalSize(totalSize);
-        redisSlotDelta = JedisTools.REDIS_KEYS_NUMBER / totalSize;
+        return BLOCKS_PREFIX + redisKey;
     }
 }
