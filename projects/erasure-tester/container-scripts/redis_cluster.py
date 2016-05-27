@@ -115,11 +115,9 @@ class RedisCluster:
 
     def get_master_node_str(self, redis_size):
         if redis_size == 1:
-            return ':'.join(
-                map(str, socket.getaddrinfo('erasuretester_redis-standalone_1', 6379, socket.AF_INET)[0][4]))
+            return ':'.join(map(str, socket.getaddrinfo('erasuretester_redis-standalone_1', 6379, socket.AF_INET)[0][4]))
         else:
-            return ""
-            # return ','.join("%s:%d" % y for y in (socket.getaddrinfo(x[0], x[1], socket.AF_INET)[0][4] for x in self._get_nodes()))
+            return ':'.join(map(str, self._get_nodes()[0]))
 
     @staticmethod
     def _docker_scale(cluster_size, standalone=False):

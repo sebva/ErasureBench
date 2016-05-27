@@ -2,8 +2,6 @@ package ch.unine.vauchers.erasuretester.backend;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
-import com.netflix.dyno.connectionpool.impl.ConnectionPoolConfigurationImpl;
-import com.netflix.dyno.jedis.DynoJedisClient;
 import org.jetbrains.annotations.NotNull;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisCommands;
@@ -42,33 +40,21 @@ public class JedisStorageBackend extends StorageBackend {
      */
     private int redisSlotDelta;
 
-    public JedisStorageBackend(boolean is_cluster) {
+    public JedisStorageBackend() {
         logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
         JedisTools.initialize();
 
-        if (is_cluster) {
-            final DynoHostSupplier hostSupplier = new DynoHostSupplier();
-            redis = new DynoJedisClient.Builder()
-                    .withApplicationName("dyn_o_mite")
-                    .withDynomiteClusterName("dyn_o_mite")
-                    .withCPConfig(new ConnectionPoolConfigurationImpl("dyn_o_mite")
-                            .withTokenSupplier(hostSupplier)
-                            .setLocalDC("rack1")
-                    )
-                    .withHostSupplier(hostSupplier)
-                    .build();
+        final String redis_address = System.getenv("REDIS_ADDRESS");
+        if (redis_address == null) {
+            redis = new Jedis();
         } else {
-            final String redis_address = System.getenv("REDIS_ADDRESS");
-            if (redis_address == null) {
-                redis = new Jedis();
-            } else {
-                logger.info("Connecting to master at " + redis_address);
-                final String[] split = redis_address.split(":");
-                final String host = split[0];
-                final int port = Integer.parseInt(split[1]);
-                redis = new Jedis(host, port);
-            }
+            logger.info("Connecting to master at " + redis_address);
+            final String[] split = redis_address.split(":");
+            final String host = split[0];
+            final int port = Integer.parseInt(split[1]);
+            redis = new Jedis(host, port);
         }
+
         hashFunction = Hashing.murmur3_32();
         metadataMap = new HashMap<>();
     }

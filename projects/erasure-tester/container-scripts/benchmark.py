@@ -91,8 +91,6 @@ class Benchmarks:
             params += ['--parity', str(parity)]
         if src is not None:
             params += ['--src', str(src)]
-        if redis_size > 1:
-            params += ['--redis-cluster']
 
         env = {'REDIS_ADDRESS': redis.get_master_node_str(redis_size)} if redis_size > 0 else {}
         return params, env
