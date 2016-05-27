@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 import json
 import logging
+import signal
 import subprocess
+import sys
 from datetime import datetime
 
-import pydevd as pydevd
-import signal
-import sys
-from time import sleep
-
 import yaml
+
 from benchmarks_impl import BenchmarksImpl
+from florida import florida_server
 from nodes_trace import NodesTrace
 from redis_cluster import RedisCluster
 from utils import kill_pid
-
 
 quiet = True
 
@@ -40,28 +38,29 @@ class Benchmarks:
         self.log_file_base += datetime.today().isoformat()
 
     def run_benchmarks(self):
-        for nodes_trace_config in self.redis_trace_configs:
-            for erasure_config in self.erasure_configs:
-                erasure_code = erasure_config['code']
-                stripe_size = erasure_config['stripe']
-                parity_size = erasure_config['parity']
-                src = erasure_config['src']
+        with florida_server():
+            for nodes_trace_config in self.redis_trace_configs:
+                for erasure_config in self.erasure_configs:
+                    erasure_code = erasure_config['code']
+                    stripe_size = erasure_config['stripe']
+                    parity_size = erasure_config['parity']
+                    src = erasure_config['src']
 
-                for b in self.benches:
-                    nodes_trace = NodesTrace(**nodes_trace_config)
-                    initial_redis_size = nodes_trace.initial_size()
+                    for b in self.benches:
+                        nodes_trace = NodesTrace(**nodes_trace_config)
+                        initial_redis_size = nodes_trace.initial_size()
 
-                    with RedisCluster(initial_redis_size) as redis:
-                        sb = 'Jedis' if initial_redis_size > 0 else 'Memory'
-                        config = [erasure_code, initial_redis_size, sb, stripe_size, parity_size, src]
-                        print("Running with " + str(config))
-                        (params, env) = self._get_java_params(redis, *config)
-                        with JavaProgram(params, env) as java:
-                            try:
-                                self._run_benchmark(b, config, redis, java, nodes_trace)
-                            except Exception as ex:
-                                logging.exception("The benchmark crashed, continuing with the rest...")
-                    self.save_results_to_file()
+                        with RedisCluster(initial_redis_size) as redis:
+                            sb = 'Jedis' if initial_redis_size > 0 else 'Memory'
+                            config = [erasure_code, initial_redis_size, sb, stripe_size, parity_size, src]
+                            print("Running with " + str(config))
+                            (params, env) = self._get_java_params(redis, *config)
+                            with JavaProgram(params, env) as java:
+                                try:
+                                    self._run_benchmark(b, config, redis, java, nodes_trace)
+                                except Exception as ex:
+                                    logging.exception("The benchmark crashed, continuing with the rest...")
+                        self.save_results_to_file()
 
     def _run_benchmark(self, bench, config, redis, java, nodes_trace):
         bench_name = bench.__name__

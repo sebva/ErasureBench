@@ -50,8 +50,8 @@ class BenchmarksImpl:
             redis.scale(redis_size)
             print('Flushing read cache...')
             java.flush_read_cache()
-            print('Waiting 5 seconds for things to stabilize...')
-            sleep(5)
+            print('Waiting 60 seconds for things to stabilize...')
+            sleep(60)
 
             print('Checking files...')
             sha_proc = subprocess.Popen(

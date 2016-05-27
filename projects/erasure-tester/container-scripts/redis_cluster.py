@@ -1,51 +1,18 @@
-import http.server
 import os
-import random
 import socket
 import subprocess
-
-import re
-import threading
-from http.server import BaseHTTPRequestHandler, HTTPServer
 from time import sleep
 
 import docker
 import requests
 
 
-def florida_string():
-    ps_output = subprocess.check_output('docker-compose ps redis-master', shell=True).decode().splitlines()
-    ps_output_q = subprocess.check_output('docker-compose ps -q redis-master', shell=True).decode().splitlines()
-
-    nodes_names = [x.split(' ')[0] for x in ps_output if x.startswith('erasuretester')]
-    nodes_tokens = [str(int(x[:10], 16)) for x in ps_output_q]
-
-    florida = [x[0] + ":8101:rack1:dc:" + x[1] for x in zip(nodes_names, nodes_tokens)]
-    return '|'.join(florida).encode()
-
-
-class FloridaHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path == '/REST/v1/admin/get_seeds':
-            self.send_response(200)
-            self.send_header("Content-type", "text/plain")
-            self.end_headers()
-            self.wfile.write(florida_string())
-        else:
-            self.send_response(404)
-
-
 class RedisCluster:
     def __init__(self, cluster_size=3):
         self.real_cluster_size = 0
         self.cluster_size = cluster_size
-        self.server = HTTPServer(('', 4321), FloridaHandler)
-        self.server_thread = threading.Thread(target=self.server.serve_forever)
-        self.server_thread.daemon = True
 
     def __enter__(self):
-        print("Starting Florida server")
-        self.server_thread.start()
         print("Starting a Dynomite cluster of %d nodes" % self.cluster_size)
         try:
             self.dckr = docker.Client(base_url=os.environ['DOCKER_HOST'])
@@ -90,7 +57,6 @@ class RedisCluster:
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.server.shutdown()
         if self.cluster_size == 0:
             return
         print("Killing the Dynomite cluster")
