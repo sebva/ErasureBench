@@ -14,4 +14,7 @@ export DYNOMITE_FLORIDA_PORT=4321
 
 echo "Florida at ${DYNOMITE_FLORIDA_IP}:${DYNOMITE_FLORIDA_PORT}"
 
-exec dynomite -c /opt/dynomite.yaml
+dynomite -c /opt/dynomite.yaml &
+dynomite_pid=$!
+trap 'echo Exiting...; service redis-server stop; kill -SIGINT ${dynomite_pid}; exit' SIGTERM SIGINT
+wait ${dynomite_pid}
