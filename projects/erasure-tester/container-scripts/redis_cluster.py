@@ -120,7 +120,7 @@ class RedisCluster:
             sleep(1)
             subprocess.check_call(['ruby', 'redis-trib.rb', 'add-node', ip, master_ip_port], stdout=subprocess.DEVNULL)
 
-        print("")
+        print("Preventive fix")
         sleep(2)
         fix = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', master_ip_port], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
         fix.communicate(b'yes\n')
@@ -173,11 +173,17 @@ class RedisCluster:
         print('Transfering %d slots from %s to %s...' % (len(slots), redis_id_from, redis_id_to))
         dest_host = redis_conn_to.connection_pool.connection_kwargs['host']
         dest_port = redis_conn_to.connection_pool.connection_kwargs['port']
+
+        pipeline_to = redis_conn_to.pipeline()
+        pipeline_from = redis_conn_from.pipeline()
         for slot in slots:
-            # 1
-            redis_conn_to.execute_command('CLUSTER SETSLOT', slot, 'IMPORTING', redis_id_from)
-            # 2
-            redis_conn_from.execute_command('CLUSTER SETSLOT', slot, 'MIGRATING', redis_id_to)
+            # 1, 2
+            pipeline_to.execute_command('CLUSTER SETSLOT', slot, 'IMPORTING', redis_id_from)
+            pipeline_from.execute_command('CLUSTER SETSLOT', slot, 'MIGRATING', redis_id_to)
+        pipeline_to.execute()
+        pipeline_from.execute()
+
+        for slot in slots:
             # 3
             keys = redis_conn_from.execute_command('CLUSTER GETKEYSINSLOT', slot, 1000000)
             if len(keys) > 0:
