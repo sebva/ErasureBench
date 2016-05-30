@@ -1,13 +1,12 @@
-import json
 import os
 import random
+import re
 import socket
 import subprocess
-
-import re
 from time import sleep
 
 import docker
+from redis.client import Redis
 
 
 class RedisCluster:
@@ -116,23 +115,75 @@ class RedisCluster:
         print(new_ips)
         master_ip_port = old_nodes[0]['ip_port']
 
+        print("Adding nodes to the cluster")
         for ip in new_ips:
             sleep(1)
-            subprocess.check_call(['ruby', 'redis-trib.rb', 'add-node', ip, master_ip_port])
+            subprocess.check_call(['ruby', 'redis-trib.rb', 'add-node', ip, master_ip_port], stdout=subprocess.DEVNULL)
 
+        print("")
         sleep(2)
-        new_nodes = [x for x in self._get_running_nodes() if x['ip_port'] in new_ips]
-        shards_to_move_per_node = round(16384 / cluster_size / len(old_nodes))
-
         fix = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', master_ip_port], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
         fix.communicate(b'yes\n')
         fix.wait()
-        for new_node in new_nodes:
-            for old_node in old_nodes:
-                sleep(5)
-                self._transfer_slots(old_node['id'], new_node['id'], shards_to_move_per_node, master_ip_port)
+        sleep(3)
+
+        new_nodes = [x for x in self._get_running_nodes() if x['ip_port'] in new_ips]
+        slots_per_node = round(16384 / cluster_size)
+
+        old_redises = {x[0]: Redis(x[0], x[1]) for x in (y['ip_port'].split(':') for y in old_nodes)}
+        new_redises = [Redis(x[0], x[1]) for x in (y['ip_port'].split(':') for y in new_nodes)]
+        slots_repartition = self._get_slots_repartition(list(old_redises.values())[0])
+
+        for dest_node, dest_redis, i in zip(new_nodes, new_redises, range(len(new_nodes))):
+            slots = slots_repartition[i * slots_per_node: (i + 1) * slots_per_node]
+            sources_ip = {x[1] for x in slots}
+            for source_ip in sources_ip:
+                slots_for_source = [x for x in slots if x[1] == source_ip]
+                source_redis = old_redises[source_ip]
+                self._transfer_slots(source_redis, slots_for_source[0][3],
+                                     dest_redis, dest_node['id'],
+                                     [x[0] for x in slots_for_source])
 
         subprocess.check_call(['ruby', 'redis-trib.rb', 'info', master_ip_port])
+
+    @staticmethod
+    def _get_slots_repartition(any_redis_conn: Redis):
+        """
+        Returns a shuffled list of (slot_number, node_ip, node_port, node_id)
+        """
+        # List of [10923, 16383, [b'10.0.0.4', 6379, b'f1dc21d0b7a24aaea3b3fcd0ef943a35fa2ebb42']]
+        cluster_slots = any_redis_conn.execute_command('CLUSTER SLOTS')
+        output = []
+        for slot in cluster_slots:
+            for i in range(slot[0], slot[1] + 1):
+                output.append((i, slot[2][0].decode(), slot[2][1], slot[2][2].decode()))
+        random.shuffle(output)
+        return output
+
+    @staticmethod
+    def _transfer_slots(redis_conn_from: Redis, redis_id_from: str, redis_conn_to: Redis, redis_id_to: str, slots: list):
+        """
+        Documentation from http://redis.io/commands/cluster-setslot
+        1. Set the destination node slot to importing state using CLUSTER SETSLOT <slot> IMPORTING <source-node-id>.
+        2. Set the source node slot to migrating state using CLUSTER SETSLOT <slot> MIGRATING <destination-node-id>.
+        3. Get keys from the source node with CLUSTER GETKEYSINSLOT command and move them into the destination node
+           using the MIGRATE command.
+        4. Use CLUSTER SETSLOT <slot> NODE <destination-node-id> in the source or destination.
+        """
+        print('Transfering %d slots from %s to %s...' % (len(slots), redis_id_from, redis_id_to))
+        dest_host = redis_conn_to.connection_pool.connection_kwargs['host']
+        dest_port = redis_conn_to.connection_pool.connection_kwargs['port']
+        for slot in slots:
+            # 1
+            redis_conn_to.execute_command('CLUSTER SETSLOT', slot, 'IMPORTING', redis_id_from)
+            # 2
+            redis_conn_from.execute_command('CLUSTER SETSLOT', slot, 'MIGRATING', redis_id_to)
+            # 3
+            keys = redis_conn_from.execute_command('CLUSTER GETKEYSINSLOT', slot, 1000000)
+            if len(keys) > 0:
+                redis_conn_from.execute_command('MIGRATE', dest_host, dest_port, "", 0, 180000, 'KEYS', *keys)
+            # 4
+            redis_conn_to.execute_command('CLUSTER SETSLOT', slot, 'NODE', redis_id_to)
 
     @staticmethod
     def _docker_scale(cluster_size, standalone=False):
@@ -193,12 +244,6 @@ class RedisCluster:
         subprocess.check_call(['ruby', 'redis-trib.rb', 'del-node', master_ip_port, victim['id']])
         self.cluster_size -= 1
         self.nodes = self._get_running_nodes()
-
-    @staticmethod
-    def _transfer_slots(from_id, to_id, amount, master_ip_port):
-        print('Transfering %d slots from %s to %s...' % (amount, from_id, to_id))
-        subprocess.check_call(('ruby redis-trib.rb reshard --from %s --to %s --slots %d --yes %s' % (
-            from_id, to_id, amount, master_ip_port)).split(' '), stdout=subprocess.DEVNULL)
 
     def _start_cluster(self):
         args = ['ruby', 'redis-trib.rb', 'create']
