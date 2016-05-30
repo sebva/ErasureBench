@@ -196,6 +196,23 @@ def bar(pdf, x_axis, y_axis, set_name):
     plt.close()
 
 
+def plot_data(db_file):
+    sql = sqlite3.connect(db_file)
+    cur = sql.cursor()
+
+    # HUGE performance boost
+    cur.execute(r'CREATE INDEX IF NOT EXISTS start_time_index ON event_trace (event_start_time)')
+    cur.fetchone()
+
+    size = 0
+    for row in cur.execute(r'SELECT event_start_time, SUM(CASE event_type WHEN 1 THEN 1 ELSE -1 END) FROM event_trace GROUP BY event_start_time'):
+        size += row[1]
+        print("%d,%d" % (row[0], size))
+
+    cur.close()
+    sql.close()
+
+
 def simulate(db_file):
     sql = sqlite3.connect(db_file)
     cur = sql.cursor()
