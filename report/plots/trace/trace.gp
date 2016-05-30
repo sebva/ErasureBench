@@ -26,7 +26,7 @@ set rmargin 3
 set grid x front
 #set xtics ("0" 0,"1m" 60,"2m" 120,"3m" 180,"4m" 240,"5m" 300) font "Arial, 16pt"
 #set xrange [0:240]
-
+set title "Availability of nodes - WebSites trace"
 set grid y
 set ylabel "alive nodes" #font "Arial, 16pt" offset -1,0
 #set ytics ("0" 0, "1" 1, "2" 2, "3" 3, "4" 4) font "Arial, 16pt"
