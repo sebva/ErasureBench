@@ -114,14 +114,16 @@ class RedisCluster:
         new_ips = [':'.join(map(str, x)) for x in set(nodes_after) - set(nodes_before)]
         print(new_ips)
         master_ip_port = old_nodes[0]['ip_port']
+        master_ip, master_port = master_ip_port.split(':')
+        master_conn = Redis(master_ip, master_port)
 
         print("Adding nodes to the cluster")
         for ip in new_ips:
-            sleep(1)
-            subprocess.check_call(['ruby', 'redis-trib.rb', 'add-node', ip, master_ip_port], stdout=subprocess.DEVNULL)
+            new_ip, new_port = ip.split(':')
+            master_conn.execute_command('CLUSTER MEET', new_ip, new_port)
 
         print("Preventive fix")
-        sleep(2)
+        sleep(3)
         fix = subprocess.Popen(['ruby', 'redis-trib.rb', 'fix', master_ip_port], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL)
         fix.communicate(b'yes\n')
         fix.wait()
