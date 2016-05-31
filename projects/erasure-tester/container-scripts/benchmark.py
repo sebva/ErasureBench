@@ -138,7 +138,7 @@ class JavaProgram:
 
 
 if __name__ == '__main__':
-    # pydevd.settrace('172.16.0.167', port=9292, stdoutToServer=True, stderrToServer=True)
+    # pydevd.settrace('10.100.0.22', port=9292, stdoutToServer=True, stderrToServer=True)
     print("Python client ready, starting benchmarks")
     benchmarks = Benchmarks()
 
