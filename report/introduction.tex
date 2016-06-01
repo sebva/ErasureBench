@@ -1,0 +1,33 @@
+\chapter{Introduction}
+
+The business-model of many major consumer-facing Cloud providers like Dropbox consists in storing huge volumes of data.
+Customers expect a high level of reliability, but rarely envisage paying top dollar for that.
+It is uncommon to here about losses of data affecting users of these kind of services.
+To offer that kind of guarantees towards their customers, Cloud providers need to implement techniques providing redundancy, while keeping costs under control.
+Unfortunately, hardware components always eventually fail.
+Laws of probability tell us that the likelihood of having one component in a system fail increases with the size of that system.
+Therefore, this implies that fault-tolerance needs to be intrinsically built into the design of large-scale systems.
+
+The long-established way of providing redundancy is to duplicate functionality across components that are unlikely to fail simultaneously.
+As far as data storage is concerned, this means storing multiple carbon copies in geographically distinct locations.
+The cost of storage is multiplied by the amount of redundancy wanted.
+From an engineering point-of-view, the complexity of that kind of setup is manageable.
+
+A second solution to providing data redundancy can be constructed using mathematics.
+This concept is called erasure-coding and consists in transforming original data in a longer, fault-tolerant form.
+Erasure-coding can provide the same level of reliability as replication, but with much less storage overhead.
+Computational cost is the main drawback of erasure coding.
+Every write to an erasure-coded system requires computing parity blocks.
+When reading data back from a replicated data storage system, unavailable blocks can be retrieved by requesting them from another redundant copy.
+Reading degraded erasure-coded data implies retrieving a larger amount of blocks than would be needed to read intact data.
+Also, some computations need to be performed on the blocks retrieved in order to recreate the unavailable block.
+In some cases, like when Facebook tried to apply Reed-Solomon to its data \autocite{XorbasVLDB}, these overheads may prove to be unmanageable in practice.
+
+The newer generation of erasure codes focuses on reducing the amount of data needed for repairing blocks.
+That family of codes are named \acp{lrc}.
+The authors of \autocite{XorbasVLDB} check their claims by using a full-fledged cluster from Facebook.
+Not every researcher can have access to that kind of hardware.
+Therefore, we decided to develop a system that can be used to benchmark different erasure code implementations using a reasonable amount of hardware.
+Furthermore, our system is not a simulator, so it provides results that should be closer to what would be observed in the real world.
+
+\todo[inline]{This report is structured... Firstly... Secondly...}
