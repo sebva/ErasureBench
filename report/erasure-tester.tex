@@ -1,19 +1,19 @@
-\chapter{Erasure codes tester}
+\section{Erasure codes tester}
 
-\section{Summary}
+\subsection{Summary}
 
 The erasure codes tester is a program written in Java that exposes a filesystem to the user.
 It is particular in the way it stores files data: they are saved in a key-value store after being processed by an erasure coding algorithm.
 Each of the three components (filesystem interface, key-value store, erasure code) can be replaced to test different implementations against each other.
 
-\section{Erasure codes}
+\subsection{Erasure codes}
 
 The motivation to create this piece of software comes from the desire to check claims expressed in \citetitle{XorbasVLDB} \autocite{XorbasVLDB}.
 The authors have developed an erasure coding algorithm in the family of \acfp{lrc}.
 The reference implementation of this algorithm is open-source \autocite{xorbas-github}.
 We capitalized on this fact to include it, along with other algorithms provided in their implementation, within our own tester.
 The following erasure coding algorithms are available in our tester:
-\begin{description}
+\begin{description}[\IEEEsetlabelwidth{Reed-Solomon}]
 \item[XOR] A simple XOR algorithm with 2 data blocks and 1 parity block.
 \item[Reed-Solomon] The classical Reed-Solomon code \autocite{reed-solomon}. Its default parameters are $(10,4)$.
 \item[\ac{lrc}] The primary target of our evaluation. This code is based on Reed-Solomon, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}. The default parameters for this algorithm are $(10,6,5)$.
@@ -24,15 +24,15 @@ A block locality of $r$ means that any block is a function of at most $r$ other 
 
 In addition to these three algorithm, our program also provides the possibility to disable erasure coding for testing purposes.
 
-\section{Software architecture}
+\subsection{Software architecture}
 \label{subsec:architecture}
 
-\begin{figure}
+\begin{figure*}
 	\centering
 	\input{architecture-figure.tex}
 	\caption{Graphical representation of the components of the system}
 	\label{fig:architecture}
-\end{figure}
+\end{figure*}
 
 This section presents the architecture of the system.
 It is summarized in \autoref{fig:architecture}.
@@ -50,7 +50,7 @@ The data and parity blocks are then passed to the storage backend.
 
 The storage backend is the component that interfaces the block storage primitives of our program to operations on a key-value store.
 
-\subsection{Available implementations}
+\subsubsection{Available implementations}
 
 As stated in \autoref{subsec:architecture}, each component of our tester can have several implementations.
 The frontend has one available implementation: a \ac{fuse} filesystem interface backed by \textit{fuse-jna} \autocite{fuse-jna}.
@@ -65,7 +65,7 @@ The implementation using \textit{Redisson} is simpler in terms of coding, but is
 It is therefore recommended to use the \textit{Jedis} implementation.
 For testing purposes, a storage backend using a single Java Map is also available.
 
-\subsection{Blocks storage}
+\subsubsection{Blocks storage}
 
 The storage backend is designed to operate on 1 byte blocks.
 Our first implementation stored each block individually in the key-value store.
@@ -81,7 +81,7 @@ This additional component provides a considerable speed-up comprised between $10
 A \ac{lru} cache optimizes the retrieval of multiple individuals blocks.
 This way, when reading a file sequentially, each aggregation of blocks is only retrieved once from the key-value store.
 
-\section{Surrounding components}
+\subsection{Surrounding components}
 
 Running the tester requires multiple independent services.
 They need to be launched simultaneously and need to be bootstrapped to work together.

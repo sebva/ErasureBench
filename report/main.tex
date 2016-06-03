@@ -1,10 +1,9 @@
-\documentclass[11pt,a4paper,parskip=half]{scrreprt}
+\documentclass[10pt,a4paper,parskip=half,conference]{IEEEtran}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[rm={oldstyle=false}]{cfr-lm}
 \usepackage[australian,american]{babel}
 
-\usepackage[automark]{scrlayer-scrpage}
 \usepackage{minted}
 \usepackage[super]{nth}
 \usepackage{multirow}
@@ -43,9 +42,11 @@
 \def\thesissubtitle{Thesis subtitle}
 \def\myauthor{Sébastien Vaucher}
 
-\pagestyle{scrheadings}
-
-\author{\myauthor}
+\author{\IEEEauthorblockN{\myauthor}
+    \IEEEauthorblockA{Université de Neuchâtel\\
+        Neuchâtel, Switzerland\\
+        \href{mailto:sebastien.vaucher@unine.ch}{sebastien.vaucher@unine.ch}}
+}
 \title{\mytitle}
 
 \addbibresource{references.bib}
@@ -96,9 +97,9 @@
     \end{otherlanguage}
 \end{titlepage}
 
-\tableofcontents
-
 \pagebreak
+
+\maketitle
 
 \input{introduction.tex}
 

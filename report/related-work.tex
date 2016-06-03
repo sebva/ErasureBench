@@ -1,6 +1,6 @@
-\chapter{Related work}
+\section{Related work}
 
-\section{XORing Elephants: Novel Erasure Codes for Big Data \autocite{XorbasVLDB}}
+\subsection{XORing Elephants: Novel Erasure Codes for Big Data \autocite{XorbasVLDB}}
 
 The article presents a new family of erasure codes called \acp{lrc}.
 These codes enable local repair of faulty data.
@@ -9,7 +9,7 @@ With \ac{lrc}, a failure affecting a small number of blocks can be repaired usin
 The authors implemented their algorithm in Hadoop HDFS and deployed a test to Facebook clusters.
 They measured that the repair process of \ac{lrc} uses half the disk and network bandwidth compared to Reed-Solomon, at the expense of \SI{14}{\percent} more storage overhead.
 
-\section{A Performance Evaluation of Erasure Coding Libraries for Cloud-Based Data Stores \autocite{Burihabwa2016}}
+\subsection{A Performance Evaluation of Erasure Coding Libraries for Cloud-Based Data Stores \autocite{Burihabwa2016}}
 
 The authors evaluate the performances of different erasure coding libraries.
 In order to do the job, they developed a system that is similar to the one presented in this paper.
