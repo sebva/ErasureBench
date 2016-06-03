@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
+import os
 import random
 import re
+import shutil
 import string
 import subprocess
 from datetime import datetime
@@ -97,6 +99,22 @@ class BenchmarksImpl:
     def bench_10bytes(self, config, redis: RedisCluster, java, nodes_trace):
         return self._bench_checksum(config, redis, java, nodes_trace,
                                     '10bytes.tar.bz2', '10bytes.sha256', tar_log_lines=1001, sha_log_lines=1000)
+
+    def _bench_compile(self, archive_name, folder_name, tar_log_lines):
+        print('Uncompressing archive (%s)...' % archive_name)
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/%s' % archive_name, '-C', '/tmp'],
+                                    stdout=subprocess.PIPE, bufsize=1)
+        self._show_subprocess_percent(tar_proc, tar_log_lines)
+
+        subprocess.check_call('./configure', cwd='/tmp/' + folder_name)
+        shutil.copytree('/tmp/' + folder_name, self.mount + folder_name)
+        subprocess.check_call('make', cwd=self.mount + folder_name)
+
+    def bench_compile_bc(self, config, redis: RedisCluster, java, nodes_trace):
+        return self._bench_compile('bc.tar.gz', 'bc-1.06', 94)
+
+    def bench_compile_apache(self, config, redis: RedisCluster, java, nodes_trace):
+        return self._bench_compile('httpd.tar.bz2', 'httpd-2.4.18', 2614)
 
     def bench_net_throughput(self, config, redis: RedisCluster, java, nodes_trace):
         """
