@@ -10,6 +10,9 @@ from redis.client import Redis
 
 
 class RedisCluster:
+    """
+    A context manager that provides a Redis cluster by using docker-compose
+    """
     nodes = []
 
     def __init__(self, cluster_size=3):
@@ -166,11 +169,11 @@ class RedisCluster:
     def _transfer_slots(redis_conn_from: Redis, redis_id_from: str, redis_conn_to: Redis, redis_id_to: str, slots: list):
         """
         Documentation from http://redis.io/commands/cluster-setslot
-        1. Set the destination node slot to importing state using CLUSTER SETSLOT <slot> IMPORTING <source-node-id>.
-        2. Set the source node slot to migrating state using CLUSTER SETSLOT <slot> MIGRATING <destination-node-id>.
-        3. Get keys from the source node with CLUSTER GETKEYSINSLOT command and move them into the destination node
-           using the MIGRATE command.
-        4. Use CLUSTER SETSLOT <slot> NODE <destination-node-id> in the source or destination.
+         1. Set the destination node slot to importing state using CLUSTER SETSLOT <slot> IMPORTING <source-node-id>.
+         2. Set the source node slot to migrating state using CLUSTER SETSLOT <slot> MIGRATING <destination-node-id>.
+         3. Get keys from the source node with CLUSTER GETKEYSINSLOT command and move them into the destination node
+            using the MIGRATE command.
+         4. Use CLUSTER SETSLOT <slot> NODE <destination-node-id> in the source or destination.
         """
         print('Transfering %d slots from %s to %s...' % (len(slots), redis_id_from, redis_id_to))
         dest_host = redis_conn_to.connection_pool.connection_kwargs['host']

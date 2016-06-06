@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
+# This script will run the benchmarks on a remote Docker instance, which can be a Docker Swarm.
+# There must be a Docker repository running on port 5000 of the remote machine.
 
 MANAGER_IP=10.100.0.22
 
-echo Password:
+echo 'Password of the user on the remote machine (Press Enter if using ssh keys):'
 read -s password
 
 ./gradlew --daemon docker
@@ -11,6 +13,7 @@ read -s password
 sshpass -p "${password}" ssh -N -L 5000:localhost:5000 debian@${MANAGER_IP} &
 ssh_pid=$!
 
+# Wait for the tunnel to be ready
 sleep 5
 
 docker tag erasuretester:latest localhost:5000/erasuretester:latest

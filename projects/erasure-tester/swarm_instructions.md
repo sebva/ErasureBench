@@ -1,6 +1,11 @@
 # Docker Swarm instructions
 
+These instructions explain how to install and configure a Docker Swarm cluster.
+We use the [Debian](https://www.debian.org) operating system on virtual machines managed by [OpenNebula](http://opennebula.org/). The manager is called swarm-m, each slave is called swarm-n with n starting at 1.
+
 ## Create the image
+
+These steps are to be performed in a local virtual machine running in KVM.
 
 * Install Debian stable
 * Install the kernel from the backports
@@ -16,6 +21,10 @@ ExecStart=/usr/bin/docker -H fd:// -H tcp://0.0.0.0:2375 -H unix:///var/run/dock
 * When running on an environment where IPs in the 172.16.0.0/12 subnet might be in use, it is wise to tell Docker to use another RFC 1918 subnet. Example to add to ExecStart (note that it is a machine IP, not the network IP):
 ```
 --bip=10.99.0.1/24
+```
+* We have identified a [bug](https://github.com/docker/swarm/issues/2181) that can lead to the communication between containers being broken. Our fix is to disable the userland proxy.
+```
+--userland-proxy=false
 ```
 * Install and configure zsh with zsh-antigen
     * Use the following .zshrc:
@@ -47,6 +56,8 @@ export IP=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
 
 ## Configure the running system
 
+You can now copy your image to the OpenNebula cluster. Start one machine as swarm-m, which will be the manager, and as many slaves as you want.
+
 ### All machines
 
 * Edit /etc/fstab to mount the secondary disk at /var/lib/docker
@@ -73,7 +84,7 @@ mkdir -p certs && openssl req \
 
 ### Manager
 
-* Start consul master
+* Start consul master in a tmux
 ```
 consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -node=master -bind=$IP -client $IP
 ```
@@ -86,7 +97,7 @@ consul agent -server -bootstrap-expect 1 -data-dir /tmp/consul -node=master -bin
 
 ### Slaves
 
-* Start consul member
+* Start consul member in a tmux
 ```
 consul agent -data-dir /tmp/consul -node=$HOST -bind=$IP
 ```
@@ -98,6 +109,9 @@ consul join -rpc-addr=MANAGER_IP:8400 $IP
 ### All nodes
 
 * Restart Docker
+```
+sudo systemctl restart docker
+```
 
 ### Manager
 
@@ -117,7 +131,7 @@ docker run -d -p 5000:5000 --restart=always --name registry \
 
 ## Deploy an application
 
-Automated deployment + run: _(You still have to collect the results manually from one slave)_
+Automated deployment: _(You still have to collect the results manually from one slave)_
 ```
 ./benchmark_on_cluster.sh
 ```
@@ -160,4 +174,15 @@ export DOCKER_HOST=tcp://0.0.0.0:5732
     * Use the same command as in benchmark_in_docker.sh
 * Collect the results in the slave node that ran the erasuretester container
     * Use watch docker ps during the execution to see which node is the wanted one
-    
+
+## Run benchmarks
+
+We assume that the automated script was used.
+
+* In a tmux, start ~/erasuretester/run_benchmarks.sh
+* When the execution is finished, collect the results from each nodes, for example using rsync:
+```
+for i (232 233 234 236 237 238 239 240 241 243 245 249 250 251); do
+	rsync -a -v "debian@172.16.1.${i}:~/erasuretester/results/" .
+done
+```
