@@ -39,6 +39,10 @@ public class JedisStorageBackend extends StorageBackend {
      */
     private int redisSlotDelta;
 
+    /**
+     * Constructor.
+     * <strong>You HAVE TO call defineTotalSize before using this object!</strong>
+     */
     public JedisStorageBackend(boolean is_cluster) {
         JedisTools.initialize();
 
@@ -118,6 +122,7 @@ public class JedisStorageBackend extends StorageBackend {
         }
     }
 
+    @Override
     public void defineTotalSize(int totalSize) {
         super.defineTotalSize(totalSize);
         redisSlotDelta = JedisTools.REDIS_KEYS_NUMBER / totalSize;

@@ -6,7 +6,6 @@ import java.util.*;
 
 /**
  * Storage backend implementation backed by a plain old Java Map object.
- * Asynchronous operations are done synchronously.
  */
 public class MemoryStorageBackend extends StorageBackend {
     protected Map<Integer, String> blocksStorage;

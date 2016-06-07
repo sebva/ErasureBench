@@ -7,9 +7,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * Call initialize to load the CRC map into memory
  */
 class JedisTools {
+    /**
+     * Brute-forced list of strings that map to each of the 16384 slots of Redis cluster
+     */
     static String[] CRC16_NUMBERS_CORRESPONDANCES;
     public static final int REDIS_KEYS_NUMBER = 16384;
 

@@ -8,12 +8,17 @@ import java.io.*;
 import java.util.Base64;
 
 /**
- *
+ * Container for many blocks that will be stored in the key-value store.
+ * Has a fixed size.
  */
 public class BlocksContainer implements Serializable {
     private IntList blocks;
     private final int bufferSize;
 
+    /**
+     * Constructor
+     * @param bufferSize The amount of blocks that can be stored. Check isFull.
+     */
     public BlocksContainer(int bufferSize) {
         this.bufferSize = bufferSize;
         blocks = new IntArrayList(bufferSize);

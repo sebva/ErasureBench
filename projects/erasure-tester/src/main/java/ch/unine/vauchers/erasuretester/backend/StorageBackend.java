@@ -12,7 +12,7 @@ import java.util.Optional;
 /**
  * Class that can store and retrieve file metadata and individual data blocks.
  * <br/>
- * Remember to call disconnect() after usage.
+ * Call defineTotalSize() before usage and disconnect() after usage.
  */
 public abstract class StorageBackend {
     protected int bufferSize;
@@ -54,6 +54,11 @@ public abstract class StorageBackend {
      */
     public abstract void setFileMetadata(@NotNull String path, @NotNull FileMetadata metadata);
 
+    /**
+     * Returns a list of all file paths stored in the system.
+     * Deleted files may or may not be in the list.
+     * @return List of file paths
+     */
     public abstract Collection<String> getAllFilePaths();
 
     /**
@@ -126,6 +131,10 @@ public abstract class StorageBackend {
         return key;
     }
 
+    /**
+     * Write the buffer at a specific location to the key-value store
+     * @param position Position in [0; (stripeSize + paritySize)].
+     */
     private void flush(int position) {
         String aggregatedBlocks = BlocksContainer.toString(writeBuffers[position]);
         writeBuffers[position] = new BlocksContainer(bufferSize);
@@ -160,12 +169,25 @@ public abstract class StorageBackend {
         }
     }
 
+    /**
+     * Returns if the key-value store contains a specific key
+     */
     protected abstract boolean isAggregatedBlockAvailable(int key);
 
-    public int computePositionWithBlockKey(int key) {
+    /**
+     * Compute the position in [0; (stripeSize + paritySize)] according to a block key.
+     * @param key A block key, a.k.a. what is given to users of this class.
+     * @return Position in [0; (stripeSize + paritySize)]
+     */
+    protected int computePositionWithBlockKey(int key) {
         return Math.floorMod(key / bufferSize, totalSize);
     }
 
+    /**
+     * Compute the position in [0; (stripeSize + paritySize)] according to a "Redis" key.
+     * @param key The key that is used internally.
+     * @return Position in [0; (stripeSize + paritySize)]
+     */
     protected int computePositionWithRedisKey(int redisKey) {
         return Math.floorMod(redisKey, totalSize);
     }
@@ -201,6 +223,9 @@ public abstract class StorageBackend {
         }
     }
 
+    /**
+     * Clear all caches. Useful between two runs of a benchmark.
+     */
     public void clearReadCache() {
         readCache.clear();
         positiveCache.clear();
