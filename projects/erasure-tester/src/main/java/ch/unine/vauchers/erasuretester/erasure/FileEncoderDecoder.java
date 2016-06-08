@@ -147,6 +147,12 @@ public class FileEncoderDecoder {
         });
     }
 
+    /**
+     * Repair a file. Checks the availability of all blocks of the file from the key-value store. All unavailable blocks
+     * are repaired using other available blocks, when possible. After the operation is completed, the file should have
+     * all its blocks in an intact state.
+     * @param path The path of the file to repair
+     */
     public void repairFile(String path) {
         storageBackend.getFileMetadata(path).ifPresent(this::repairFile);
     }
@@ -193,6 +199,9 @@ public class FileEncoderDecoder {
         });
     }
 
+    /**
+     * Perform a repair operation on all files stored in the system.
+     */
     public void repairAllFiles() {
         final Collection<String> filePaths = storageBackend.getAllFilePaths();
         filePaths.stream()
@@ -202,6 +211,15 @@ public class FileEncoderDecoder {
                 .forEach(this::repairFile);
     }
 
+    /**
+     * Internal operation. Correctly chunk the file.
+     * @param size The size of the read/write operation
+     * @param offset The offset in the fileBuffer
+     * @param fileBuffer The buffer to read from/write to
+     * @param blockKeys The list of all block keys related to the file
+     * @param mode Read or Write
+     * @throws TooManyErasedLocations
+     */
     private void iterate(int size, int offset, ByteBuffer fileBuffer, IntList blockKeys, Modes mode) throws TooManyErasedLocations {
         final int firstLowerBoundary = previousBoundary(offset);
         final int lastLowerBoundary = previousBoundary(offset + size);

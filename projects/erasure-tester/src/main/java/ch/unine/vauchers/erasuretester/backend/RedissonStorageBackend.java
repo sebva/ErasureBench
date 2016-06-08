@@ -11,6 +11,9 @@ import org.redisson.RedissonClient;
  * Uses the <a href="https://github.com/mrniko/redisson">Redisson library</a>. This class extends MemoryStorageBackend
  * as Redisson exposes Redis maps as Java Map objects. Therefore, synchronous operations are identical in both
  * implementations.
+ *
+ * We recommend to use the Jedis implementation instead of this one. It is faster and balances the blocks better in
+ * clustered mode.
  */
 public class RedissonStorageBackend extends MemoryStorageBackend {
     private static final String BLOCKS_MAP_NAME = "erasure-tester-blocks";

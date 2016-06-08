@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# This script needs to run in the container
+# This script needs to run in the container.
+# For running the container without benchmarks. The erasure coded filesystem is exposed through NFS.
 
 rpcbind
 service nfs-kernel-server start

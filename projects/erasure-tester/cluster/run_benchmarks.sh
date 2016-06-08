@@ -1,4 +1,6 @@
 #!/bin/sh
+# This script has to run on the remote cluster.
+# It starts the benchmarks. It is preferable to run it in a tmux, as benchmarks can take some time to execute.
 
 docker -H tcp://0.0.0.0:5732 pull swarm-m:5000/erasuretester:latest
 docker -H tcp://0.0.0.0:5732 pull swarm-m:5000/redis-master:latest

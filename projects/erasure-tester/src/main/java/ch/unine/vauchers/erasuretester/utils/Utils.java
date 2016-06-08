@@ -16,6 +16,14 @@ public class Utils {
         LogManager.getLogManager().reset();
     }
 
+    /**
+     * Access the private field of an object
+     * @param clazz The class of the object
+     * @param object The object itself
+     * @param fieldName The field to access
+     * @return The value of the field, as an Object
+     * @throws NoSuchFieldException
+     */
     @NotNull
     public static Object getPrivateField(Class<?> clazz, Object object, String fieldName) throws NoSuchFieldException {
         final Field field = clazz.getDeclaredField(fieldName);

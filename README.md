@@ -10,9 +10,7 @@ $ make
 
 To compile the bibliography, [Biber](http://biblatex-biber.sourceforge.net/) is needed.
 
-## Projects descriptions
-
-### Erasure-Tester
+## Erasure-Tester
 
 This project is a Java application that provides an interface between FUSE and different erasure code implementations. The backend used to store individual blocks can be replaced.
 
@@ -41,14 +39,6 @@ $ cd projects/erasure-tester
 $ ./run_in_docker.sh
 ```
 
-_If the Java application crashes with a message about the cluster being in a failed state, the easiest way to solve the problem is to execute the following commands:_
-
-```
-docker-compose --x-networking scale erasure=0
-docker-compose --x-networking scale erasure=1
-docker-compose --x-networking logs erasure
-```
-
 When the containers are started, the exposed FUSE filesystem can be mounted in the host computer via NFS:
 
 ```
@@ -68,3 +58,13 @@ It can be launched similarly to the *run_in_docker.sh* script. The following wil
 $ cd projects/erasure-tester
 $ ./benchmark_in_docker.sh
 ```
+
+### Docker Swarm
+
+The methodology mentioned above make the containers run on the local machine. When a large number of containers are needed, there is the possibility to use [Docker Swarm](https://www.docker.com/products/docker-swarm). It aggregates multiple Docker hosts into a single Docker endpoint.
+
+Instructions on how to use that technology are available in a [separate file](projects/erasure-tester/swarm_instructions.md).
+
+## FTA Parser
+The [Failure Trace Archive](http://fta.scem.uws.edu.au/) is a website hosting _failure traces_. They can be used when running benchmarks in the erasure tester. The FTA parser provides scripts that plot each trace file. Experimenters can then see which part of which trace is of interest to them.
+

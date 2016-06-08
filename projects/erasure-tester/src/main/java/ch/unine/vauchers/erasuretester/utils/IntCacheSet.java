@@ -3,7 +3,7 @@ package ch.unine.vauchers.erasuretester.utils;
 import it.unimi.dsi.fastutil.ints.IntLinkedOpenHashSet;
 
 /**
- *
+ * An LRU-cache set
  */
 public class IntCacheSet extends IntLinkedOpenHashSet {
     private final int cacheSize;

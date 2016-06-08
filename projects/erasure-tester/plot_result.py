@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from matplotlib.backends.backend_pdf import PdfPages
 
+# This scripts generates the plots from results in JSON format
+# Multiple JSON files can be specified to merge them
+
 
 def plot_results(filenames):
     results = []

@@ -137,6 +137,7 @@ class JavaProgram:
             print("The command did not complete!")
 
 
+# Main entry point of the benchmarks
 if __name__ == '__main__':
     # pydevd.settrace('10.100.0.22', port=9292, stdoutToServer=True, stderrToServer=True)
     print("Python client ready, starting benchmarks")

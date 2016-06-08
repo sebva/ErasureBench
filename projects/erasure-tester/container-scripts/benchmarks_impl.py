@@ -13,11 +13,16 @@ from utils import kill_pid
 class BenchmarksImpl:
     """
     Collection of benchmarks to run against the filesystem. Each method defined in this class will be executed as a
-    benchmark, provided that its name begins with bench_. Each method takes a single parameter in the form of a tuple.
-    It contains the configuration in which the test is running, like this:
-    (Erasure code name, Generator for the number of nodes in the Redis cluster, Storage backend name, Stripe size, Parity size, SRC size)
+    benchmark. The YAML configuration file defines which benchmarks to run. The signature of each method must be:
+        (self, config, redis, java, nodes_trace)
+    * Config is a tuple containing the configuration in which the test is running, like this:
+      (Erasure code name, Initial number of nodes in the Redis cluster, Storage backend name, Stripe size, Parity size, SRC size)
+    * Redis is an instance of the RedisCluster class that can be used to variate the size of the cluster.
+    * Java is an instance of the JavaProgram class that can be used to ask the program to perform specific actions, like
+      repairing data.
+    * Nodes_trace is an instance of NodesTrace which is a generator providing the size of the cluster at each moment.
 
-    Each bench_ method must return a dict formed like the following:
+    Each benchmark method must return a dict formed like the following:
     {
         'name of metric 1': 1234,
         'name of metric 2': 9876,
@@ -40,6 +45,13 @@ class BenchmarksImpl:
             raise Exception('Unit not supported, please complete the _convert_to_kb method')
 
     def _bench_checksum(self, config, redis: RedisCluster, java, nodes_trace, archive_name, sha_name, tar_log_lines, sha_log_lines):
+        """
+        This benchmark does the following:
+         1. Extract a tar archive into the erasure coded filesystem
+         2. Check the integrity of each file stored in the erasure coded filesystem
+         3. Adjust the size of the cluster according to the trace (or quit if exhausted)
+         4. Goto 2
+        """
         print('Uncompressing archive (%s)...' % archive_name)
         tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/%s' % archive_name, '-C', self.mount],
                                     stdout=subprocess.PIPE, bufsize=1)
@@ -87,6 +99,10 @@ class BenchmarksImpl:
                                     '10bytes.tar.bz2', '10bytes.sha256', tar_log_lines=1001, sha_log_lines=1000)
 
     def bench_net_throughput(self, config, redis: RedisCluster, java, nodes_trace):
+        """
+        This benchmark proceeds similarly to _bench_checksum, but captures the network traffic coming and going to Redis
+        servers.
+        """
         dumpcap = ['/usr/bin/dumpcap', '-q', '-i', 'any', '-f', 'tcp port 6379', '-s', '64', '-w']
 
         print("Starting dumpcap")
@@ -138,6 +154,12 @@ class BenchmarksImpl:
 
     @staticmethod
     def _show_subprocess_percent(proc, expected_nb_lines):
+        """
+        Show the progress of a process to the user.
+
+        :param proc: A subprocess.Popen object to read the output from
+        :param expected_nb_lines: The number of lines that are printed to the console during the execution of proc.
+        """
         percent = 0
         lines = []
         with proc.stdout:

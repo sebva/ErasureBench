@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 
 /**
  * Intermediate layer between the frontend, the storage backend and erasure coding.
+ * Special subclass to account for the differences of {@link SimpleRegeneratingCode}.
  */
 public class SimpleRegeneratingFileEncoderDecoder extends FileEncoderDecoder {
     /**
@@ -23,6 +24,7 @@ public class SimpleRegeneratingFileEncoderDecoder extends FileEncoderDecoder {
         super(erasureCode, storageBackend);
     }
 
+    @Override
     protected Stream<Byte> decodeFileData(IntList blockKeys, IntList erasedIndices) throws TooManyErasedLocations {
         Arrays.fill(dataBuffer, 0, totalSize, 0);
         Arrays.fill(stripeBuffer, 0, stripeSize, 0);

@@ -5,6 +5,15 @@ import time
 
 
 class NodesTrace:
+    """
+    A generator for the number of nodes in the cluster at each time.
+    There are 2 modes:
+     * Synthetic: Return the next number in a list at each call
+     * Database: Follow a real recorded failure trace
+
+    For each call to the generator, returns a tuple:
+    (current number of nodes, node IDs to kill, node IDs to create)
+    """
     synthetic_sizes = None
     sql = None
     last_time = -1000
