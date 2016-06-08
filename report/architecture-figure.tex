@@ -12,8 +12,10 @@
 
 \draw[<->,thick,>=stealth] (bench) -- (dir) node[midway,above,scale=0.6]{FUSE};
 \draw[<->,thick,>=stealth] (dir) -- (fed) node[pos=0.65,above,scale=0.6]{fuse-jna};
-\draw[<->,thick,>=stealth] (fed) -- (ec);
-\draw[<->,thick,>=stealth] (fed) -- (sb);
+\draw[<->,thick,>=stealth] (fed) -- (ec)
+node[pos=0.5,left,scale=0.6]{Method calls};
+\draw[<->,thick,>=stealth] (fed) -- (sb)
+node[pos=0.5,left,scale=0.6]{Method calls};
 \draw[->,thick,>=stealth] (sb.east) to[out=5,in=180] node[sloped,midway,scale=0.6,above]{TCP/IP} (r1.west);
 \draw[->,thick,>=stealth,out=0,in=180] (sb.east) to[out=0,in=180] (r2.west);
 \draw[<->,thick,>=stealth] (sb.east) -- (r3.west);
