@@ -65,23 +65,24 @@ For testing purposes, a storage backend using an in-memory hash map is also avai
 
 \subsubsection{Blocks storage}
 
-The storage backend is designed to operate on 1 byte blocks.
-Storing each block individually in the key-value store is a very slow operation.
-The metadata accompanying each request to the key-value store server is much bigger than the data itself, leading to unworkable overheads.
-We therefore decided to add an intermediate layer between the encoder/decoder and the storage backend.
-
-\begin{figure}
+\begin{figure}[H]
     \centering
     \input{blocks-figure.tex}
     \caption{Representation of the process of splitting the data in blocks, applying erasure coding to them, and finally store them in a Redis cluster.}
     \label{fig:blocks}
 \end{figure}
 
+The storage backend is designed to operate on 1 byte blocks.
+Storing each block individually in the key-value store is a very slow operation.
+The metadata accompanying each request to the key-value store server is much bigger than the data itself, leading to unworkable overheads.
+We therefore decided to add an intermediate layer between the encoder/decoder and the storage backend.
+
 This layer is transparent to the encoder/decoder which still deals with single 1 byte blocks.
 Thanks to this new layer, multiple write operations on the key-value store are now aggregated.
 Instead of storing one block per key, each key stores an aggregation of multiple blocks.
 The guarantees offered by the erasure coding process are still kept because one aggregation only stores blocks that belong to the same stripe position.
 This additional component provides a considerable speed-up comprised between $100\times$ and $1000\times$.
+The way files are split in blocks, erasure coded and then aggregated to be stored on multiple Redis servers is shown in \autoref{fig:blocks}.
 
 A \ac{lru} cache optimizes the retrieval of multiple individuals blocks.
 This way, when reading a file sequentially, each aggregation of blocks is only retrieved once from the key-value store.
