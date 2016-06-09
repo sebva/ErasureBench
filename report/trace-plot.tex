@@ -1,0 +1,16 @@
+\begin{tikzpicture}
+\usetikzlibrary{plotmarks}
+\pgfplotsset{every axis plot post/.append style={
+        solid,
+        thick,
+        mark size=1pt
+    }
+}
+\begin{axis}[
+    xlabel=Dead nodes,
+    ylabel=Available files,
+    cycle list name=exotic
+]
+%\addplot table[x=timestamp, y=size] {plots/websites-size.dat};
+\end{axis}
+\end{tikzpicture}
