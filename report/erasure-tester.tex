@@ -3,7 +3,7 @@
 \subsection{Summary}
 
 The erasure codes tester is a program written in Java that exposes a filesystem to the user.
-It is particular in the way it stores files data: they are saved in a key-value store after being processed by an erasure coding algorithm.
+It is particular in the way it stores files data{stores files data? Rewrite.}: they are saved in a key-value store after being processed by an erasure coding algorithm.
 Each of the three components (filesystem interface, key-value store, erasure code) can be replaced to test different implementations against each other.
 While the Java program can be used standalone, it is designed to run in a Docker container shared with associated Python scripts.
 
@@ -17,11 +17,11 @@ The following erasure coding algorithms are available in our tester:
 \begin{description}[\IEEEsetlabelwidth{Reed-Solomon}]
 \item[XOR] A simple XOR algorithm with 2 data blocks and 1 parity block.
 \item[Reed-Solomon] The classical Reed-Solomon code \autocite{reed-solomon}. Its default parameters are $(10,4)$.
-\item[\ac{lrc}] The primary target of our evaluation. This code is based on Reed-Solomon, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}. The default parameters for this algorithm are $(10,6,5)$.
+\item[\ac{lrc}] The primary target of our evaluation. This code is based on Reed-Solomon, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}. The default parameters for this algorithm are $(10,6,5)$. \hm{Describe what (10,4) and (10,6,5) mean before. Inverse some info with what follows.}
 \end{description}
 The parameters of a Reed-Solomon code are written as $(k,n-k)$ where $k$ is the number of data blocks and $n-k$ is the number of parity blocks.
 \acp{lrc} admit an extra parameter called $r$ (producing a $(k,n-k,r)$ triplet) that defines the block locality.
-A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}.
+A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}. \hm{Somewhere in this paragraph, you must say that $k$ blocks are necessary and sufficient to recover data in both cases.}
 
 In addition to these three algorithm, our program also provides the possibility to disable erasure coding for testing purposes.
 
@@ -94,9 +94,8 @@ The system can use any reasonable number of Redis servers.
 
 \subsection{Faults simulation}
 
-The goal is erasure coding algorithm is to provide fault tolerance.
-In order to test this aspect, we need to introduce faults in the system.
-To that end, we added the possibility to specify a \textit{failure trace} when running an experiment.
+The goal of the erasure coding algorithm is to provide fault tolerance.
+In order to test this aspect, we introduce faults in the system. To that end, we added the possibility to specify a \textit{failure trace} when running an experiment.
 A failure trace is an SQLite database in which the availability of individual nodes of a real system has been recorded.
 A Redis cluster of the same size as the original system will be created.
 New nodes will be instantiated and old nodes killed at the same rate as recorded in the trace.
