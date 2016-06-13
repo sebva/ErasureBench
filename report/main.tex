@@ -38,6 +38,10 @@
 \newcommand{\hm}[1]{\mynote{Hugues}{#1}{orange}}
 \newcommand{\vs}[1]{\mynote{Valerio}{#1}{red}}
 
+\newif\ifjmcs
+% Uncomment to have the JMCS cover page
+%\jmcstrue
+
 \pgfplotsset{compat=1.12}
 
 \usepgfplotslibrary{external, dateplot}
@@ -72,6 +76,7 @@
 
 \begin{document}
 
+\ifjmcs
 \begin{titlepage}
     \begin{otherlanguage}{australian}
         \begin{center}
@@ -110,6 +115,7 @@
 \end{titlepage}
 
 \pagebreak
+\fi
 
 \maketitle
 
