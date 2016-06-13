@@ -1,2 +1,16 @@
 \section{Evaluation}
+\label{sec:evaluation}
 
+\begin{figure}
+    \centering
+    \input{checksum-plot.tex}
+    \caption{Fault tolerance of: no erasure coding (Null), \acl{lrc} $\left(10,6,5\right)$ and \acl{rs} $\left(10,4\right)$. Data written on 100 nodes, and then read after killing each node.}
+    \label{fig:checksum-plot}
+\end{figure}
+
+\begin{figure*}
+    \centering
+    \input{trace-plot.tex}
+    \caption{Trace}
+    \label{fig:trace-plot}
+\end{figure*}

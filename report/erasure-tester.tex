@@ -14,16 +14,26 @@ The authors have developed an erasure coding algorithm in the family of \acfp{lr
 The reference implementation of this algorithm is open-source \autocite{xorbas-github}.
 We capitalized on this fact to include it, along with other algorithms provided in their implementation, within our own tester.
 The following erasure coding algorithms are available in our tester:
-\begin{description}[\IEEEsetlabelwidth{Reed-Solomon}]
+\begin{description}[\IEEEsetlabelwidth{\acs{rs}}]
 \item[XOR] A simple XOR algorithm with 2 data blocks and 1 parity block.
-\item[Reed-Solomon] The classical Reed-Solomon code \autocite{reed-solomon}. Its default parameters are $(10,4)$.
-\item[\ac{lrc}] The primary target of our evaluation. This code is based on Reed-Solomon, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}. The default parameters for this algorithm are $(10,6,5)$. \hm{Describe what (10,4) and (10,6,5) mean before. Inverse some info with what follows.}
+\item[\acs{rs}] The classical \ac{rs} code \autocite{reed-solomon}.
+\item[\acs{lrc}] The primary target of our evaluation. This code is based on \ac{rs}, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}.
 \end{description}
-The parameters of a Reed-Solomon code are written as $(k,n-k)$ where $k$ is the number of data blocks and $n-k$ is the number of parity blocks.
+
+Each of these algorithms take parameters that define the number of blocks devolved to each aspect of erasure-coding.
+XOR takes a single parameter, which defines how many data blocks are XORed together to form the parity block.
+In our case, we always use 2 data blocks for 1 parity block.
+XOR can only recover from the loss of a single block.
+
+The parameters of \iac{rs} code are written as $(k,n-k)$ where $k$ is the number of data blocks and $n-k$ is the number of parity blocks.
 \acp{lrc} admit an extra parameter called $r$ (producing a $(k,n-k,r)$ triplet) that defines the block locality.
-A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}. \hm{Somewhere in this paragraph, you must say that $k$ blocks are necessary and sufficient to recover data in both cases.}
+A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}.
+In both cases, any $k$ blocks are sufficient to retrieve the data of the complete stripe.
+In the \nameref{sec:evaluation}, we will use $(10,4)$ and $(10,6,5)$ as the default parameters for \ac{rs} and \ac{lrc}, respectively.
 
 In addition to these three algorithm, our program also provides the possibility to disable erasure coding for testing purposes.
+In that case, there is still one parameter to set, which is the number of data blocks.
+We use 10 to be able to compare results between the latter three algorithms.
 
 \subsection{Software architecture}
 \label{subsec:architecture}
@@ -65,6 +75,13 @@ For testing purposes, a storage backend using an in-memory hash map is also avai
 
 \subsubsection{Blocks storage}
 
+\begin{figure}[H]
+    \centering
+    \input{blocks-figure.tex}
+    \caption{Representation of the process of splitting the data in blocks, applying erasure coding to them, and finally store them in a Redis cluster.}
+    \label{fig:blocks}
+\end{figure}
+
 The storage backend is designed to operate on 1 byte blocks.
 Storing each block individually in the key-value store is a very slow operation.
 The metadata accompanying each request to the key-value store server is much bigger than the data itself, leading to unworkable overheads.
@@ -75,6 +92,7 @@ Thanks to this new layer, multiple write operations on the key-value store are n
 Instead of storing one block per key, each key stores an aggregation of multiple blocks.
 The guarantees offered by the erasure coding process are still kept because one aggregation only stores blocks that belong to the same stripe position.
 This additional component provides a considerable speed-up comprised between $100\times$ and $1000\times$.
+The way files are split in blocks, erasure coded and then aggregated to be stored on multiple Redis servers is shown in \autoref{fig:blocks}.
 
 A \ac{lru} cache optimizes the retrieval of multiple individuals blocks.
 This way, when reading a file sequentially, each aggregation of blocks is only retrieved once from the key-value store.

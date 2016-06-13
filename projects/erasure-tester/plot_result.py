@@ -12,16 +12,16 @@ from matplotlib.backends.backend_pdf import PdfPages
 # Multiple JSON files can be specified to merge them
 
 
-def plot_results(filenames):
+def plot_results(filenames, pgf):
     results = []
     for filename in filenames:
         with open(filename) as fp:
             results += json.load(fp)
-    plot_checksum(results)
-    plot_throughput(results)
+    plot_checksum(results, pgf)
+    plot_throughput(results, pgf)
 
 
-def plot_throughput(results):
+def plot_throughput(results, pgf):
     try:
         total_files = results[0]['results']['measures'][0]['ok']
     except:
@@ -76,29 +76,54 @@ def _xy_from_capture(capture_file):
     return x, y
 
 
-def plot_checksum(results):
+def plot_checksum(results, pgf):
     results = [x for x in results if x['bench'] in ('bench_bc', 'bench_10bytes', 'bench_apache')]
     cluster_sizes = {x['config'][1] for x in results}
+
     for cluster_size in cluster_sizes:
+        pgf_titles = []
+        pgf_columns = []
+
         for result in [x for x in results if x['config'][1] == cluster_size]:
             sort = sorted(result['results'].values(), key=lambda x: x['RS'], reverse=True)
             x_axis = [(x['RS0'] - x['RS']) / cluster_size for x in sort]
             y_axis = [(x['OK Files'] / sort[0]['OK Files']) for x in sort]
-            print(x_axis)
-            print(y_axis)
 
-            plt.plot(x_axis, y_axis, label=result['bench'] + ' / ' + result['config'][0])
-            plt.title("Checksum benchmark, %d nodes" % result['config'][1])
+            if pgf:
+                pgf_titles.append('{}-{}'.format(result['bench'], result['config'][0]))
+                pgf_columns.append(x_axis)
+                pgf_columns.append(y_axis)
+            else:
+                plt.plot(x_axis, y_axis, label=result['bench'] + ' / ' + result['config'][0])
+                plt.title("Checksum benchmark, %d nodes" % result['config'][1])
 
-        plt.axis(ymin=0, ymax=1, xmin=0, xmax=1)
-        plt.xlabel("Dead nodes")
-        plt.ylabel("Successful queries")
-        plt.legend()
-        plt.show()
+        if pgf:
+            filename = 'checksum-%s.dat' % datetime.today().isoformat()
+            print('%s = %d nodes' % (filename, result['config'][1]))
+            with open(filename, 'w') as dat:
+                for title in pgf_titles:
+                    title = title.replace('_', '-')
+                    dat.write('%s-x\t%s-y\t' % (title, title))
+                dat.write('\n')
+                for i in range(max(len(x) for x in pgf_columns)):
+                    for x in range(len(pgf_columns)):
+                        try:
+                            value = str(pgf_columns[x][i])
+                        except IndexError:
+                            value = 1 if x % 2 == 0 else 0
+                        dat.write('%s\t' % value)
+                    dat.write('\n')
+        else:
+            plt.axis(ymin=0, ymax=1, xmin=0, xmax=1)
+            plt.xlabel("Dead nodes")
+            plt.ylabel("Successful queries")
+            plt.legend()
+            plt.show()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser("JSON results plotter")
+    parser.add_argument('--pgf', action='store_true')
     parser.add_argument('file', nargs='+')
     args = parser.parse_args()
-    plot_results(args.file)
+    plot_results(args.file, pgf=args.pgf)
