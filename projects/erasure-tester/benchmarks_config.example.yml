@@ -33,5 +33,9 @@ erasure_codes:
 
 # To selectively enable benchmarks
 benches:
-  - bench_kill
-  - bench_bc
+  # Run the benchmark with default parameters
+  - name: bench_kill
+  # Specify specific parameters
+  - name: bench_dd
+    params:
+      block_count: 100

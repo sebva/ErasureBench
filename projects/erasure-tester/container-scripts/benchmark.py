@@ -29,8 +29,10 @@ class Benchmarks:
         benchmarks_impl = BenchmarksImpl('/mnt/erasure/')
         if type(y['benches']) == str:
             self.benches = [getattr(benchmarks_impl, m) for m in dir(benchmarks_impl) if m.startswith(y['benches'])]
+            self.bench_params = [dict()] * len(self.benches)
         else:
-            self.benches = [getattr(benchmarks_impl, m) for m in y['benches']]
+            self.benches = [getattr(benchmarks_impl, m['name']) for m in y['benches']]
+            self.bench_params = [x.get('params', dict()) for x in y['benches']]
 
         self.first = True
         self.results = []
@@ -44,7 +46,7 @@ class Benchmarks:
                 parity_size = erasure_config['parity']
                 src = erasure_config['src']
 
-                for b in self.benches:
+                for bench, bench_param in zip(self.benches, self.bench_params):
                     nodes_trace = NodesTrace(**nodes_trace_config)
                     initial_redis_size = nodes_trace.initial_size()
 
@@ -55,19 +57,20 @@ class Benchmarks:
                         (params, env) = self._get_java_params(redis, *config)
                         with JavaProgram(params, env) as java:
                             try:
-                                self._run_benchmark(b, config, redis, java, nodes_trace)
+                                self._run_benchmark(bench, bench_param, config, redis, java, nodes_trace)
                             except Exception as ex:
                                 logging.exception("The benchmark crashed, continuing with the rest...")
                     self.save_results_to_file()
 
-    def _run_benchmark(self, bench, config, redis, java, nodes_trace):
+    def _run_benchmark(self, bench, bench_params, config, redis, java, nodes_trace):
         bench_name = bench.__name__
         print("    " + bench_name)
         self.results.append({
             'bench': bench_name,
+            'bench_params': bench_params,
             'config': config,
             'trace': nodes_trace.__repr__(),
-            'results': bench(config, redis, java, nodes_trace)
+            'results': bench(config, redis, java, nodes_trace, **bench_params)
         })
 
     def save_results_to_file(self):
