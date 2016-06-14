@@ -28,6 +28,9 @@ erasure_codes:
     parity: 6
     src: 5
 
+# Increment to run the benchmarks multiple times
+execute_times: 1
+
 # To execute every method starting with bench_ in benchmarks_impl.py
 # benches: bench_
 

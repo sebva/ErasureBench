@@ -25,6 +25,7 @@ class Benchmarks:
 
         self.redis_trace_configs = y['traces']
         self.erasure_configs = y['erasure_codes']
+        self.execute_times = y.get('execute_times', 1)
 
         benchmarks_impl = BenchmarksImpl('/mnt/erasure/')
         if type(y['benches']) == str:
@@ -46,7 +47,7 @@ class Benchmarks:
                 parity_size = erasure_config['parity']
                 src = erasure_config['src']
 
-                for bench, bench_param in zip(self.benches, self.bench_params):
+                for bench, bench_param in list(zip(self.benches, self.bench_params)) * self.execute_times:
                     nodes_trace = NodesTrace(**nodes_trace_config)
                     initial_redis_size = nodes_trace.initial_size()
 
