@@ -1,0 +1,63 @@
+\begin{tikzpicture}
+\usetikzlibrary{plotmarks}
+\pgfplotsset{width=\linewidth, height=7cm}
+\begin{groupplot}[
+    group style={
+        group size=1 by 2,
+        vertical sep=0pt,
+        xlabels at=edge bottom,
+        xticklabels at=edge bottom,
+    },
+    y unit=kiB/s,
+    ymin=0,
+    ytick={0,500,1000,...,2500},
+    width=\linewidth,
+    enlarge x limits=0.5,
+    ybar,
+    nodes near coords,
+    every node near coord/.append style={
+        rotate=90,
+        anchor=west,
+    },
+    xtick=data,
+    xlabel=File size,
+    ylabel=Throughput,
+    symbolic x coords={4 MiB, 16 MiB, 64 MiB}
+]
+\nextgroupplot[ymin=0, ymax=2700]
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MiB, 2180) +- (0, 154.92)
+    (16 MiB, 1700) +- (0, 47.14)
+    (64 MiB, 635.44) +- (0, 4.42)
+};
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MiB, 1300) +- (0, 81.65)
+};
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MiB, 1061.6) +- (0, 100.49)
+};
+\nextgroupplot[ymin=0, ymax=2700]
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MiB, 1075.6) +- (0, 127.74)
+    (16 MiB, 1550) +- (0, 70.71)
+    (64 MiB, 1622.22) +- (0, 66.67)
+};
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MiB, 801.6) +- (0, 41.76)
+};
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MiB, 888.7) +- (0, 127.61)
+};
+
+\legend{Null, \acs{rs}, \acs{lrc}}
+\end{groupplot}
+
+\node[anchor=north] at (group c1r1.north) {Write};
+\node[anchor=north] at (group c1r2.north) {Read};
+\end{tikzpicture}
