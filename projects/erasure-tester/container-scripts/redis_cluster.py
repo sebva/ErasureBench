@@ -105,8 +105,8 @@ class RedisCluster:
             subprocess.check_call(['redis-cli', '-h', 'erasuretester_redis-standalone_1', 'FLUSHALL'])
         elif self.cluster_size >= 2:
             nodes = self._get_running_nodes()
-            for node in nodes:
-                subprocess.check_call(['redis-cli', '-h', node['ip_port'].split(':')[0], 'FLUSHALL'])
+            for redis in (Redis(x[0], x[1]) for x in (y['ip_port'].split(':') for y in nodes)):
+                redis.flushall()
 
     def _add_new_nodes(self, cluster_size):
         old_nodes = self.nodes.copy()
