@@ -2,9 +2,9 @@
 
 The business-model of many major consumer-facing Cloud providers like Dropbox consists in storing huge volumes of data.
 Customers expect a high level of reliability, but rarely envisage paying top dollar for that.
-Losses of data affecting users caused by technical failures are rare \autocite{racs}.
+Losses of data affecting users caused by technical failures are rare \cite{racs}.
 To offer that kind of guarantees towards their customers, Cloud providers need to implement techniques providing redundancy, while keeping costs under control.
-The very-large scale of Cloud provider setups implies that failures occur fairly often throughout the system \autocite{failures-study}.
+The very-large scale of Cloud provider setups implies that failures occur fairly often throughout the system \cite{failures-study}.
 Therefore, this implies that fault-tolerance needs to be intrinsically built into the design of large-scale systems.
 
 The long-established way of providing redundancy is replication, which consists in duplicating functionality across components that are unlikely to fail simultaneously. \hm{As I told you today in the office, you write like a poet.} As far as data storage is concerned, this means storing multiple carbon copies in geographically distinct locations.
@@ -15,7 +15,7 @@ A system that is replicated $n$ times allows $n-1$ simultaneous failures.
 
 An alternative solution to providing data redundancy can be constructed using mathematics.
 This concept is called erasure-coding and consists in transforming original data in a longer, fault-tolerant form.
-Erasure-coding can provide the same level of reliability as replication, but with much less storage overhead \autocite{Weatherspoon2002}.
+Erasure-coding can provide the same level of reliability as replication, but with much less storage overhead \cite{Weatherspoon2002}.
 Computational cost is one of the drawbacks of erasure coding.
 Every write to an erasure-coded system requires computing parity blocks.
 When reading data back from a replicated data storage system, unavailable blocks can be reconstructed using a combination of certain available blocks.
@@ -23,14 +23,14 @@ Reading degraded erasure-coded data implies retrieving a larger amount of blocks
 Also, some computations need to be performed on the blocks retrieved in order to recreate the unavailable blocks.
 Another drawback that modern erasure coding algorithm try to overcome is the high amount of data required to repair faulty blocks.
 Traditional erasure coding algorithms such as \ac{rs} need to decode a complete stripe in order to repair a single faulty block in that stripe.
-It has been calculated that if Facebook coded \SI{50}{\percent} of the data in one of their clusters, its network would be completely saturated~\autocite{XorbasVLDB}.
+It has been calculated that if Facebook coded \SI{50}{\percent} of the data in one of their clusters, its network would be completely saturated~\cite{XorbasVLDB}.
 
 The newer generation of erasure codes focuses on reducing the amount of data needed for repairing blocks.
-That family of codes are named \acp{lrc} \autocite{lrc}.
-Codes like \ac{rs} are \ac{mds}; they have optimal storage overhead for a given level of fault-tolerance~\autocite{XorbasVLDB}.
+That family of codes are named \acp{lrc} \cite{lrc}.
+Codes like \ac{rs} are \ac{mds}; they have optimal storage overhead for a given level of fault-tolerance~\cite{XorbasVLDB}.
 However, they have the worst possible locality.
 \Iac{lrc} is not \ac{mds}, so it requires a little more storage overhead, but provides improved locality.
-The authors of \autocite{XorbasVLDB} developed one algorithm based on that principle.
+The authors of \cite{XorbasVLDB} developed one algorithm based on that principle.
 To verify the characteristics of the implementation of their algorithm, they ran benchmarks on a full-fledged cluster from Facebook.
 Not every researcher can have access to so many machines. 
 Therefore, we decided to develop a system that can be used to benchmark different erasure code implementations using a reasonable amount of hardware.
@@ -39,9 +39,9 @@ The testing framework that we contribute offers the possibility to test erasure 
 It provides the possibility to benchmark various aspects of erasure codes.
 Benchmarks can be virtually any piece of software that can run on Linux.
 The interface exposed to the benchmarks is a standard hierarchical file system.
-A unique feature of the tester is its ability to automatically instantiate a cluster of storage nodes based on Redis \autocite{redis}.
+A unique feature of the tester is its ability to automatically instantiate a cluster of storage nodes based on Redis \cite{redis}.
 Thanks to containerization, the storage cluster can be dynamically scaled during the benchmark execution.
-Failure traces from the \ac{fta} \autocite{fta-journal,fta-paper} can be used to replicate real world failures.
+Failure traces from the \ac{fta} \cite{fta-journal,fta-paper} can be used to replicate real world failures.
 This setup provides the possibility to analyze many characteristics of a particular erasure code algorithm implementation.
 
 \todo[inline]{This report is structured... Firstly... Secondly...}

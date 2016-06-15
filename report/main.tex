@@ -1,4 +1,4 @@
-\documentclass[10pt,a4paper,parskip=half,conference]{IEEEtran}
+\documentclass[10pt,conference]{IEEEtran}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[rm={oldstyle=false}]{cfr-lm}
@@ -9,7 +9,7 @@
 \usepackage{multirow}
 \usepackage{setspace}
 \usepackage{url}
-\usepackage[backend=biber,style=ieee,bibencoding=utf8,sorting=none]{biblatex}
+%\usepackage[backend=biber,style=ieee,bibencoding=utf8,sorting=none]{biblatex}
 \usepackage{csquotes}
 \usepackage{pdfpages}
 \usepackage[nolist]{acronym}
@@ -54,16 +54,15 @@
 \def\mytitle{Master Thesis}
 \def\thesistitle{Thesis title}
 \def\thesissubtitle{Thesis subtitle}
-\def\myauthor{Sébastien Vaucher}
+\def\myauthor{Sébastien Vaucher, Hugues Mercier, Valerio Schiavoni}
 
 \author{\IEEEauthorblockN{\myauthor}
-    \IEEEauthorblockA{Université de Neuchâtel\\
-        Neuchâtel, Switzerland\\
-        \href{mailto:sebastien.vaucher@unine.ch}{sebastien.vaucher@unine.ch}}
+    \IEEEauthorblockA{University of Neuch\^{a}tel, Switzerland\\
+        \href{mailto:first.last@unine.ch}{first.last@unine.ch}}
 }
 \title{\mytitle}
 
-\addbibresource{references.bib}
+%\addbibresource{references.bib}
 
 \hypersetup{
 	pdftitle=\mytitle,
@@ -129,8 +128,13 @@
 
 \input{acro.tex}
 
-\begin{otherlanguage}{australian}
-\printbibliography
-\end{otherlanguage}
+{
+  \bibliographystyle{ieeetr}
+  \bibliography{references.bib}
+}
+
+%\begin{otherlanguage}{australian}
+%\printbibliography
+%\end{otherlanguage}
 
 \end{document}
