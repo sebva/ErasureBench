@@ -1,10 +1,8 @@
 package ch.unine.vauchers.erasuretester.erasure;
 
 import ch.unine.vauchers.erasuretester.backend.JedisStorageBackend;
-import ch.unine.vauchers.erasuretester.erasure.codes.ErasureCode;
-import ch.unine.vauchers.erasuretester.erasure.codes.NullErasureCode;
-import ch.unine.vauchers.erasuretester.erasure.codes.ReedSolomonCode;
-import ch.unine.vauchers.erasuretester.erasure.codes.SimpleRegeneratingCode;
+import ch.unine.vauchers.erasuretester.backend.StorageBackend;
+import ch.unine.vauchers.erasuretester.erasure.codes.*;
 import ch.unine.vauchers.erasuretester.utils.Utils;
 import org.openjdk.jmh.annotations.*;
 
@@ -20,18 +18,19 @@ public class FileEncoderDecoderBenchmark {
     @Param({"null", "rs", "lrc"})
     public String code;
 
-    private ByteBuffer testContents;
+    private ByteBuffer outBuffer;
     private String randomPath;
 
     protected FileEncoderDecoder sut;
-    private JedisStorageBackend storageBackend;
+    private StorageBackend storageBackend;
 
     @Setup
     public void setup() {
         Utils.disableLogging();
 
         randomPath = new BigInteger(40, new Random()).toString(256);
-        testContents = ByteBuffer.allocateDirect(fileSize);
+        ByteBuffer testContents = ByteBuffer.allocateDirect(fileSize);
+        outBuffer = ByteBuffer.allocateDirect(fileSize);
         while (testContents.hasRemaining()) {
             testContents.put((byte) (Math.random() * 256));
         }
@@ -41,22 +40,24 @@ public class FileEncoderDecoderBenchmark {
         switch (code) {
             default:
             case "null":
-                erasureCode = new NullErasureCode(10);
+                sut = new FileEncoderDecoder(new NullErasureCode(10), storageBackend);
                 break;
             case "rs":
-                erasureCode = new ReedSolomonCode(10, 4);
+                sut = new FileEncoderDecoder(new ReedSolomonCode(10, 4), storageBackend);
                 break;
             case "lrc":
                 sut = new SimpleRegeneratingFileEncoderDecoder(new SimpleRegeneratingCode(10, 6, 5), storageBackend);
-                return;
+                break;
         }
-        sut = new FileEncoderDecoder(erasureCode, storageBackend);
+
+        testContents.rewind();
+        sut.writeFile(randomPath, fileSize, 0, testContents);
     }
 
     @Benchmark
-    public void writeFile() {
-        testContents.rewind();
-        sut.writeFile(randomPath, fileSize, 0, testContents);
+    public void readFile() throws TooManyErasedLocations {
+        outBuffer.rewind();
+        sut.readFile(randomPath, fileSize, 0, outBuffer);
     }
 
     @TearDown
