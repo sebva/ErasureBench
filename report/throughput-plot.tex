@@ -12,7 +12,6 @@
         yticklabels at=edge left
     },
     ymin=0,
-%    ytick={0,500,1000,...,2500},
     width=\linewidth / 1.9,
     enlarge x limits=0.3,
     ybar=3.5mm,
@@ -31,41 +30,42 @@
 \nextgroupplot[ymax=4700]
 % Write with FUSE
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write
-    (4 MB, 2180) +- (0, 154.92)
-    (16 MB, 1700) +- (0, 47.14)
-    (64 MB, 635) +- (0, 4.42)
+    % Write Null
+    (4 MB, 1590) +- (0, 31.62)
+    (16 MB, 1160) +- (0, 51.64)
+    (64 MB, 579) +- (0, 7.38)
 };
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write
-    (4 MB, 1300) +- (0, 81.65)
+    % Write RS
+    (4 MB, 1090) +- (0, 32.91)
+    (16 MB, 770) +- (0, 17.21)
+    (64 MB, 392) +- (0, 2.90)
 };
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write
-    (4 MB, 1062) +- (0, 100.49)
+    % Write LRC
+    (4 MB, 998) +- (0, 4.37)
+    (16 MB, 670) +- (0, 10.28)
+    (64 MB, 340) +- (0, 1.41)
 };
 
 \legend{Null, \acs{rs}, \acs{lrc}}
 
 % Write direct
 \nextgroupplot[ymax=4700]
-% Null
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write
+    % Write Null
     (4 MB, 2999) +- (0, 824.6)
     (16 MB, 3536) +- (0, 289.1)
     (64 MB, 3838) +- (0, 81.1)
 };
-% RS
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write
+    % Write RS
     (4 MB, 1743) +- (0, 235.5)
     (16 MB, 1874) +- (0, 481.6)
     (64 MB, 2084) +- (0, 264.5)
 };
-% LRC
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write
+    % Write LRC
     (4 MB, 1502) +- (0, 287.6)
     (16 MB, 1632) +- (0, 301.6)
     (64 MB, 1817) +- (0, 197.3)
@@ -74,39 +74,40 @@
 \nextgroupplot[ymax=2450]
 % Read with FUSE
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
-    (4 MB, 1076) +- (0, 127.74)
-    (16 MB, 1550) +- (0, 70.71)
-    (64 MB, 1622) +- (0, 66.67)
+    % Read Null
+    (4 MB, 930) +- (0, 29.22)
+    (16 MB, 1120) +- (0, 43.87)
+    (64 MB, 1530) +- (0, 50.26)
 };
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
-    (4 MB, 802) +- (0, 41.76)
+    % Read RS
+    (4 MB, 711) +- (0, 13.06)
+    (16 MB, 891) +- (0, 40.30)
+    (64 MB, 1100) +- (0, 0)
 };
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
-    (4 MB, 889) +- (0, 127.61)
+    % Read LRC
+    (4 MB, 791) +- (0, 17.56)
+    (16 MB, 1011) +- (0, 50.67)
+    (64 MB, 1130) +- (0, 50.26)
 };
 
 % Read direct
 \nextgroupplot[ymax=2450]
-% Null
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
+    % Read Null
     (4 MB, 1497) +- (0, 543.6)
     (16 MB, 1899) +- (0, 71.2)
     (64 MB, 1907) +- (0, 34.1)
 };
-% RS
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
+    % Read RS
     (4 MB, 1116) +- (0, 411.9)
     (16 MB, 1442) +- (0, 44.8)
     (64 MB, 1419) +- (0, 58.7)
 };
-% LRC
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
+    % Read LRC
     (4 MB, 1296) +- (0, 432.4)
     (16 MB, 1632) +- (0, 24.0)
     (64 MB, 1599) +- (0, 33.1)
