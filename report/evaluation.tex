@@ -47,6 +47,13 @@ We then killed storage nodes one after the other, and checked the files integrit
 
 \begin{figure}
     \centering
+    \input{throughput-nofuse-plot.tex}
+    \caption{Throughput of different erasure coding algorithm with different file sizes on a storage cluster of 100 nodes, bypassing the \acf{fuse} layer.}
+    \label{fig:throughput-nofuse-plot}
+\end{figure}
+
+\begin{figure}
+    \centering
     \missingfigure[figwidth=\linewidth]{Latency compared to Redis cluster size}
     \caption{}
     \label{fig:latency-plot}

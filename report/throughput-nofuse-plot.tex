@@ -1,0 +1,45 @@
+\begin{tikzpicture}
+\usetikzlibrary{plotmarks}
+\pgfplotsset{width=\linewidth, height=7cm}
+\begin{axis}[
+    y unit=kB/s,
+    ymin=0,
+    ymax=5100,
+%    ytick={0,500,1000,...,2500},
+    width=\linewidth,
+    enlarge x limits=0.5,
+    ybar,
+    nodes near coords,
+    every node near coord/.append style={
+        rotate=90,
+        anchor=west,
+    },
+    xtick=data,
+    xlabel=File size,
+    ylabel=Throughput,
+    symbolic x coords={4 MB, 16 MB, 64 MB}
+]
+% Null
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MB, 2999.3) +- (0, 824.6)
+    (16 MB, 3535.7) +- (0, 289.1)
+    (64 MB, 3837.9) +- (0, 81.1)
+};
+% RS
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MB, 1742.7) +- (0, 235.5)
+    (16 MB, 1873.9) +- (0, 481.6)
+    (64 MB, 2084.3) +- (0, 264.5)
+};
+% LRC
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MB, 1501.8) +- (0, 287.6)
+    (16 MB, 1632.3) +- (0, 301.6)
+    (64 MB, 1816.5) +- (0, 197.3)
+};
+\legend{Null, \acs{rs}, \acs{lrc}}
+\end{axis}
+\end{tikzpicture}
