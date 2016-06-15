@@ -3,61 +3,118 @@
 \pgfplotsset{width=\linewidth, height=7cm}
 \begin{groupplot}[
     group style={
-        group size=1 by 2,
+        group size=2 by 2,
         vertical sep=0pt,
+        horizontal sep=0pt,
         xlabels at=edge bottom,
+        ylabels at=edge left,
         xticklabels at=edge bottom,
+        yticklabels at=edge left
     },
-    y unit=kiB/s,
     ymin=0,
-    ytick={0,500,1000,...,2500},
-    width=\linewidth,
-    enlarge x limits=0.5,
-    ybar,
+%    ytick={0,500,1000,...,2500},
+    width=\linewidth / 1.9,
+    enlarge x limits=0.3,
+    ybar=3.5mm,
     nodes near coords,
     every node near coord/.append style={
         rotate=90,
-        anchor=west,
+        anchor=north,
+        font=\footnotesize,
+        xshift=4.5mm
     },
     xtick=data,
     xlabel=File size,
-    ylabel=Throughput,
-    symbolic x coords={4 MiB, 16 MiB, 64 MiB}
+    ylabel={Throughput $\left[\text{kB/s}\right]$},
+    symbolic x coords={4 MB, 16 MB, 64 MB}
 ]
-\nextgroupplot[ymin=0, ymax=2700]
+\nextgroupplot[ymax=4700]
+% Write with FUSE
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
     % Write
-    (4 MiB, 2180) +- (0, 154.92)
-    (16 MiB, 1700) +- (0, 47.14)
-    (64 MiB, 635.44) +- (0, 4.42)
-};
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write
-    (4 MiB, 1300) +- (0, 81.65)
+    (4 MB, 2180) +- (0, 154.92)
+    (16 MB, 1700) +- (0, 47.14)
+    (64 MB, 635) +- (0, 4.42)
 };
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
     % Write
-    (4 MiB, 1061.6) +- (0, 100.49)
-};
-\nextgroupplot[ymin=0, ymax=2700]
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
-    (4 MiB, 1075.6) +- (0, 127.74)
-    (16 MiB, 1550) +- (0, 70.71)
-    (64 MiB, 1622.22) +- (0, 66.67)
+    (4 MB, 1300) +- (0, 81.65)
 };
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
-    (4 MiB, 801.6) +- (0, 41.76)
-};
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read
-    (4 MiB, 888.7) +- (0, 127.61)
+    % Write
+    (4 MB, 1062) +- (0, 100.49)
 };
 
 \legend{Null, \acs{rs}, \acs{lrc}}
+
+% Write direct
+\nextgroupplot[ymax=4700]
+% Null
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MB, 2999) +- (0, 824.6)
+    (16 MB, 3536) +- (0, 289.1)
+    (64 MB, 3838) +- (0, 81.1)
+};
+% RS
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MB, 1743) +- (0, 235.5)
+    (16 MB, 1874) +- (0, 481.6)
+    (64 MB, 2084) +- (0, 264.5)
+};
+% LRC
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write
+    (4 MB, 1502) +- (0, 287.6)
+    (16 MB, 1632) +- (0, 301.6)
+    (64 MB, 1817) +- (0, 197.3)
+};
+
+\nextgroupplot[ymax=2450]
+% Read with FUSE
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MB, 1076) +- (0, 127.74)
+    (16 MB, 1550) +- (0, 70.71)
+    (64 MB, 1622) +- (0, 66.67)
+};
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MB, 802) +- (0, 41.76)
+};
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MB, 889) +- (0, 127.61)
+};
+
+% Read direct
+\nextgroupplot[ymax=2450]
+% Null
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MB, 1497) +- (0, 543.6)
+    (16 MB, 1899) +- (0, 71.2)
+    (64 MB, 1907) +- (0, 34.1)
+};
+% RS
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MB, 1116) +- (0, 411.9)
+    (16 MB, 1442) +- (0, 44.8)
+    (64 MB, 1419) +- (0, 58.7)
+};
+% LRC
+\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read
+    (4 MB, 1296) +- (0, 432.4)
+    (16 MB, 1632) +- (0, 24.0)
+    (64 MB, 1599) +- (0, 33.1)
+};
 \end{groupplot}
 
-\node[anchor=north] at (group c1r1.north) {Write};
-\node[anchor=north] at (group c1r2.north) {Read};
+\node[anchor=north] at (group c1r1.north) {\acs{fuse} write};
+\node[anchor=north] at (group c1r2.north) {\acs{fuse} read};
+\node[anchor=north] at (group c2r1.north) {Direct write};
+\node[anchor=north] at (group c2r2.north) {Direct read};
 \end{tikzpicture}
