@@ -11,8 +11,8 @@ IP=$(ip route get 8.8.8.8 | awk 'NR==1 {print $NF}')
 export DOCKER_HOST=tcp://${IP}:5732
 
 # Clean everything at Ctrl+C
-trap 'docker-compose down && exit' TERM INT
+#trap 'docker-compose down && exit' TERM INT
 
-docker-compose up -d benchmark
-docker-compose logs -f -t --no-color benchmark
-docker-compose down
+#docker-compose up -d benchmark
+#docker-compose logs -f -t --no-color benchmark
+#docker-compose down

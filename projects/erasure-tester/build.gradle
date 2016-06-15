@@ -31,6 +31,7 @@ docker {
     name 'erasuretester'
     dependsOn tasks.mkdirLibs
     dependsOn tasks.shadowJar
+    dependsOn tasks.jmhJar
     files 'build/libs', 'container-scripts', 'benchmarks_config.yml', 'docker-compose.yml', 'databases/websites02.db', 'databases/generate_dummy_trace.py'
 }
 
@@ -44,11 +45,12 @@ jmh {
     jmhVersion =  '1.11.3'
     batchSize = 1 // Batch size: number of benchmark method calls per operation. (some benchmark modes can ignore this setting)
     fork = 0 // How many times to forks a single benchmark. Use 0 to disable forking altogether
+    jvmArgs = '-Xmx6G'
     include = '.+FileEncoderDecoderBenchmark'
     iterations = 5
     operationsPerInvocation = 1 // Operations per invocation.
     threads = 4
-    timeOnIteration = '1s' // Time to spend at each measurement iteration.
+    timeOnIteration = '10s' // Time to spend at each measurement iteration.
     timeUnit = 'ms' // Output time unit. Available time units are: [m, s, ms, us, ns].
     verbosity = 'NORMAL' // Verbosity mode. Available modes are: [SILENT, NORMAL, EXTRA]
     warmup = '0s' // Time to spend at each warmup iteration.

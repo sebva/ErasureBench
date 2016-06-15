@@ -98,6 +98,13 @@ public class JedisStorageBackend extends StorageBackend {
 
     @Override
     public void disconnect() {
+        if (redis instanceof JedisCluster) {
+            ((JedisCluster) redis).getClusterNodes().forEach((s, jedisPool) ->
+                    jedisPool.getResource().flushAll()
+            );
+        } else if (redis instanceof Jedis) {
+            ((Jedis) redis).flushAll();
+        }
         try {
             ((Closeable)redis).close();
         } catch (IOException e) {
