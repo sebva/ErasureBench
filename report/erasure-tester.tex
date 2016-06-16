@@ -9,15 +9,15 @@ While the Java program can be used standalone, it is designed to run in a Docker
 
 \subsection{Erasure codes}
 
-The motivation to create this piece of software comes from the desire to check claims expressed in \citetitle{XorbasVLDB} \autocite{XorbasVLDB}.
+The motivation to create this piece of software comes from the desire to check claims expressed in \cite{XorbasVLDB} \cite{XorbasVLDB}.
 The authors have developed an erasure coding algorithm in the family of \acfp{lrc}.
-The reference implementation of this algorithm is open-source \autocite{xorbas-github}.
+The reference implementation of this algorithm is open-source \cite{xorbas-github}.
 We capitalized on this fact to include it, along with other algorithms provided in their implementation, within our own tester.
 The following erasure coding algorithms are available in our tester:
 \begin{description}[\IEEEsetlabelwidth{\acs{rs}}]
 \item[XOR] A simple XOR algorithm with 2 data blocks and 1 parity block.
-\item[\acs{rs}] The classical \ac{rs} code \autocite{reed-solomon}.
-\item[\acs{lrc}] The primary target of our evaluation. This code is based on \ac{rs}, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}.
+\item[\acs{rs}] The classical \ac{rs} code \cite{reed-solomon}.
+\item[\acs{lrc}] The primary target of our evaluation. This code is based on \ac{rs}, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \cite{XorbasVLDB}.
 \end{description}
 
 Each of these algorithms take parameters that define the number of blocks devolved to each aspect of erasure-coding.
@@ -27,7 +27,7 @@ XOR can only recover from the loss of a single block.
 
 The parameters of \iac{rs} code are written as $(k,n-k)$ where $k$ is the number of data blocks and $n-k$ is the number of parity blocks.
 \acp{lrc} admit an extra parameter called $r$ (producing a $(k,n-k,r)$ triplet) that defines the block locality.
-A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}.
+A block locality of $r$ means that any block is a function of at most $r$ other blocks \cite{XorbasVLDB}.
 In both cases, any $k$ blocks are sufficient to retrieve the data of the complete stripe.
 In the \nameref{sec:evaluation}, we will use $(10,4)$ and $(10,6,5)$ as the default parameters for \ac{rs} and \ac{lrc}, respectively.
 
@@ -51,7 +51,7 @@ It is summarized in \autoref{fig:architecture}.
 The Java program exposes a filesystem by using the \ac{fuse} interface.
 When the user runs the program, the filesystem is mounted under a directory of his choice.
 The user can then use this directory like it would with any other one.
-The tester will intercept system calls by making use of the \textit{fuse-jna} \autocite{fuse-jna} Java library.
+The tester will intercept system calls by making use of the \textit{fuse-jna} \cite{fuse-jna} Java library.
 Read and write calls will be passed through to the encoder/decoder layer.
 
 The encoder/decoder layer will handle the complicated task of correctly chunking the data.
@@ -64,10 +64,10 @@ The storage backend is the component that interfaces the block storage primitive
 \subsubsection{Available implementations}
 
 As stated in \autoref{subsec:architecture}, each component of our tester can have several implementations.
-The frontend has one available implementation: a \ac{fuse} filesystem interface backed by \textit{fuse-jna} \autocite{fuse-jna}.
+The frontend has one available implementation: a \ac{fuse} filesystem interface backed by \textit{fuse-jna} \cite{fuse-jna}.
 The encoder/decoder layer is not modular because it is sufficient to have one correct way of handling that operation.
 There are three erasure coding algorithms bundled with the program.
-They come from \autocite{XorbasVLDB}, and were adapted to free them from dependencies on any \textit{Hadoop} component.
+They come from \cite{XorbasVLDB}, and were adapted to free them from dependencies on any \textit{Hadoop} component.
 A fourth algorithm is provided, in the name of the \textit{Null} encoder.
 As its name suggests, its \textit{modus operandi} consists in simply forwarding data blocks without any added redundancy.
 Our program is compatible with the \textit{Redis} distributed key-value store through the \textit{Jedis} library.
