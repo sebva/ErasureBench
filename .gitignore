@@ -41,7 +41,7 @@
 *.tdo
 _minted-main/
 main.pdf
-main-figure*
+generated-figures/
 
 
 ### Linux ###
