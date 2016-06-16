@@ -17,13 +17,13 @@
 \addlegendentry{10 bytes / Null}
 
 \addplot table[x=bench-apache-SimpleRegenerating-x, y=bench-apache-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
-\addlegendentry{httpd-2.4.18 / \acs{lrc}}
+\addlegendentry{httpd-2.4.18 / LRC}
 \addplot table[x=bench-10bytes-SimpleRegenerating-x, y=bench-10bytes-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10 bytes / \acs{lrc}}
+\addlegendentry{10 bytes / LRC}
 
 \addplot table[x=bench-apache-ReedSolomon-x, y=bench-apache-ReedSolomon-y] {plots/checksum-100nodes.dat};
-\addlegendentry{httpd-2.4.18 / \acs{rs}}
+\addlegendentry{httpd-2.4.18 / RS}
 \addplot table[x=bench-10bytes-ReedSolomon-x, y=bench-10bytes-ReedSolomon-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10 bytes / \acs{rs}}
+\addlegendentry{10 bytes / RS}
 \end{axis}
 \end{tikzpicture}
