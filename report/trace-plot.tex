@@ -1,16 +1,21 @@
+%\pgfplotstabletypeset[string type]{plots/websites-size.dat}
+
 \begin{tikzpicture}
 \usetikzlibrary{plotmarks}
-\pgfplotsset{every axis plot post/.append style={
+\pgfplotsset{width=\linewidth, height=7cm,
+    every axis plot post/.append style={
         solid,
-        thick,
-        mark size=1pt
+        thin,
+        mark=none
     }
 }
 \begin{axis}[
-    xlabel=Dead nodes,
-    ylabel=Available files,
-    cycle list name=exotic
+    date coordinates in=x,
+    xlabel=Date,
+    ylabel=Available nodes,
+    table/col sep=comma,
+    x tick label style={rotate=20}
 ]
-%\addplot table[x=timestamp, y=size] {plots/websites-size.dat};
+\addplot+ table[x=date, y=size] {plots/websites-size.dat};
 \end{axis}
 \end{tikzpicture}

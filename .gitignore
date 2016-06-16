@@ -6,6 +6,7 @@
 *.acr
 *.alg
 *.aux
+*.auxlock
 *.bbl
 *.bcf
 *.blg
@@ -40,6 +41,7 @@
 *.tdo
 _minted-main/
 main.pdf
+main-figure*
 
 
 ### Linux ###

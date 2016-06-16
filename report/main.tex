@@ -21,6 +21,7 @@
 \usepackage{todonotes}
 \usepackage{pdflscape}
 \usepackage{pgfplots}
+\usepackage{booktabs}
 \usepackage[hidelinks]{hyperref}
 
 %% Added by Hugues
@@ -44,6 +45,9 @@
 
 \pgfplotsset{compat=1.12}
 
+\usepgfplotslibrary{external, dateplot, groupplots, units}
+\tikzexternalize
+
 % Columns balancing, enable before final pass
 %\renewbibmacro{finentry}{%
 %    \iffieldequalstr{entrykey}{fta-paper}%<- key after which you want the break
@@ -57,7 +61,7 @@
 \def\myauthor{Sébastien Vaucher, Hugues Mercier, Valerio Schiavoni}
 
 \author{\IEEEauthorblockN{\myauthor}
-    \IEEEauthorblockA{University of Neuch\^{a}tel, Switzerland\\
+    \IEEEauthorblockA{University of Neuchâtel, Switzerland\\
         \href{mailto:first.last@unine.ch}{first.last@unine.ch}}
 }
 \title{\mytitle}
@@ -70,7 +74,7 @@
 	pdfauthor=\myauthor
 }
 
-% \nocite{*}
+% \noautocite{*}
 
 \begin{document}
 

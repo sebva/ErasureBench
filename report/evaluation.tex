@@ -1,6 +1,29 @@
 \section{Evaluation}
 \label{sec:evaluation}
 
+\subsection{Fault-tolerance}
+\label{subsec:fault-tolerance}
+
+One of the most important, or perhaps the most important characteristic of an erasure coding algorithm is its tolerance to faults.
+A good code should ensure that data stays completely available when a small fraction of servers goes down.
+We quantified the fault tolerance of \acf{rs}, \acf{lrc} and no erasure coding.
+We instantiated a storage cluster of 100 nodes, and extracted the contents of an archive in it.
+We used 2 different archives.
+The first (called \textit{10 bytes} in the figure) contained 1000 files containing 10 random bytes each.
+It is an ideal case scenario.
+The second archive was the official binary archive of the \textit{httpd 2.4.18} server downloaded from Apache.
+After the files were extracted, we checked the integrity of each file contained in the storage cluster.
+We then killed storage nodes one after the other, and checked the files integrity before each step.
+\autoref{fig:checksum-plot} shows the availability ratio of individual files with regard to the ratio of dead nodes.
+
+\todo[inline]{Analyze the plot}
+
+\begin{itemize}
+    \item Read and write throughput on an intact cluster
+    \item Read and write throughput in degraded conditions
+    \
+\end{itemize}
+
 \begin{figure}
     \centering
     \input{checksum-plot.tex}
@@ -11,6 +34,40 @@
 \begin{figure*}
     \centering
     \input{trace-plot.tex}
-    \caption{Trace}
+    \caption{Graphical representation of the number of nodes available at a given time as recorded in the trace file.}
     \label{fig:trace-plot}
+\end{figure*}
+
+\begin{figure*}
+    \centering
+    \input{throughput-plot.tex}
+    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes.}
+    \label{fig:throughput-plot}
+\end{figure*}
+
+\begin{figure}
+    \centering
+    \missingfigure[figwidth=\linewidth]{Latency compared to Redis cluster size}
+    \caption{}
+    \label{fig:latency-plot}
+\end{figure}
+
+\begin{table}
+    \centering
+    \begin{tabular}{ll}
+        \toprule
+        httpd & bc \\
+        \midrule
+        Overhead & Overhead \\
+        \bottomrule
+    \end{tabular}
+    \caption{}
+    \label{fig:overhead-table}
+\end{table}
+
+\begin{figure*}
+    \centering
+    \missingfigure[figwidth=\linewidth]{Experiment with fault trace}
+    \caption{}
+    \label{fig:trace-experiment-plot}
 \end{figure*}
