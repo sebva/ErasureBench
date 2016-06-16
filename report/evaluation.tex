@@ -47,8 +47,8 @@ We then killed storage nodes one after the other, and checked the files integrit
 
 \begin{figure}
     \centering
-    \missingfigure[figwidth=\linewidth]{Latency compared to Redis cluster size}
-    \caption{}
+    \input{latency-plot.tex}
+    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.}
     \label{fig:latency-plot}
 \end{figure}
 

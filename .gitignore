@@ -39,6 +39,7 @@
 *.vrb
 *.xdy
 *.tdo
+*.pgf-plot.sh
 _minted-main/
 main.pdf
 generated-figures/
