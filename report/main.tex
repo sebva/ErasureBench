@@ -9,7 +9,7 @@
 \usepackage{multirow}
 \usepackage{setspace}
 \usepackage{url}
-%\usepackage[backend=biber,style=ieee,bibencoding=utf8,sorting=none]{biblatex}
+\usepackage[backend=biber,style=ieee,bibencoding=utf8,sorting=none,doi=false,isbn=false,date=short]{biblatex}
 \usepackage{csquotes}
 \usepackage{pdfpages}
 \usepackage[nolist]{acronym}
@@ -62,7 +62,8 @@
 }
 \title{\mytitle}
 
-%\addbibresource{references.bib}
+\addbibresource{references.bib}
+\renewcommand*{\bibfont}{\small}
 
 \hypersetup{
 	pdftitle=\mytitle,
@@ -128,13 +129,6 @@
 
 \input{acro.tex}
 
-{
-  \bibliographystyle{ieeetr}
-  \bibliography{references.bib}
-}
-
-%\begin{otherlanguage}{australian}
-%\printbibliography
-%\end{otherlanguage}
+\printbibliography
 
 \end{document}
