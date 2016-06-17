@@ -22,6 +22,38 @@ def plot_results(filenames, pgf):
 
 
 def plot_throughput(results, pgf):
+    if pgf:
+        _plot_throughput_pgf(results)
+    else:
+        _plot_throughput_pyplot(results)
+
+
+def _plot_throughput_pgf(results):
+    all_results = [x for x in results if x['bench'] == 'bench_net_throughput']
+    cluster_sizes = {x['config'][1] for x in results}
+    cols = []
+
+    for cluster_size in cluster_sizes:
+        results = [x for x in all_results if x['config'][1] == cluster_size]
+        for result in results:
+            (x_axis, y_axis) = _xy_from_capture(result['results']['write_capture'])
+            cols.append(["write-{}nodes-{}-x".format(cluster_size, result['config'][0])] + x_axis)
+            cols.append(["write-{}nodes-{}-y".format(cluster_size, result['config'][0])] + y_axis)
+
+        for redis_current in {val for sublist in [[y['redis_current'] for y in x['results']['measures']] for x in results] for val in sublist}:
+            for result in results:
+                for measure in [x for x in result['results']['measures'] if x['redis_current'] == redis_current]:
+                    (x_axis, y_axis) = _xy_from_capture(measure['capture'])
+                    type_of_read = 'normal' if redis_current == cluster_size else 'degraded'
+                    cols.append(["read-{}-{}nodes-{}-x".format(type_of_read, cluster_size, result['config'][0])] + x_axis)
+                    cols.append(["read-{}-{}nodes-{}-y".format(type_of_read, cluster_size, result['config'][0])] + y_axis)
+
+    nb_rows = max(len(x) for x in cols)
+    for row in range(nb_rows):
+        print('\t'.join(str(x[row] if len(x) > row else 'nan') for x in cols))
+
+
+def _plot_throughput_pyplot(results):
     try:
         total_files = results[0]['results']['measures'][0]['ok']
     except:
@@ -72,7 +104,7 @@ def _xy_from_capture(capture_file):
         regex_match = regex.match(line)
         if regex_match:
             x.append(int(regex_match.group(1)))
-            y.append(int(regex_match.group(3)) / 1000)
+            y.append(int(regex_match.group(3)))
     return x, y
 
 
