@@ -1,7 +1,6 @@
 package ch.unine.vauchers.erasuretester.backend;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -12,7 +11,7 @@ import java.util.Base64;
  * Has a fixed size.
  */
 public class BlocksContainer implements Serializable {
-    private IntList blocks;
+    private IntArrayList blocks;
     private final int bufferSize;
 
     /**
@@ -22,6 +21,11 @@ public class BlocksContainer implements Serializable {
     public BlocksContainer(int bufferSize) {
         this.bufferSize = bufferSize;
         blocks = new IntArrayList(bufferSize);
+    }
+
+    private BlocksContainer(int bufferSize, IntArrayList blocks) {
+        this.bufferSize = bufferSize;
+        this.blocks = blocks;
     }
 
     public int get(int key) {
@@ -40,9 +44,17 @@ public class BlocksContainer implements Serializable {
         try {
             byte[] bytes = Base64.getDecoder().decode(serialize);
             ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
-            ObjectInputStream ois = new ObjectInputStream(bais);
-            return (BlocksContainer) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
+            DataInputStream dis = new DataInputStream(bais);
+            int bufferSize = dis.readInt();
+
+            int elementsLength = dis.readInt();
+            final IntArrayList blocks = new IntArrayList(bufferSize);
+            for (int i = 0; i < elementsLength; i++) {
+                blocks.add(dis.readInt());
+            }
+
+            return new BlocksContainer(bufferSize, blocks);
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
@@ -51,9 +63,17 @@ public class BlocksContainer implements Serializable {
     public static String toString(@NotNull BlocksContainer container) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(container);
-            oos.flush();
+            DataOutputStream dos = new DataOutputStream(baos);
+            final IntArrayList blocks = container.blocks;
+            final int elementsLength = blocks.size();
+
+            dos.writeInt(container.bufferSize);
+            dos.writeInt(elementsLength);
+            for (int i = 0; i < elementsLength; i++) {
+                dos.writeInt(blocks.getInt(i));
+            }
+            dos.flush();
+
             return Base64.getEncoder().encodeToString(baos.toByteArray());
         } catch (IOException e) {
             e.printStackTrace();
