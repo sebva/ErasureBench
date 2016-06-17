@@ -59,6 +59,13 @@ We then killed storage nodes one after the other, and checked the files integrit
     \label{fig:overhead-table}
 \end{table*}
 
+\begin{figure}
+    \centering
+    \input{traffic-plot.tex}
+    \caption{Network throughput between the encoder and 100 Redis storage servers when the httpd archive is written and then read. 5 nodes are brutally killed before measuring a degraded read.}
+    \label{fig:traffic-plot}
+\end{figure}
+
 \begin{figure*}
     \centering
     \missingfigure[figwidth=\linewidth]{Experiment with fault trace}

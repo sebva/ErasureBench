@@ -1,0 +1,32 @@
+\begin{tikzpicture}
+\usetikzlibrary{plotmarks}
+\pgfplotsset{every axis plot post/.append style={
+        solid,
+        mark size=1.7pt
+    }
+}
+\begin{axis}[
+    xlabel={Elapsed time $\left[\si{\second}\right]$},
+    ylabel={Network throughput $\left[\si{\mega\byte\per\second}\right]$},
+    ymax=34000000,
+    cycle list name=exotic,
+    cycle list shift=1,
+    legend style={
+        anchor=north,
+        at={(0.5,0.97)},
+    },
+    legend cell align=left,
+    legend columns=2,
+    scaled y ticks=base 10:-6,
+    ytick scale label code/.code={},
+]
+\addplot table[x=write-100nodes-ReedSolomon-x, y=write-100nodes-ReedSolomon-y] {plots/throughput.dat};
+\addplot table[x=write-100nodes-SimpleRegenerating-x, y=write-100nodes-SimpleRegenerating-y] {plots/throughput.dat};
+\addplot table[x=read-normal-100nodes-ReedSolomon-x, y=read-normal-100nodes-ReedSolomon-y] {plots/throughput.dat};
+\addplot table[x=read-normal-100nodes-SimpleRegenerating-x, y=read-normal-100nodes-SimpleRegenerating-y] {plots/throughput.dat};
+\addplot table[x=read-degraded-100nodes-ReedSolomon-x, y=read-degraded-100nodes-ReedSolomon-y] {plots/throughput.dat};
+\addplot table[x=read-degraded-100nodes-SimpleRegenerating-x, y=read-degraded-100nodes-SimpleRegenerating-y] {plots/throughput.dat};
+
+\legend{RS write, LRC write, RS read, LRC read, RS deg. read, LRC deg. read}
+\end{axis}
+\end{tikzpicture}
