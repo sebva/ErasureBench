@@ -47,23 +47,24 @@ We then killed storage nodes one after the other, and checked the files integrit
 
 \begin{figure}
     \centering
-    \missingfigure[figwidth=\linewidth]{Latency compared to Redis cluster size}
-    \caption{}
+    \input{latency-plot.tex}
+    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.}
     \label{fig:latency-plot}
 \end{figure}
 
-\begin{table}
+\begin{table*}
     \centering
-    \begin{tabular}{ll}
-        \toprule
-        httpd & bc \\
-        \midrule
-        Overhead & Overhead \\
-        \bottomrule
-    \end{tabular}
-    \caption{}
+    \caption{Various metrics measured when storing files in the system.}
+    \input{overheads-table.tex}
     \label{fig:overhead-table}
-\end{table}
+\end{table*}
+
+\begin{figure}
+    \centering
+    \input{traffic-plot.tex}
+    \caption{Network throughput between the encoder and 100 Redis storage servers when the httpd archive is written and then read. 5 nodes are brutally killed before measuring a degraded read.}
+    \label{fig:traffic-plot}
+\end{figure}
 
 \begin{figure*}
     \centering

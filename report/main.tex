@@ -4,24 +4,16 @@
 \usepackage[rm={oldstyle=false}]{cfr-lm}
 \usepackage[australian,american]{babel}
 
-\usepackage{minted}
-\usepackage[super]{nth}
-\usepackage{multirow}
-\usepackage{setspace}
-\usepackage{url}
 \usepackage[backend=biber,style=ieee,bibencoding=utf8,sorting=none,doi=false,isbn=false,date=short]{biblatex}
 \usepackage{csquotes}
-\usepackage{pdfpages}
+\usepackage[caption=false]{subfig}
 \usepackage[nolist]{acronym}
-\usepackage{siunitx}
-\usepackage{graphicx}
-\usepackage{dirtree}
-\usepackage{subfig}
+\usepackage[binary-units,per-mode=symbol]{siunitx}
 \usepackage{float}
 \usepackage{todonotes}
-\usepackage{pdflscape}
 \usepackage{pgfplots}
 \usepackage{booktabs}
+\usepackage{multirow}
 \usepackage[hidelinks]{hyperref}
 
 %% Added by Hugues
@@ -40,13 +32,14 @@
 \newcommand{\vs}[1]{\mynote{Valerio}{#1}{red}}
 
 \newif\ifjmcs
-% Uncomment to have the JMCS cover page
-%\jmcstrue
+% Change false to true to have the JMCS cover page
+\jmcsfalse
 
 \pgfplotsset{compat=1.12}
 
 \usepgfplotslibrary{external, dateplot, groupplots, units}
 \tikzexternalize
+\tikzsetexternalprefix{generated-figures/}
 
 % Columns balancing, enable before final pass
 %\renewbibmacro{finentry}{%

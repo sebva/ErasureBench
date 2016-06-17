@@ -1,0 +1,18 @@
+\begin{tikzpicture}
+\usetikzlibrary{plotmarks}
+\pgfplotsset{width=\linewidth, height=7cm}
+\begin{axis}[
+    x unit=s,
+    xlabel=Duration,
+    ylabel=CDF,
+    cycle list name=exotic,
+    cycle list shift=1,
+    legend pos=south east,
+]
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency.csv -c 1};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency.csv -c 2};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency.csv -c 3};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency.csv -c 4};
+\legend{20 nodes, 40 nodes, 60 nodes, 80 nodes}
+\end{axis}
+\end{tikzpicture}
