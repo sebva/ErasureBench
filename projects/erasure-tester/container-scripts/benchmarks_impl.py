@@ -6,7 +6,7 @@ import subprocess
 from datetime import datetime
 
 from redis_cluster import RedisCluster
-from time import sleep
+from time import sleep, time
 from utils import kill_pid
 
 
@@ -185,21 +185,32 @@ class BenchmarksImpl:
         return {}
 
     def bench_dd(self, config=None, redis=None, java=None, nodes_trace=None, block_count=50):
-        write_speed = read_speed = 0
+        filename = self.generate_file_name()
+        out = subprocess.check_output(("dd if=/dev/zero of=%s bs=128kB count=%d" % (filename, block_count))
+                                      .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
+        match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
+        write_speed = self._convert_to_kb(*match.groups())
 
-        for _ in range(3):
-            filename = self.generate_file_name()
-            out = subprocess.check_output(("dd if=/dev/zero of=%s bs=128kB count=%d" % (filename, block_count))
-                                          .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
-            match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
-            write_speed = max(self._convert_to_kb(*match.groups()), write_speed)
-
-            out = subprocess.check_output(("dd if=%s of=/dev/null bs=128kB count=%d" % (filename, block_count))
-                                          .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
-            match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
-            read_speed = max(self._convert_to_kb(*match.groups()), read_speed)
+        out = subprocess.check_output(("dd if=%s of=/dev/null bs=128kB count=%d" % (filename, block_count))
+                                      .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
+        match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
+        read_speed = self._convert_to_kb(*match.groups())
 
         return {
             'read': read_speed,
             'write': write_speed
+        }
+
+    def bench_latency(self, config=None, redis=None, java=None, nodes_trace=None, block_count=50):
+        filename = self.generate_file_name()
+        write_before = time()
+        out = subprocess.check_output(("dd if=/dev/zero of=%s bs=128kB count=%d" % (filename, block_count))
+                                      .split(' '), stderr=subprocess.STDOUT, universal_newlines=True)
+        write_elapsed = time() - write_before
+        match = re.search(r'([0-9.]+) ([a-zA-Z]?B/s)$', out)
+        write_speed = self._convert_to_kb(*match.groups())
+
+        return {
+            'write': write_speed,
+            'write_elapsed': write_elapsed
         }
