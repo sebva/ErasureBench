@@ -14,7 +14,7 @@ The authors have developed an erasure coding algorithm in the family of \acfp{lr
 The reference implementation of this algorithm is open-source \autocite{xorbas-github}.
 We capitalized on this fact to include it, along with other algorithms provided in their implementation, within our own tester.
 The following erasure coding algorithms are available in our tester:
-\begin{description}[\IEEEsetlabelwidth{\acs{rs}}]
+\begin{description}[\IEEEsetlabelwidth{XOR}]
 \item[XOR] A simple XOR algorithm with 2 data blocks and 1 parity block.
 \item[\acs{rs}] The classical \ac{rs} code \autocite{reed-solomon}.
 \item[\acs{lrc}] The primary target of our evaluation. This code is based on \ac{rs}, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}.
