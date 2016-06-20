@@ -1,28 +1,16 @@
 \section{Evaluation}
 \label{sec:evaluation}
 
-\subsection{Fault-tolerance}
-\label{subsec:fault-tolerance}
+In this section, we evaluate the various aspects or our tester by comparing two data coding algorithms against unprocessed data.
+The two algorithms under test are \acf{rs} and \acf{lrc}.
+We use sample file archives for some experiments, here are their descriptions:
 
-One of the most important, or perhaps the most important characteristic of an erasure coding algorithm is its tolerance to faults.
-A good code should ensure that data stays completely available when a small fraction of servers goes down.
-We quantified the fault tolerance of \acf{rs}, \acf{lrc} and no erasure coding.
-We instantiated a storage cluster of 100 nodes, and extracted the contents of an archive in it.
-We used 2 different archives.
-The first (called \textit{10 bytes} in the figure) contained 1000 files containing 10 random bytes each.
-It is an ideal case scenario.
-The second archive was the official binary archive of the \textit{httpd 2.4.18} server downloaded from Apache.
-After the files were extracted, we checked the integrity of each file contained in the storage cluster.
-We then killed storage nodes one after the other, and checked the files integrity before each step.
-\autoref{fig:checksum-plot} shows the availability ratio of individual files with regard to the ratio of dead nodes.
-
-\todo[inline]{Analyze the plot}
-
-\begin{itemize}
-    \item Read and write throughput on an intact cluster
-    \item Read and write throughput in degraded conditions
-    \
-\end{itemize}
+\begin{description}[\IEEEsetlabelwidth{kotlin-test}]
+    \item[httpd] The sources of Apache httpd 2.4.18.
+    \item[bc] The sources of GNU bc 1.06.
+    \item[kotlin-test] The sources of kotlin-test 1.2.0.
+    \item[10bytes] An archive that contains \num{1000} files, each containing 10 random bytes.
+\end{description}
 
 \begin{figure}
     \centering
@@ -31,12 +19,23 @@ We then killed storage nodes one after the other, and checked the files integrit
     \label{fig:checksum-plot}
 \end{figure}
 
-\begin{figure*}
-    \centering
-    \input{trace-plot.tex}
-    \caption{Graphical representation of the number of nodes available at a given time as recorded in the trace file.}
-    \label{fig:trace-plot}
-\end{figure*}
+\subsection{Fault-tolerance}
+\label{subsec:fault-tolerance}
+
+One of the most important, or perhaps the most important characteristic of an erasure coding algorithm is its tolerance to faults.
+A good code should ensure that data stays completely available when a small fraction of servers goes down.
+We quantified the fault tolerance of \acf{rs}, \acf{lrc} and no erasure coding.
+We instantiated a storage cluster of 100 nodes, and extracted the contents of an archive in it.
+We used 2 different archives: 10bytes, which is an ideal scenario and httpd, which is our real-world scenario.
+After the files were extracted, we checked the integrity of each file contained in the storage cluster.
+We then killed storage nodes one after the other, and checked the files integrity before each step.
+
+\autoref{fig:checksum-plot} shows the availability ratio of individual files with regard to the ratio of dead nodes.
+It shows that \ac{rs} provides better fault-tolerance than \ac{lrc}.
+It also demonstrates that the larger files contained in httpd are more prone to failures, as a single damaged stripe within a file will corrupt the entire file.
+
+\subsection{Read/write performance and overhead of \acs{fuse}}
+\label{subsec:rw-perf}
 
 \begin{figure*}
     \centering
@@ -45,12 +44,8 @@ We then killed storage nodes one after the other, and checked the files integrit
     \label{fig:throughput-plot}
 \end{figure*}
 
-\begin{figure}
-    \centering
-    \input{latency-plot.tex}
-    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.}
-    \label{fig:latency-plot}
-\end{figure}
+\subsection{Storage overheads}
+\label{subsec:storage-overheads}
 
 \begin{table*}
     \centering
@@ -59,12 +54,32 @@ We then killed storage nodes one after the other, and checked the files integrit
     \label{fig:overhead-table}
 \end{table*}
 
+\subsection{Cluster size impact on latency}
+\label{subsec:latency}
+
+\begin{figure}
+    \centering
+    \input{latency-plot.tex}
+    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.}
+    \label{fig:latency-plot}
+\end{figure}
+
+\subsection{Network traffic to/from storage nodes}
+\label{subsec:network-traffic}
+
 \begin{figure}
     \centering
     \input{traffic-plot.tex}
     \caption{Network throughput between the encoder and 100 Redis storage servers when the httpd archive is written and then read. 5 nodes are brutally killed before measuring a degraded read.}
     \label{fig:traffic-plot}
 \end{figure}
+
+\begin{figure*}
+    \centering
+    \input{trace-plot.tex}
+    \caption{Graphical representation of the number of nodes available at a given time as recorded in the trace file.}
+    \label{fig:trace-plot}
+\end{figure*}
 
 \begin{figure*}
     \centering
