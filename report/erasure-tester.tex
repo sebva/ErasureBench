@@ -97,6 +97,19 @@ The way files are split in blocks, erasure coded and then aggregated to be store
 A \ac{lru} cache optimizes the retrieval of multiple individuals blocks.
 This way, when reading a file sequentially, each aggregation of blocks is only retrieved once from the key-value store.
 
+\subsubsection{Metadata}
+
+When storing file contents in the storage cluster, we need to keep track where each block gets stored.
+The strategy we adopted is to assign a 32 bits key to each block.
+From each key, we can infer two related identifiers: a Redis key and an offset.
+The Redis key points to an aggregation of blocks stored into the Redis cluster.
+We then use the offset to precisely locate the block we want within the aggregation.
+
+We store all metadata in memory.
+Each file consists in a list of identifiers.
+We also store the size of the file once decoded, so we can discard padding blocks.
+Naturally, the space overhead of our solution is important, so our system is not able to store a large amount of data.
+
 \subsection{Surrounding components}
 
 Running the tester requires multiple independent services.
