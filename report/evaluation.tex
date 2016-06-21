@@ -61,6 +61,20 @@ The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\perce
 \subsection{Storage overheads}
 \label{subsec:storage-overheads}
 
+\autoref{fig:overhead-table} shows various metrics relative to the storage space used when unpacking 4 different archives into the filesytem exposed by the tester.
+The \enquote{10 bytes} archive constitutes a worst case, as each file is stored as a single stripe in the system.
+In that case, the number of Redis keys is strictly equal to the number of blocks in the system.
+Storing a 10 bytes file into our system takes 120 bytes, before base 64 applied.
+Each byte is encoded as a 32 bits integer by the erasure codes.
+Additionally, each aggregation of blocks needs two 32 bits integers to store its decoded size.
+This explains the overhead of $12\times$.
+For real archives, the overhead asymptotically approaches $4\times$, as the two 32 bits integers are only needed once per aggregation.
+
+The overheads cited above reason upon the binary size.
+As Redis can only store strings, we have to apply base 64 encoding to the blocks, adding \SI{33}{\percent} storage overhead.
+
+The overhead due to erasure coding is always governed by the number of parity blocks added.
+
 \begin{table*}
     \centering
     \caption{Various metrics measured when storing files in the system.}
