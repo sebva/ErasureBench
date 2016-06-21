@@ -114,7 +114,7 @@ def parse_trace_method3(db_file, epoch=719163):
     return x_axis_np, y_axis_np
 
 
-def plot_trace(pdf, x_axis_np, y_axis_np, set_name):
+def plot_trace(x_axis_np, y_axis_np, set_name):
     # Any filter available in scipy.signal can be applied
     # y_axis_np = signal.medfilt(y_axis_np, 51)
 
@@ -125,8 +125,8 @@ def plot_trace(pdf, x_axis_np, y_axis_np, set_name):
     plt.ylabel("Alive nodes")
     plt.plot(x_axis_np, y_axis_np)
     plt.gcf().autofmt_xdate()
-    pdf.savefig()
-    plt.close()
+#    pdf.savefig()
+    plt.show()
 
 
 def compute_histogram1(db_file):
@@ -288,7 +288,7 @@ def pgfplotsfile(db_file, epoch_delta=0, start_time=0, end_time=10000000000, sho
 
 
 if __name__ == '__main__':
-    pgfplotsfile('databases/websites02.db', epoch_delta=1001779870, show_every=10)
+    #pgfplotsfile('databases/websites02.db', epoch_delta=1001779870, show_every=10)
 
     # simulate('databases/oneping.db')
     #
@@ -332,6 +332,6 @@ if __name__ == '__main__':
     #     # In websites_02, the 0 epoch = 26/09/2001 16:11:10
     #     # In pyplot, the 0 epoch = 01/01/0001 -1
     #     #                Days    +1   16:11:10
-    #     websites_epoch = 730753 + 1 + 86400. / (16 * 3600 + 11 * 60 + 10)
-    #     plot_trace(pdf, *parse_trace_method1('databases/websites02.db', epoch=websites_epoch), set_name='websites')
+    websites_epoch = 730753 + 1 + 86400. / (16 * 3600 + 11 * 60 + 10)
+    plot_trace(*parse_trace_method1('databases/websites02.db', epoch=websites_epoch), set_name='websites')
     #     bar(pdf, *compute_histogram1('databases/websites02.db'), set_name='websites')
