@@ -1,3 +1,10 @@
+\begin{figure*}
+    \centering
+    \input{throughput-plot.tex}
+    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes.}
+    \label{fig:throughput-plot}
+\end{figure*}
+
 \section{Evaluation}
 \label{sec:evaluation}
 
@@ -50,13 +57,6 @@ Larger writes lead to more resizing operations.
 On read operations, \ac{lrc} is inherently faster as it requires the same number of blocks as \ac{rs}.
 
 The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and between \SI{-33.6}{\percent} and \SI{-84.9}{\percent} for write operations.
-
-\begin{figure*}
-    \centering
-    \input{throughput-plot.tex}
-    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes.}
-    \label{fig:throughput-plot}
-\end{figure*}
 
 \subsection{Storage overheads}
 \label{subsec:storage-overheads}
@@ -112,16 +112,16 @@ We can clearly observe that it effectively lowers the network usage as far as de
     \label{fig:traffic-plot}
 \end{figure}
 
-\begin{figure*}
-    \centering
-    \input{trace-plot.tex}
-    \caption{Graphical representation of the number of nodes available at a given time as recorded in the trace file.}
-    \label{fig:trace-plot}
-\end{figure*}
+%\begin{figure*}
+%    \centering
+%    \input{trace-plot.tex}
+%    \caption{Graphical representation of the number of nodes available at a given time as recorded in the trace file.}
+%    \label{fig:trace-plot}
+%\end{figure*}
 
-\begin{figure*}
-    \centering
-    \missingfigure[figwidth=\linewidth]{Experiment with fault trace}
-    \caption{}
-    \label{fig:trace-experiment-plot}
-\end{figure*}
+%\begin{figure*}
+%    \centering
+%    \missingfigure[figwidth=\linewidth]{Experiment with fault trace}
+%    \caption{}
+%    \label{fig:trace-experiment-plot}
+%\end{figure*}

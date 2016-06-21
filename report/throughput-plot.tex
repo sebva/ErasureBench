@@ -1,37 +1,41 @@
 \begin{tikzpicture}
 \usetikzlibrary{plotmarks}
-\pgfplotsset{width=\linewidth, height=7cm}
+\pgfplotsset{width=\linewidth, height=6cm}
 \begin{groupplot}[
     group style={
-        group size=2 by 2,
+        group size=4 by 1,
         vertical sep=0pt,
         horizontal sep=0pt,
         xlabels at=edge bottom,
         ylabels at=edge left,
         xticklabels at=edge bottom,
-        yticklabels at=edge left
+        yticklabels at=edge left,
     },
     ymin=0,
-    width=\linewidth / 1.9,
+    ymax=4900,
+    width=\linewidth / 3.245,
     enlarge x limits=0.3,
-    ybar=3.5mm,
+    ybar=0,
+    /pgf/bar width=3mm,
     nodes near coords,
     legend style={
         anchor=north west,
         at={(0.02,0.87)},
+        cells={anchor=west},
     },
     every node near coord/.append style={
         rotate=90,
         anchor=north,
-        font=\footnotesize,
-        xshift=4.5mm
+        font=\tiny,
+        xshift=5mm,
+        yshift=0.3mm,
     },
     xtick=data,
     xlabel=File size,
     ylabel={Throughput $\left[\si{\kilo\byte\per\second}\right]$},
     symbolic x coords={4 MB, 16 MB, 64 MB}
 ]
-\nextgroupplot[ymax=4700]
+\nextgroupplot
 % Write with FUSE
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
     % Write Null
@@ -52,10 +56,10 @@
     (64 MB, 340) +- (0, 1.41)
 };
 
-\legend{No erasure coding, Reed-Solomon, Locally Repairable Code}
+\legend{No erasure coding, Reed-Solomon, LRC}
 
 % Write direct
-\nextgroupplot[ymax=4700]
+\nextgroupplot
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
     % Write Null
     (4 MB, 2999) +- (0, 824.6)
@@ -75,7 +79,7 @@
     (64 MB, 1817) +- (0, 197.3)
 };
 
-\nextgroupplot[ymax=2450]
+\nextgroupplot
 % Read with FUSE
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
     % Read Null
@@ -97,7 +101,7 @@
 };
 
 % Read direct
-\nextgroupplot[ymax=2450]
+\nextgroupplot
 \addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
     % Read Null
     (4 MB, 1497) +- (0, 543.6)
@@ -119,7 +123,7 @@
 \end{groupplot}
 
 \node[anchor=north] at (group c1r1.north) {FUSE write};
-\node[anchor=north] at (group c1r2.north) {FUSE read};
+\node[anchor=north] at (group c3r1.north) {FUSE read};
 \node[anchor=north] at (group c2r1.north) {Direct write};
-\node[anchor=north] at (group c2r2.north) {Direct read};
+\node[anchor=north] at (group c4r1.north) {Direct read};
 \end{tikzpicture}

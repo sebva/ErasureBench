@@ -14,6 +14,7 @@
 \usepackage{pgfplots}
 \usepackage{booktabs}
 \usepackage{multirow}
+\usepackage{lipsum}
 \usepackage[hidelinks]{hyperref}
 
 %% Added by Hugues
@@ -35,7 +36,12 @@
 % Change false to true to have the JMCS cover page
 \jmcsfalse
 
-\pgfplotsset{compat=1.12}
+\pgfplotsset{
+    compat=1.12,
+    tick label style={font=\small},
+    label style={font=\small},
+    legend style={font=\small},
+}
 
 \usepgfplotslibrary{external, dateplot, groupplots, units}
 \tikzexternalize
@@ -123,6 +129,8 @@
 \input{erasure-tester.tex}
 
 \input{evaluation.tex}
+
+\input{conclusion.tex}
 
 \input{acro.tex}
 
