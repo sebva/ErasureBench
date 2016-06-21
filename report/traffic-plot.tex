@@ -22,12 +22,12 @@
     scaled y ticks=base 10:-6,
     ytick scale label code/.code={},
 ]
-\addplot table[x=write-100nodes-ReedSolomon-x, y=write-100nodes-ReedSolomon-y] {plots/throughput.dat};
-\addplot table[x=write-100nodes-SimpleRegenerating-x, y=write-100nodes-SimpleRegenerating-y] {plots/throughput.dat};
-\addplot table[x=read-normal-100nodes-ReedSolomon-x, y=read-normal-100nodes-ReedSolomon-y] {plots/throughput.dat};
-\addplot table[x=read-normal-100nodes-SimpleRegenerating-x, y=read-normal-100nodes-SimpleRegenerating-y] {plots/throughput.dat};
-\addplot table[x=read-degraded-100nodes-ReedSolomon-x, y=read-degraded-100nodes-ReedSolomon-y] {plots/throughput.dat};
-\addplot table[x=read-degraded-100nodes-SimpleRegenerating-x, y=read-degraded-100nodes-SimpleRegenerating-y] {plots/throughput.dat};
+\addplot table[x=x, y=write-100nodes-ReedSolomon] {plots/throughput.dat};
+\addplot table[x=x, y=write-100nodes-SimpleRegenerating] {plots/throughput.dat};
+\addplot table[x=x, y=read-normal-100nodes-ReedSolomon] {plots/throughput.dat};
+\addplot table[x=x, y=read-normal-100nodes-SimpleRegenerating] {plots/throughput.dat};
+\addplot table[x=x, y=read-degraded-100nodes-ReedSolomon] {plots/throughput.dat};
+\addplot table[x=x, y=read-degraded-100nodes-SimpleRegenerating] {plots/throughput.dat};
 
 \legend{RS write, LRC write, RS read, LRC read, RS deg. read, LRC deg. read}
 \end{axis}
