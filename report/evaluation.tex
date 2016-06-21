@@ -1,28 +1,23 @@
+\begin{figure*}
+    \centering
+    \input{throughput-plot.tex}
+    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes. Half confidence interval.}
+    \label{fig:throughput-plot}
+\end{figure*}
+
 \section{Evaluation}
 \label{sec:evaluation}
 
-\subsection{Fault-tolerance}
-\label{subsec:fault-tolerance}
+In this section, we evaluate the various aspects or our tester by comparing two data coding algorithms against unprocessed data.
+The two algorithms under test are \acf{rs} and \acf{lrc}.
+We use sample file archives for some experiments, here are their descriptions:
 
-One of the most important, or perhaps the most important characteristic of an erasure coding algorithm is its tolerance to faults.
-A good code should ensure that data stays completely available when a small fraction of servers goes down.
-We quantified the fault tolerance of \acf{rs}, \acf{lrc} and no erasure coding.
-We instantiated a storage cluster of 100 nodes, and extracted the contents of an archive in it.
-We used 2 different archives.
-The first (called \textit{10 bytes} in the figure) contained 1000 files containing 10 random bytes each.
-It is an ideal case scenario.
-The second archive was the official binary archive of the \textit{httpd 2.4.18} server downloaded from Apache.
-After the files were extracted, we checked the integrity of each file contained in the storage cluster.
-We then killed storage nodes one after the other, and checked the files integrity before each step.
-\autoref{fig:checksum-plot} shows the availability ratio of individual files with regard to the ratio of dead nodes.
-
-\todo[inline]{Analyze the plot}
-
-\begin{itemize}
-    \item Read and write throughput on an intact cluster
-    \item Read and write throughput in degraded conditions
-    \
-\end{itemize}
+\begin{description}[\IEEEsetlabelwidth{kotlin-test}]
+    \item[httpd] The sources of Apache httpd 2.4.18.
+    \item[bc] The sources of GNU bc 1.06.
+    \item[kotlin-test] The sources of kotlin-test 1.2.0.
+    \item[10bytes] An archive that contains \num{1000} files, each containing 10 random bytes.
+\end{description}
 
 \begin{figure}
     \centering
@@ -31,26 +26,54 @@ We then killed storage nodes one after the other, and checked the files integrit
     \label{fig:checksum-plot}
 \end{figure}
 
-\begin{figure*}
-    \centering
-    \input{trace-plot.tex}
-    \caption{Graphical representation of the number of nodes available at a given time as recorded in the trace file.}
-    \label{fig:trace-plot}
-\end{figure*}
+\subsection{Fault-tolerance}
+\label{subsec:fault-tolerance}
 
-\begin{figure*}
-    \centering
-    \input{throughput-plot.tex}
-    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes.}
-    \label{fig:throughput-plot}
-\end{figure*}
+One of the most important, or perhaps the most important characteristic of an erasure coding algorithm is its tolerance to faults.
+A good code should ensure that data stays completely available when a small fraction of servers goes down.
+We quantified the fault tolerance of \acf{rs}, \acf{lrc} and no erasure coding.
+We instantiated a storage cluster of 100 nodes, and extracted the contents of an archive in it.
+We used 2 different archives: 10bytes, which is an ideal scenario and httpd, which is our real-world scenario.
+After the files were extracted, we checked the integrity of each file contained in the storage cluster.
+We then killed storage nodes one after the other, and checked the files integrity before each step.
 
-\begin{figure}
-    \centering
-    \input{latency-plot.tex}
-    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.}
-    \label{fig:latency-plot}
-\end{figure}
+\autoref{fig:checksum-plot} shows the availability ratio of individual files with regard to the ratio of dead nodes.
+It shows that \ac{rs} provides better fault-tolerance than \ac{lrc}.
+It also demonstrates that the larger files contained in httpd are more prone to failures, as a single damaged stripe within a file will corrupt the entire file.
+
+\subsection{Read/write performance and overhead of \acs{fuse}}
+\label{subsec:rw-perf}
+
+The plot in \autoref{fig:throughput-plot} shows the user-facing throughput of the system.
+We write three files of different sizes and containing random data to the filesystem, and then read them.
+To measure the \textit{\ac{fuse}} case, read and write operations are performed against the mountpoint exposed by the tester.
+The \textit{Direct} case bypasses the \ac{fuse} layer, and directly calls Java methods.
+
+For all cases except \textit{\ac{fuse} write}, we can see that larger file sizes yield better results.
+Performance when writing increasingly bigger files using \ac{fuse} decreases because some buffers have to be resized as the file grows.
+Larger writes lead to more resizing operations.
+
+\ac{rs} is faster in writing than \ac{lrc}, notably because it requires less blocks to be written to the system,
+On read operations, \ac{lrc} is inherently faster as it requires the same number of blocks as \ac{rs}.
+
+The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and between \SI{-33.6}{\percent} and \SI{-84.9}{\percent} for write operations.
+
+\subsection{Storage overheads}
+\label{subsec:storage-overheads}
+
+\autoref{fig:overhead-table} shows various metrics relative to the storage space used when unpacking 4 different archives into the filesytem exposed by the tester.
+The \enquote{10 bytes} archive constitutes a worst case, as each file is stored as a single stripe in the system.
+In that case, the number of Redis keys is strictly equal to the number of blocks in the system.
+Storing a 10 bytes file into our system takes 120 bytes, before base 64 applied.
+Each byte is encoded as a 32 bits integer by the erasure codes.
+Additionally, each aggregation of blocks needs two 32 bits integers to store its decoded size.
+This explains the overhead of $12\times$.
+For real archives, the overhead asymptotically approaches $4\times$, as the two 32 bits integers are only needed once per aggregation.
+
+The overheads cited above reason upon the binary size.
+As Redis can only store strings, we have to apply base 64 encoding to the blocks, adding \SI{33}{\percent} storage overhead.
+
+The overhead due to erasure coding is always governed by the number of parity blocks added.
 
 \begin{table*}
     \centering
@@ -59,6 +82,29 @@ We then killed storage nodes one after the other, and checked the files integrit
     \label{fig:overhead-table}
 \end{table*}
 
+\subsection{Cluster size impact on latency}
+\label{subsec:latency}
+
+\begin{figure}
+    \centering
+    \input{latency-plot.tex}
+    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.}
+    \label{fig:latency-plot}
+\end{figure}
+
+\subsection{Network traffic to/from storage nodes}
+\label{subsec:network-traffic}
+
+We evaluated the network capacity used by \ac{rs} and \ac{lrc}.
+We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
+We then did the reverse operation, once with all storage nodes intact, and once after killing \SI{5}{\percent} of the nodes.
+
+The results are displayed in \autoref{fig:traffic-plot}.
+They show that \ac{lrc} needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
+For read operations, \ac{lrc} is equivalent to \ac{rs} when the cluster is intact.
+The notable characteristic of \ac{lrc} is its increased block locality compared to \ac{rs}.
+We can clearly observe that it effectively lowers the network usage as far as degraded reads are concerned.
+
 \begin{figure}
     \centering
     \input{traffic-plot.tex}
@@ -66,9 +112,16 @@ We then killed storage nodes one after the other, and checked the files integrit
     \label{fig:traffic-plot}
 \end{figure}
 
-\begin{figure*}
-    \centering
-    \missingfigure[figwidth=\linewidth]{Experiment with fault trace}
-    \caption{}
-    \label{fig:trace-experiment-plot}
-\end{figure*}
+%\begin{figure*}
+%    \centering
+%    \input{trace-plot.tex}
+%    \caption{Graphical representation of the number of nodes available at a given time as recorded in the trace file.}
+%    \label{fig:trace-plot}
+%\end{figure*}
+
+%\begin{figure*}
+%    \centering
+%    \missingfigure[figwidth=\linewidth]{Experiment with fault trace}
+%    \caption{}
+%    \label{fig:trace-experiment-plot}
+%\end{figure*}

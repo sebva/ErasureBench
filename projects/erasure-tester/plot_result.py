@@ -11,6 +11,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 # This scripts generates the plots from results in JSON format
 # Multiple JSON files can be specified to merge them
 
+throughput_resolution = 5
+
 
 def plot_results(filenames, pgf):
     results = []
@@ -36,21 +38,25 @@ def _plot_throughput_pgf(results):
     for cluster_size in cluster_sizes:
         results = [x for x in all_results if x['config'][1] == cluster_size]
         for result in results:
-            (x_axis, y_axis) = _xy_from_capture(result['results']['write_capture'])
-            cols.append(["write-{}nodes-{}-x".format(cluster_size, result['config'][0])] + x_axis)
-            cols.append(["write-{}nodes-{}-y".format(cluster_size, result['config'][0])] + y_axis)
+            (_, y_axis) = _xy_from_capture(result['results']['write_capture'])
+            cols.append(["write-{}nodes-{}".format(cluster_size, result['config'][0])] + y_axis)
 
         for redis_current in {val for sublist in [[y['redis_current'] for y in x['results']['measures']] for x in results] for val in sublist}:
             for result in results:
                 for measure in [x for x in result['results']['measures'] if x['redis_current'] == redis_current]:
-                    (x_axis, y_axis) = _xy_from_capture(measure['capture'])
+                    (_, y_axis) = _xy_from_capture(measure['capture'])
                     type_of_read = 'normal' if redis_current == cluster_size else 'degraded'
-                    cols.append(["read-{}-{}nodes-{}-x".format(type_of_read, cluster_size, result['config'][0])] + x_axis)
-                    cols.append(["read-{}-{}nodes-{}-y".format(type_of_read, cluster_size, result['config'][0])] + y_axis)
+                    cols.append(["read-{}-{}nodes-{}".format(type_of_read, cluster_size, result['config'][0])] + y_axis)
 
     nb_rows = max(len(x) for x in cols)
+    counter = -1
     for row in range(nb_rows):
-        print('\t'.join(str(x[row] if len(x) > row else 'nan') for x in cols))
+        prefix = str(counter) if counter >= 0 else 'x'
+        print(prefix + '\t' + '\t'.join(str(x[row] if len(x) > row else 'nan') for x in cols))
+        if counter == -1:
+            counter = 0
+        else:
+            counter += throughput_resolution
 
 
 def _plot_throughput_pyplot(results):
@@ -99,7 +105,7 @@ def _xy_from_capture(capture_file):
     x = []
     y = []
 
-    tshark_output = subprocess.check_output(['tshark', '-q', '-nr', capture_file, '-t', 'r', '-z', 'io,stat,5'])
+    tshark_output = subprocess.check_output(['tshark', '-q', '-nr', capture_file, '-t', 'r', '-z', 'io,stat,%d' % throughput_resolution])
     for line in tshark_output.decode().split('\n'):
         regex_match = regex.match(line)
         if regex_match:

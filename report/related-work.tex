@@ -2,7 +2,7 @@
 
 \subsection{XORing Elephants: Novel Erasure Codes for Big Data}
 
-The article \autocite{XorbasVLDB} presents a new family of erasure codes called \acp{lrc}.
+The article presents a new family of erasure codes called \acp{lrc} \autocite{XorbasVLDB}.
 These codes enable local repair of faulty data.
 With traditional erasure codes like Reed-Solomon, the cumulative size of the blocks needed to repair a file has to be bigger or equal than the original size of the file.
 With \ac{lrc}, a failure affecting a small number of blocks can be repaired using a smaller number of clean blocks.
@@ -17,17 +17,16 @@ Their system is mainly geared towards the measurement of read/write throughput a
 The algorithms that they tested are implemented in low-level languages.
 The interface that their system exposes is a REST API exposed through HTTP.
 
-\vs{to include \url{https://www.cs.utexas.edu/~lorenzo/papers/Silberstein14Lazy.pdf} }
+\subsection{Hyfs: Design and Implementation of a Reliable File System}
 
-\vs{to include and explain the differences: \url{https://www.usenix.org/legacy/event/fast08/wips_posters/luo-wip.pdf} cite this: 
-@phdthesis{Luo:2011:HDI:2338412,
- author = {Luo, Jianqiang},
- advisor = {Xu, Lihao},
- title = {Hyfs: Design and Implementation of a Reliable File System},
- year = {2011},
- isbn = {978-1-124-86527-0},
- note = {AAI3469996},
- publisher = {Wayne State University},
- address = {Detroit, MI, USA},
-}
-}
+The author designed a filesystem that uses erasure codes and stores data on multiple nodes \autocite{hyfs}.
+It exposes a \ac{fuse} interface to the user, and employs standard NFS servers as its backend.
+The system has been tested using at most 4 nodes.
+
+\subsection{Lazy Means Smart: Reducing Repair Bandwidth Costs in Erasure-coded Distributed Storage}
+
+The article evaluates the costs applying a lazy block repair strategy \autocite{Silberstein2014}.
+Instead of repairing blocks right after any failure, a waiting time is introduced before repairing blocks.
+In case of a temporary failure, no network capacity is wasted uselessly repairing intact blocks.
+As part of their evaluation, the authors implemented a simulator called \textit{ds-sim}.
+It models failures in a storage cluster, and can evaluate the costs of repair of different erasure coding algorithm, as well as replication.
