@@ -54,23 +54,26 @@
 %    {\finentry}}
 
 % Constants
-\def\mytitle{Master Thesis}
-\def\thesistitle{Thesis title}
-\def\thesissubtitle{Thesis subtitle}
-\def\myauthor{Sébastien Vaucher, Hugues Mercier, Valerio Schiavoni}
+\def\ieeetitle{ErasureBench: an experimental testbed\\ to evaluate erasure-coding libraries}
+\def\ieeeauthor{Sébastien Vaucher, Hugues Mercier, Valerio Schiavoni}
 
-\author{\IEEEauthorblockN{\myauthor}
+\def\thesistitle{ErasureBench}
+\def\thesissubtitle{An experimental testbed to evaluate erasure-coding libraries}
+\def\thesisauthor{Sébastien Vaucher}
+
+
+\author{\IEEEauthorblockN{\ieeeauthor}
     \IEEEauthorblockA{University of Neuchâtel, Switzerland\\
         \href{mailto:first.last@unine.ch}{first.last@unine.ch}}
 }
-\title{\mytitle}
+\title{\ieeetitle}
 
 \addbibresource{references.bib}
 \renewcommand*{\bibfont}{\small}
 
 \hypersetup{
-	pdftitle=\mytitle,
-	pdfauthor=\myauthor
+	pdftitle=\ieeetitle,
+	pdfauthor=\thesisauthor
 }
 
 % \noautocite{*}
@@ -93,7 +96,7 @@
             \LARGE{\textbf{Master Thesis} \\}
             \vspace{0.4in}
 
-            {\Large \myauthor}
+            {\Large \thesisauthor}
 
             \vspace{0.3in}
             {\Large Université de Neuchâtel \par}
