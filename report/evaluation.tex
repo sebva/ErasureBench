@@ -37,6 +37,20 @@ It also demonstrates that the larger files contained in httpd are more prone to 
 \subsection{Read/write performance and overhead of \acs{fuse}}
 \label{subsec:rw-perf}
 
+The plot in \autoref{fig:throughput-plot} shows the user-facing throughput of the system.
+We write three files of different sizes and containing random data to the filesystem, and then read them.
+To measure the \textit{\ac{fuse}} case, read and write operations are performed against the mountpoint exposed by the tester.
+The \textit{Direct} case bypasses the \ac{fuse} layer, and directly calls Java methods.
+
+For all cases except \textit{\ac{fuse} write}, we can see that larger file sizes yield better results.
+Performance when writing increasingly bigger files using \ac{fuse} decreases because some buffers have to be resized as the file grows.
+Larger writes lead to more resizing operations.
+
+\ac{rs} is faster in writing than \ac{lrc}, notably because it requires less blocks to be written to the system,
+On read operations, \ac{lrc} is inherently faster as it requires the same number of blocks as \ac{rs}.
+
+The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and between \SI{-33.6}{\percent} and \SI{-84.9}{\percent} for write operations.
+
 \begin{figure*}
     \centering
     \input{throughput-plot.tex}

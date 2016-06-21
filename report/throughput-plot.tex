@@ -16,6 +16,10 @@
     enlarge x limits=0.3,
     ybar=3.5mm,
     nodes near coords,
+    legend style={
+        anchor=north west,
+        at={(0.02,0.87)},
+    },
     every node near coord/.append style={
         rotate=90,
         anchor=north,
@@ -48,7 +52,7 @@
     (64 MB, 340) +- (0, 1.41)
 };
 
-\legend{Null, RS, LRC}
+\legend{No erasure coding, Reed-Solomon, Locally Repairable Code}
 
 % Write direct
 \nextgroupplot[ymax=4700]
