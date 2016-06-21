@@ -95,6 +95,16 @@ The overhead due to erasure coding is always governed by the number of parity bl
 \subsection{Network traffic to/from storage nodes}
 \label{subsec:network-traffic}
 
+We evaluated the network capacity used by \ac{rs} and \ac{lrc}.
+We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
+We then did the reverse operation, once with all storage nodes intact, and once after killing \SI{5}{\percent} of the nodes.
+
+The results are displayed in \autoref{fig:traffic-plot}.
+They show that \ac{lrc} needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
+For read operations, \ac{lrc} is equivalent to \ac{rs} when the cluster is intact.
+The notable characteristic of \ac{lrc} is its increased block locality compared to \ac{rs}.
+We can clearly observe that it effectively lowers the network usage as far as degraded reads are concerned.
+
 \begin{figure}
     \centering
     \input{traffic-plot.tex}
