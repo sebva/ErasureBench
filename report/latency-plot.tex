@@ -9,7 +9,7 @@
     cycle list shift=1,
     legend pos=south east,
     mark phase=0,
-    mark repeat=2,
+    mark repeat=3,
 ]
 \addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency.csv -c 1};
 \addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency.csv -c 2};
