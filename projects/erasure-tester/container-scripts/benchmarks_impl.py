@@ -172,17 +172,41 @@ class BenchmarksImpl:
         proc.wait()
         return lines
 
-    def bench_kill(self, config, redis: RedisCluster, java, nodes_trace):
+    def bench_repair(self, config, redis: RedisCluster, java, nodes_trace):
         if config[1] < 2 or config[0] == 'Null':
             # The benchmark would crash needlessly
             return {}
 
-        self.bench_dd(block_count=20)
+        start = time()
+        print('Uncompressing httpd...')
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount],
+                                    stdout=subprocess.PIPE, bufsize=1)
+        self._show_subprocess_percent(tar_proc, 2614)
+
         for redis_size in (x[0] for x in nodes_trace):
             redis.scale(redis_size, brutal=True)
+            print("Flushing read cache")
             java.flush_read_cache()
-            self.bench_dd(block_count=20)
-        return {}
+            print("Repairing all files")
+            java.repair_all_files()
+
+        sleep(5)
+        java.flush_read_cache()
+        sleep(5)
+        print('Checking files...')
+        sha_proc = subprocess.Popen(
+            ['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'],
+            stdout=subprocess.PIPE, bufsize=1)
+        sha_output = self._show_subprocess_percent(sha_proc, 2517)
+        end = time()
+        ok_files = len([x for x in sha_output if b' OK' in x])
+        failed_files = len([x for x in sha_output if b' FAILED' in x])
+        return {
+            'ok': ok_files,
+            'failed': failed_files,
+            'start': start,
+            'end': end
+        }
 
     def bench_dd(self, config=None, redis=None, java=None, nodes_trace=None, block_count=50):
         filename = self.generate_file_name()
