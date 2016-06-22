@@ -117,9 +117,13 @@ The solution we adopted is the containerization of each service.
 The tester along with supporting Python scripts are bundled together in a Docker image.
 When an experimenter wants to start the benchmarks with, say, a 20 nodes Redis cluster as storage backend, he only needs to specify the desired setup in a configuration file.
 The supporting Python scripts will configure the Redis cluster and then run the benchmarks and collect the results.
+We use the \textit{redis-trib.rb} script to initialize the Redis cluster.
+We also used it to scale the cluster, but it was too slow if there were more than a dozen nodes.
+We therefore implemented the same logic in our own Python scripts, so we can scale the cluster much faster.
 
 Thanks to the use of Docker Swarm, the setup to run the benchmarks on a local machine or on a cluster of machines is similar.
 The system can use any reasonable number of Redis servers.
+We provide shell scripts that automate the complete pipeline, from the compilation of sources to the execution of benchmarks on a remote Docker swarm cluster.
 
 \subsection{Faults simulation}
 

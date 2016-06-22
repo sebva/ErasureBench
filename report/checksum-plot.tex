@@ -4,16 +4,12 @@
     width=\linewidth,
 }
 \usetikzlibrary{plotmarks}
-\pgfplotsset{every axis plot post/.append style={
-        solid,
-        thick,
-        mark size=1pt
-    }
-}
 \begin{axis}[
     xlabel=Dead nodes,
     ylabel=Available files,
-    cycle list name=exotic
+    cycle list name=exotic,
+    mark phase=0,
+    mark repeat=5,
 ]
 \addplot table[x=bench-apache-Null-x, y=bench-apache-Null-y] {plots/checksum-100nodes.dat};
 \addlegendentry{httpd-2.4.18 / Null}
