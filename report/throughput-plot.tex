@@ -1,5 +1,6 @@
 \begin{tikzpicture}
 \usetikzlibrary{plotmarks}
+\usetikzlibrary{patterns}
 \pgfplotsset{width=\linewidth, height=6cm}
 \begin{groupplot}[
     group style={
@@ -17,6 +18,7 @@
     enlarge x limits=0.3,
     ybar=0,
     /pgf/bar width=3mm,
+    /pgfplots/area legend,
     nodes near coords,
     legend style={
         anchor=north west,
@@ -37,19 +39,19 @@
 ]
 \nextgroupplot
 % Write with FUSE
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north west lines, pattern color=blue, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write Null
     (4 MB, 1590) +- (0, 31.62)
     (16 MB, 1160) +- (0, 51.64)
     (64 MB, 579) +- (0, 7.38)
 };
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=crosshatch dots, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write RS
     (4 MB, 1090) +- (0, 32.91)
     (16 MB, 770) +- (0, 17.21)
     (64 MB, 392) +- (0, 2.90)
 };
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north east lines, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write LRC
     (4 MB, 998) +- (0, 4.37)
     (16 MB, 670) +- (0, 10.28)
@@ -60,19 +62,19 @@
 
 % Write direct
 \nextgroupplot
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north west lines, pattern color=blue, pattern color=blue, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write Null
     (4 MB, 2999) +- (0, 824.6)
     (16 MB, 3536) +- (0, 289.1)
     (64 MB, 3838) +- (0, 81.1)
 };
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=crosshatch dots, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write RS
     (4 MB, 1743) +- (0, 235.5)
     (16 MB, 1874) +- (0, 481.6)
     (64 MB, 2084) +- (0, 264.5)
 };
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north east lines, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write LRC
     (4 MB, 1502) +- (0, 287.6)
     (16 MB, 1632) +- (0, 301.6)
@@ -81,19 +83,19 @@
 
 \nextgroupplot
 % Read with FUSE
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north west lines, pattern color=blue, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read Null
     (4 MB, 930) +- (0, 29.22)
     (16 MB, 1120) +- (0, 43.87)
     (64 MB, 1530) +- (0, 50.26)
 };
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=crosshatch dots, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read RS
     (4 MB, 711) +- (0, 13.06)
     (16 MB, 891) +- (0, 40.30)
     (64 MB, 1100) +- (0, 0)
 };
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north east lines, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read LRC
     (4 MB, 791) +- (0, 17.56)
     (16 MB, 1011) +- (0, 50.67)
@@ -102,19 +104,19 @@
 
 % Read direct
 \nextgroupplot
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north west lines, pattern color=blue, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read Null
     (4 MB, 1497) +- (0, 543.6)
     (16 MB, 1899) +- (0, 71.2)
     (64 MB, 1907) +- (0, 34.1)
 };
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=crosshatch dots, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read RS
     (4 MB, 1116) +- (0, 411.9)
     (16 MB, 1442) +- (0, 44.8)
     (64 MB, 1419) +- (0, 58.7)
 };
-\addplot+[error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north east lines, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read LRC
     (4 MB, 1296) +- (0, 432.4)
     (16 MB, 1632) +- (0, 24.0)
