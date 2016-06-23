@@ -190,7 +190,7 @@ public class FileEncoderDecoder {
                             subKeys.set(position, blockKey);
                         }
                     } catch (TooManyErasedLocations e) {
-                        log.warning("The file cannot be repaired");
+                        // log.warning("The file cannot be repaired");
                     }
                 }
             }

@@ -190,22 +190,9 @@ class BenchmarksImpl:
             print("Repairing all files")
             java.repair_all_files()
 
-        sleep(5)
-        java.flush_read_cache()
-        sleep(5)
-        print('Checking files...')
-        sha_proc = subprocess.Popen(
-            ['sha256sum', '-c', '/opt/erasuretester/httpd.sha256'],
-            stdout=subprocess.PIPE, bufsize=1)
-        sha_output = self._show_subprocess_percent(sha_proc, 2517)
-        end = time()
-        ok_files = len([x for x in sha_output if b' OK' in x])
-        failed_files = len([x for x in sha_output if b' FAILED' in x])
         return {
-            'ok': ok_files,
-            'failed': failed_files,
             'start': start,
-            'end': end
+            'end': time()
         }
 
     def bench_dd(self, config=None, redis=None, java=None, nodes_trace=None, block_count=50):
