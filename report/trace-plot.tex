@@ -9,13 +9,28 @@
         mark=none
     }
 }
-\begin{axis}[
-    date coordinates in=x,
-    xlabel=Date,
+\begin{groupplot}[
+    group style={
+        group size=1 by 2,
+        vertical sep=0pt,
+        horizontal sep=0pt,
+        xlabels at=edge bottom,
+        ylabels at=edge left,
+        xticklabels at=edge bottom,
+        yticklabels at=edge left,
+    },
+    xmin=0,
+    xmax=7,
+    xlabel=Hours,
     ylabel=Available nodes,
     table/col sep=comma,
-    x tick label style={rotate=20}
+    x tick label style={rotate=20},
 ]
-\addplot+ table[x=date, y=size] {plots/websites-size.dat};
-\end{axis}
+\nextgroupplot[height=2.2cm]
+\addplot+ table[x=hour, y=size] {plots/websites-size.dat};
+
+\nextgroupplot[height=5cm, scaled y ticks=base 10:-6, ytick scale label code/.code={}]
+\addplot+ table[x=hour, y=send] {plots/trace-rs.dat};
+\addplot+ table[x=hour, y=recv] {plots/trace-rs.dat};
+\end{groupplot}
 \end{tikzpicture}
