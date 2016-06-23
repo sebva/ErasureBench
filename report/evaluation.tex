@@ -1,7 +1,7 @@
 \begin{figure*}
     \centering
     \input{throughput-plot.tex}
-    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes. Half confidence interval.}
+    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes. Half confidence interval.\vs{increase space between plots, move title outside the plot, remove border around legend, make it less tall}}
     \label{fig:throughput-plot}
 \end{figure*}
 
@@ -22,7 +22,7 @@ We use sample file archives for some experiments, here are their descriptions:
 \begin{figure}
     \centering
     \input{checksum-plot.tex}
-    \caption{Fault tolerance of: no erasure coding (Null), \acl{lrc} $\left(10,6,5\right)$ and \acl{rs} $\left(10,4\right)$. Data written on 100 nodes, and then read after killing each node.}
+    \caption{Fault tolerance of: no erasure coding (Null), \acl{lrc} $\left(10,6,5\right)$ and \acl{rs} $\left(10,4\right)$. Data written on 100 nodes, and then read after killing each node.\vs{remove border around legend, reduce lenght of the horiz bar for each element}}
     \label{fig:checksum-plot}
 \end{figure}
 
@@ -77,7 +77,7 @@ The overhead due to erasure coding is always governed by the number of parity bl
 
 \begin{table*}
     \centering
-    \caption{Various metrics measured when storing files in the system.}
+    \caption{Various metrics measured when storing files in the system.\vs{use same names as those in the plots}}
     \input{overheads-table.tex}
     \label{fig:overhead-table}
 \end{table*}
@@ -88,7 +88,7 @@ The overhead due to erasure coding is always governed by the number of parity bl
 \begin{figure}
     \centering
     \input{latency-plot.tex}
-    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.}
+    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.\vs{use same form factor of Fig 4, remove border around legend, reduce lenght of the horiz bar for each element }}
     \label{fig:latency-plot}
 \end{figure}
 
