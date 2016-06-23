@@ -183,12 +183,18 @@ class BenchmarksImpl:
                                     stdout=subprocess.PIPE, bufsize=1)
         self._show_subprocess_percent(tar_proc, 2614)
 
+        last_size = -1
         for redis_size in (x[0] for x in nodes_trace):
+            if redis_size == last_size:
+                last_size = redis_size
+                sleep(1)
+                continue
             redis.scale(redis_size, brutal=True)
             print("Flushing read cache")
             java.flush_read_cache()
             print("Repairing all files")
             java.repair_all_files()
+            last_size = redis_size
 
         return {
             'start': start,
