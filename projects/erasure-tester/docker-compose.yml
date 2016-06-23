@@ -18,7 +18,9 @@ services:
     devices:
       - "/dev/fuse"
     volumes:
-      - ./results:/opt/erasuretester/results
+      - results:/opt/erasuretester/results
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       DOCKER_HOST:
+volumes:
+  results: {}
