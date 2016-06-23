@@ -48,11 +48,26 @@ def _plot_throughput_pgf(results):
                     type_of_read = 'normal' if redis_current == cluster_size else 'degraded'
                     cols.append(["read-{}-{}nodes-{}".format(type_of_read, cluster_size, result['config'][0])] + y_axis)
 
-    nb_rows = max(len(x) for x in cols)
+    percentile_cols = []
+    for metric in {x[0] for x in cols}:
+        old_metric_cols = [x[1:] for x in cols if x[0] == metric]
+        new_metric_cols = [[] for _ in range(len(old_metric_cols))]
+        for row in zip(*old_metric_cols):
+            j = 0
+            for value in sorted(row):
+                new_metric_cols[j].append(value)
+                j += 1
+        i = 1
+        for col in new_metric_cols:
+            col.insert(0, '%s-%d' % (metric, i))
+            percentile_cols.append(col)
+            i += 1
+
+    nb_rows = max(len(x) for x in percentile_cols)
     counter = -1
     for row in range(nb_rows):
         prefix = str(counter) if counter >= 0 else 'x'
-        print(prefix + '\t' + '\t'.join(str(x[row] if len(x) > row else 'nan') for x in cols))
+        print(prefix + '\t' + '\t'.join(str(x[row] if len(x) > row else 'nan') for x in percentile_cols))
         if counter == -1:
             counter = 0
         else:
