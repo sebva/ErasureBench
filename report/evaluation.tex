@@ -12,11 +12,10 @@ In this section, we evaluate the various aspects or our tester by comparing two 
 The two algorithms under test are \acf{rs} and \acf{lrc}.
 We use sample file archives for some experiments, here are their descriptions:
 
-\begin{description}[\IEEEsetlabelwidth{kotlin-test}]
+\begin{description}[\IEEEsetlabelwidth{httpd}]
     \item[httpd] The sources of Apache httpd 2.4.18.
     \item[bc] The sources of GNU bc 1.06.
-    \item[kotlin-test] The sources of kotlin-test 1.2.0.
-    \item[10bytes] An archive that contains \num{1000} files, each containing 10 random bytes.
+    \item[\SI{10}{\byte}] An archive that contains \num{1000} files, each containing 10 random bytes.
 \end{description}
 
 \begin{figure}
@@ -33,7 +32,7 @@ One of the most important, or perhaps the most important characteristic of an er
 A good code should ensure that data stays completely available when a small fraction of servers goes down.
 We quantified the fault tolerance of \acf{rs}, \acf{lrc} and no erasure coding.
 We instantiated a storage cluster of 100 nodes, and extracted the contents of an archive in it.
-We used 2 different archives: 10bytes, which is an ideal scenario and httpd, which is our real-world scenario.
+We used 2 different archives: \SI{10}{\byte}, which is an ideal scenario and httpd, which is our real-world scenario.
 After the files were extracted, we checked the integrity of each file contained in the storage cluster.
 We then killed storage nodes one after the other, and checked the files integrity before each step.
 

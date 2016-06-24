@@ -10,9 +10,10 @@
     cycle list name=exotic,
     mark phase=7,
     mark repeat=5,
-    xmin=-0.05,
-    xmax=1.1,
+    xmin=-0.02,
+    xmax=0.85,
     ytick={0, 0.25, 0.5, 0.75, 1},
+    minor xtick={0,0.05,...,1},
     legend style={
         short line legend,
         draw=none,
@@ -35,9 +36,9 @@
 \addlegendentry{bc, LRC}
 
 \addplot+[mark phase=2] table[x=bench-10bytes-Null-x, y=bench-10bytes-Null-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10bytes, Null}
+\addlegendentry{\SI{10}{\byte}, Null}
 \addplot table[x=bench-10bytes-SimpleRegenerating-x, y=bench-10bytes-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10bytes, LRC}
+\addlegendentry{\SI{10}{\byte}, LRC}
 
 \addlegendimage{empty legend}
 \addlegendentry{}
@@ -56,7 +57,7 @@
 \addlegendentry{}
 
 \addplot table[x=bench-10bytes-ReedSolomon-x, y=bench-10bytes-ReedSolomon-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10bytes, RS}
+\addlegendentry{\SI{10}{\byte}, RS}
 
 \end{axis}
 \end{tikzpicture}
