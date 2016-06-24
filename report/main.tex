@@ -41,6 +41,16 @@
     tick label style={font=\small},
     label style={font=\small},
     legend style={font=\small},
+    /pgfplots/short line legend/.style={
+        legend image code/.code={
+            \draw[mark repeat=2,mark phase=2,##1]
+                plot coordinates {
+                    (0cm,0cm)
+                    (0.2cm,0cm)
+                    (0.4cm,0cm)
+                };%
+        }
+    }
 }
 
 \usepgfplotslibrary{external, dateplot, groupplots, units}
