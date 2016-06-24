@@ -92,6 +92,10 @@ The overhead due to erasure coding is always governed by the number of parity bl
 \subsection{Cluster size impact on latency}
 \label{subsec:latency}
 
+In order to test the impact of the cluster size on performances, we measured the time needed to write \SI{16}{\mebi\byte} to storage clusters of various sizes.
+The results are shown as a \ac{cdf} in \autoref{fig:latency-plot}.
+We can see that the growth of the cluster size has an impact on performance, although it is limited.
+
 \begin{figure*}
     \centering
     \input{traffic-plot.tex}
