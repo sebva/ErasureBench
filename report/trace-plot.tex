@@ -11,7 +11,7 @@
 }
 \begin{groupplot}[
     group style={
-        group size=1 by 2,
+        group size=1 by 3,
         vertical sep=0pt,
         horizontal sep=0pt,
         xlabels at=edge bottom,
@@ -19,18 +19,25 @@
         xticklabels at=edge bottom,
         yticklabels at=edge left,
     },
-    xmin=0,
-    xmax=7,
+    xmin=-0.1,
+    xmax=7.1,
     xlabel=Hours,
-    ylabel=Available nodes,
+    ylabel={Network traffic $\left[\si{\mega\byte\per\second}\right]$},
     table/col sep=comma,
     x tick label style={rotate=20},
 ]
-\nextgroupplot[height=2.2cm]
-\addplot+ table[x=hour, y=size] {plots/websites-size.dat};
+\nextgroupplot[height=2.2cm,ylabel=Nodes]
+\addplot+[const plot] table[x=hour, y=size] {plots/websites-size.dat};
 
-\nextgroupplot[height=5cm, scaled y ticks=base 10:-6, ytick scale label code/.code={}]
+\nextgroupplot[height=5cm, scaled y ticks=base 10:-6, ytick scale label code/.code={},ymin=33000000,ymax=43000000]
 \addplot+ table[x=hour, y=send] {plots/trace-rs.dat};
 \addplot+ table[x=hour, y=recv] {plots/trace-rs.dat};
+
+\nextgroupplot[height=5cm, scaled y ticks=base 10:-6, ytick scale label code/.code={},ymin=33000000,ymax=43000000]
+\addplot+ table[x=hour, y=send] {plots/trace-lrc.dat};
+\addplot+ table[x=hour, y=recv] {plots/trace-lrc.dat};
 \end{groupplot}
+
+\node[anchor=north] at (group c1r2.north) {Reed-Solomon};
+\node[anchor=north] at (group c1r3.north) {Locally Repairable Code};
 \end{tikzpicture}
