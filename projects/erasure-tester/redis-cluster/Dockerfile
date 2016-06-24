@@ -8,5 +8,4 @@ COPY redis.conf /usr/local/etc/redis/redis.conf
 COPY start_with_capture.sh /opt/start_with_capture.sh
 RUN chmod +x /opt/start_with_capture.sh
 
-ENTRYPOINT ["/opt/start_with_capture.sh"]
 CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]

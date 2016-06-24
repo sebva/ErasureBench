@@ -6,6 +6,8 @@ services:
       - ALL
     volumes:
       - captures:/capture
+    # Uncomment to capture the traffic with Wireshark
+    # entrypoint: /opt/start_with_capture.sh
   redis-standalone:
     image: redis:alpine
   erasure:

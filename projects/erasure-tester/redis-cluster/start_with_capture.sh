@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Alternative entrypoint that will start a Wireshark capture in parallel to Redis
+
 trap 'kill $(jobs -p)' EXIT
 
 id=$(cut -c -8 /etc/hostname)
