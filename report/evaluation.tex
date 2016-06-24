@@ -116,12 +116,12 @@ For read operations, \ac{lrc} is equivalent to \ac{rs} when the cluster is intac
 The notable characteristic of \ac{lrc} is its increased block locality compared to \ac{rs}.
 We can clearly observe that it effectively lowers the network usage as far as degraded reads are concerned.
 
-\begin{figure*}
+\begin{figure}
     \centering
     \input{trace-plot.tex}
     \caption{Top plot: graphical representation of the number of nodes available at a given time as recorded in the trace file. Bottom plots: network traffic incurred by writing \textit{httpd} to the storage cluster, moving blocks between servers when scaling up, and repairing blocks when nodes die.}
     \label{fig:trace-plot}
-\end{figure*}
+\end{figure}
 
 \subsection{Impact of real faults on network usage}
 \label{subsec:fault-trace}

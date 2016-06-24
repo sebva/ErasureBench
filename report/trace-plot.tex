@@ -28,6 +28,12 @@
     height=2cm,
     ylabel=Nodes,
     ytick={112,118},
+    minor ytick={112,...,118},
+    tick pos=left,
+    ytick align=outside,
+    xmajorgrids,
+    ymajorgrids,
+    yminorgrids,
 ]
 \addplot+[const plot] table[x=hour, y=size] {plots/websites-size.dat};
 
