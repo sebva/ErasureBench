@@ -5,30 +5,34 @@
 }
 \usetikzlibrary{plotmarks}
 \begin{axis}[
-    xlabel=Dead nodes,
-    ylabel=Available files,
+    xlabel={Dead nodes $\left[\si{\percent}\right]$},
+    ylabel={Available files $\left[\si{\percent}\right]$},
     cycle list name=exotic,
     mark phase=0,
     mark repeat=5,
+    ytick={0, 0.25, 0.5, 0.75, 1},
     legend style={
         short line legend,
         draw=none,
         cells={anchor=west},
     },
+    scaled ticks=base 10:2,
+    xtick scale label code/.code={},
+    ytick scale label code/.code={},
 ]
 \addplot table[x=bench-apache-Null-x, y=bench-apache-Null-y] {plots/checksum-100nodes.dat};
-\addlegendentry{httpd / Null}
+\addlegendentry{httpd, Null}
 \addplot table[x=bench-10bytes-Null-x, y=bench-10bytes-Null-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10bytes / Null}
+\addlegendentry{10bytes, Null}
 
 \addplot table[x=bench-apache-SimpleRegenerating-x, y=bench-apache-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
-\addlegendentry{httpd / LRC}
+\addlegendentry{httpd, LRC}
 \addplot table[x=bench-10bytes-SimpleRegenerating-x, y=bench-10bytes-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10bytes / LRC}
+\addlegendentry{10bytes, LRC}
 
 \addplot table[x=bench-apache-ReedSolomon-x, y=bench-apache-ReedSolomon-y] {plots/checksum-100nodes.dat};
-\addlegendentry{httpd / RS}
+\addlegendentry{httpd, RS}
 \addplot table[x=bench-10bytes-ReedSolomon-x, y=bench-10bytes-ReedSolomon-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10bytes / RS}
+\addlegendentry{10bytes, RS}
 \end{axis}
 \end{tikzpicture}
