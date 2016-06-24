@@ -22,18 +22,31 @@ def main():
                         try:
                             recv = float(cols[0])
                             send = float(cols[1])
+                            thrghpt = (recv + send) / 5
                             if timestamp not in lines:
-                                lines[timestamp] = [recv, send]
+                                lines[timestamp] = thrghpt
                             else:
-                                lines[timestamp][0] += recv
-                                lines[timestamp][1] += send
+                                lines[timestamp] += thrghpt
                             timestamp += 5
                         except ValueError:
                             pass
-    print('timestamp,hour,recv,send')
+    print('timestamp,hour,throughput')
+    aggregate = 30
+    current_value = 0
+    current_timestamp = 0
     for timestamp in sorted(lines.keys()):
-        hour = (timestamp - min_timestamp) / 3600
-        print(','.join(str(x) for x in [timestamp, hour] + lines[timestamp]))
+        if timestamp // aggregate == current_timestamp:
+            current_value += lines[timestamp] / aggregate
+        elif current_timestamp == 0:
+            current_timestamp = timestamp // aggregate
+            current_value = lines[timestamp] / aggregate
+        else:
+            hour = (current_timestamp * aggregate - min_timestamp) / 3600
+            print(','.join(str(x) for x in [current_timestamp * aggregate, hour] + [current_value]))
+            current_timestamp = timestamp // aggregate
+            current_value = lines[timestamp]
+    hour = (current_timestamp * aggregate - min_timestamp) / 3600
+    print(','.join(str(x) for x in [current_timestamp * aggregate, hour] + [current_value]))
 
 
 if __name__ == '__main__':

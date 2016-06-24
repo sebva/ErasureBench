@@ -24,18 +24,15 @@
     xlabel=Hours,
     ylabel={Network traffic $\left[\si{\mega\byte\per\second}\right]$},
     table/col sep=comma,
-    x tick label style={rotate=20},
 ]
 \nextgroupplot[height=2.2cm,ylabel=Nodes]
 \addplot+[const plot] table[x=hour, y=size] {plots/websites-size.dat};
 
-\nextgroupplot[height=5cm, scaled y ticks=base 10:-6, ytick scale label code/.code={},ymin=33000000,ymax=43000000]
-\addplot+ table[x=hour, y=send] {plots/trace-rs.dat};
-\addplot+ table[x=hour, y=recv] {plots/trace-rs.dat};
+\nextgroupplot[height=5cm, scaled y ticks=base 10:-6, ytick scale label code/.code={}]
+\addplot+ table[x=hour, y=throughput] {plots/trace-rs.dat};
 
-\nextgroupplot[height=5cm, scaled y ticks=base 10:-6, ytick scale label code/.code={},ymin=33000000,ymax=43000000]
-\addplot+ table[x=hour, y=send] {plots/trace-lrc.dat};
-\addplot+ table[x=hour, y=recv] {plots/trace-lrc.dat};
+\nextgroupplot[height=5cm, scaled y ticks=base 10:-6, ytick scale label code/.code={}]
+\addplot+ table[x=hour, y=throughput] {plots/trace-lrc.dat};
 \end{groupplot}
 
 \node[anchor=north] at (group c1r2.north) {Reed-Solomon};
