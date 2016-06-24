@@ -1,6 +1,6 @@
 FROM redis:3.2
 
-RUN apt-get -yqq update && apt-get -yqq install --no-install-recommends dstat && apt-get -yqq clean
+RUN apt-get -yqq update && apt-get -yqq install --no-install-recommends wireshark-common && apt-get -yqq clean
 
 RUN mkdir -p /capture && chown 0:0 /capture
 

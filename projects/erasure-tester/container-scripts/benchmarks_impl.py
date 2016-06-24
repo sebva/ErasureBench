@@ -177,12 +177,13 @@ class BenchmarksImpl:
             # The benchmark would crash needlessly
             return {}
 
-        start = time()
+        start1 = time()
         print('Uncompressing httpd...')
         tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount],
                                     stdout=subprocess.PIPE, bufsize=1)
         self._show_subprocess_percent(tar_proc, 2614)
 
+        start2 = time()
         last_size = -1
         for redis_size in (x[0] for x in nodes_trace):
             if redis_size == last_size:
@@ -197,7 +198,8 @@ class BenchmarksImpl:
             last_size = redis_size
 
         return {
-            'start': start,
+            'start': start1,
+            'trace_start': start2,
             'end': time()
         }
 
