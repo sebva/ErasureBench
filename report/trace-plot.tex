@@ -2,20 +2,54 @@
 
 \begin{tikzpicture}
 \usetikzlibrary{plotmarks}
-\pgfplotsset{width=\linewidth, height=7cm,
+\pgfplotsset{width=\linewidth,
     every axis plot post/.append style={
         solid,
         thin,
         mark=none
     }
 }
-\begin{axis}[
-    date coordinates in=x,
-    xlabel=Date,
-    ylabel=Available nodes,
+\begin{groupplot}[
+    group style={
+        group size=1 by 3,
+        vertical sep=2mm,
+        horizontal sep=0pt,
+        xlabels at=edge bottom,
+        ylabels at=edge left,
+        xticklabels at=edge bottom,
+        yticklabels at=edge left,
+    },
+    xmin=-0.1,
+    xmax=7.1,
+    xlabel={Elaspsed time $\left[\si{\hour}\right]$},
     table/col sep=comma,
-    x tick label style={rotate=20}
 ]
-\addplot+ table[x=date, y=size] {plots/websites-size.dat};
-\end{axis}
+\nextgroupplot[
+    height=2cm,
+    ylabel=Nodes,
+    ytick={112,118},
+]
+\addplot+[const plot] table[x=hour, y=size] {plots/websites-size.dat};
+
+\nextgroupplot[height=4cm, scaled y ticks=base 10:-6, ytick scale label code/.code={}]
+\addplot+ table[x=hour, y=throughput] {plots/trace-rs.dat};
+
+\nextgroupplot[
+    height=4cm,
+    scaled y ticks=base 10:-6,
+    ytick scale label code/.code={},
+    ylabel={Network throughput $\left[\si{\mega\byte\per\second}\right]$},
+    every axis y label/.append style={
+        at=(ticklabel cs:1.1)
+    }
+]
+\addplot+ table[x=hour, y=throughput] {plots/trace-lrc.dat};
+\end{groupplot}
+
+\node[anchor=north] at (group c1r2.north) {Reed-Solomon};
+\node[anchor=north] at (group c1r3.north) {Locally Repairable Code};
+
+% To remove
+\node[anchor=center, color=red] at (group c1r2.center) {Will be replaced with more precise data};
+\node[anchor=center, color=red] at (group c1r3.center) {Will be replaced with more precise data};
 \end{tikzpicture}

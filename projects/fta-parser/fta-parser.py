@@ -256,18 +256,20 @@ def simulate(db_file):
     sql.close()
 
 
-def pgfplotsfile(db_file, epoch_delta=0, start_time=0, end_time=10000000000, show_every=1):
+def pgfplotsfile(db_file, start_time=0, end_time=10000000000):
     sql = sqlite3.connect(db_file)
 
     cur = sql.cursor()
+    cur.execute('''SELECT SUM(CASE event_type WHEN 1 THEN 1 ELSE -1 END) FROM event_trace
+                   WHERE event_start_time <= ?''', (start_time,))
+    size = int(cur.fetchone()[0])
+
     cur.execute(r'SELECT event_start_time, event_type FROM event_trace WHERE event_start_time > ? AND event_start_time < ? ORDER BY event_start_time;',
                 (start_time, end_time))
 
-    print("date,size")
+    print("hour,size")
 
-    size = 0
     count = 0
-    last_date_str = ""
     events = cur.fetchall()
     for event in events:
         if event[1] == 1:
@@ -275,20 +277,16 @@ def pgfplotsfile(db_file, epoch_delta=0, start_time=0, end_time=10000000000, sho
         elif event[1] == 0:
             size -= 1
 
-        date = datetime.fromtimestamp(event[0] + epoch_delta, timezone.utc)
-        date_str = date.strftime('%Y-%m-%d %H:%M')
-        if date_str != last_date_str:
-            last_date_str = date_str
-            if count % show_every == 0:
-                print('%s,%d' % (date_str, size))
-            count += 1
+        hour = (event[0] - start_time) / 3600
+        print('%f,%d' % (hour, size))
+        count += 1
 
     cur.close()
     sql.close()
 
 
 if __name__ == '__main__':
-    pgfplotsfile('databases/websites02.db', epoch_delta=1001779870, show_every=10)
+    pgfplotsfile('databases/websites02.db', start_time=3370000, end_time=3395000)
 
     # simulate('databases/oneping.db')
     #

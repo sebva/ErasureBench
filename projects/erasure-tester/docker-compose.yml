@@ -2,6 +2,12 @@ version: '2'
 services:
   redis-master:
     image: redis-master:latest
+    cap_add:
+      - ALL
+    volumes:
+      - captures:/capture
+    # Uncomment to capture the traffic with Wireshark
+    # entrypoint: /opt/start_with_capture.sh
   redis-standalone:
     image: redis:alpine
   erasure:
@@ -24,3 +30,5 @@ services:
       DOCKER_HOST:
 volumes:
   results: {}
+  captures: {}
+

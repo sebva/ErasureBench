@@ -142,15 +142,21 @@ public class Main {
         while (true) {
             final String line = reader.nextLine();
             if ("repairAll".equals(line)) {
-                encdec.repairAllFiles();
+                try {
+                    encdec.repairAllFiles();
+                } catch (Exception e) {}
                 System.out.println("Done");
             } else if ("clearCache".equals(line)) {
-                storageBackend.clearReadCache();
+                try {
+                    storageBackend.clearReadCache();
+                } catch (Exception e) {}
                 System.out.println("Done");
             } else {
                 final Matcher matcher = pattern.matcher(line);
                 if (matcher.matches()) {
-                    encdec.repairFile(matcher.group(1));
+                    try {
+                        encdec.repairFile(matcher.group(1));
+                    } catch (Exception e) {}
                     System.out.println("Done");
                 } else {
                     System.out.println("Unknown command");

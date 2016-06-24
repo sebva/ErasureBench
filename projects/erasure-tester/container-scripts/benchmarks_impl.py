@@ -172,17 +172,36 @@ class BenchmarksImpl:
         proc.wait()
         return lines
 
-    def bench_kill(self, config, redis: RedisCluster, java, nodes_trace):
+    def bench_repair(self, config, redis: RedisCluster, java, nodes_trace):
         if config[1] < 2 or config[0] == 'Null':
             # The benchmark would crash needlessly
             return {}
 
-        self.bench_dd(block_count=20)
+        start1 = time()
+        print('Uncompressing httpd...')
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount],
+                                    stdout=subprocess.PIPE, bufsize=1)
+        self._show_subprocess_percent(tar_proc, 2614)
+
+        start2 = time()
+        last_size = -1
         for redis_size in (x[0] for x in nodes_trace):
+            if redis_size == last_size:
+                last_size = redis_size
+                sleep(1)
+                continue
             redis.scale(redis_size, brutal=True)
+            print("Flushing read cache")
             java.flush_read_cache()
-            self.bench_dd(block_count=20)
-        return {}
+            print("Repairing all files")
+            java.repair_all_files()
+            last_size = redis_size
+
+        return {
+            'start': start1,
+            'trace_start': start2,
+            'end': time()
+        }
 
     def bench_dd(self, config=None, redis=None, java=None, nodes_trace=None, block_count=50):
         filename = self.generate_file_name()

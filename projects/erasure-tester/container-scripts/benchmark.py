@@ -134,7 +134,7 @@ class JavaProgram:
         self.proc.stdout.flush()
         self.proc.stdin.flush()
         limit = 3
-        while limit > 0 and self.proc.stdout.readline() != b"Done\n":
+        while limit > 0 and b"Done\n" not in self.proc.stdout.readline():
             limit -= 1
             print("Waiting for the command to complete...")
         if limit <= 0:
