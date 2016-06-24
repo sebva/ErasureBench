@@ -3,6 +3,11 @@
 \pgfplotsset{
     height=4cm,
     width=\linewidth / 2.6,
+    every axis plot post/.append style={
+        solid,
+        very thin,
+        mark=none
+    },
     /pgfplots/area cycle list/.style={/pgfplots/cycle list={%
             {black,fill=black,mark=none},%
             {black,fill=white!25!black,mark=none},%
@@ -13,6 +18,7 @@
     },
 }
 \begin{groupplot}[
+    ymajorgrids,
     group style={
         group size=3 by 2,
         vertical sep=2mm,
