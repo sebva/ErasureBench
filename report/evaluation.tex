@@ -1,4 +1,4 @@
-\begin{figure*}
+\begin{figure*}[t]
     \centering
     \input{throughput-plot.tex}
     \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes. Half confidence interval.\vs{increase space between plots, move title outside the plot, remove border around legend, make it less tall}}
@@ -8,15 +8,36 @@
 \section{Evaluation}
 \label{sec:evaluation}
 
-In this section, we evaluate the various aspects or our tester by comparing two data coding algorithms against unprocessed data.
-The two algorithms under test are \acf{rs} and \acf{lrc}.
-We use sample file archives for some experiments, here are their descriptions:
+This section presents the evaluation of our \SYS prototype. 
+First, we describe the evaluation settings (Sec~\ref{sec:eval:settings}).
+Then we evaluate the system along several characteristics: network throughput, encoding/decoding, request latency, scalability.
+We conclude our evaluation by asseasing its fault tolerance features by mean of syntentic and real-world traces.
+\vs{add refs to specific sections the text is stable}.
 
-\begin{description}[\IEEEsetlabelwidth{httpd}]
-    \item[httpd] The sources of Apache httpd 2.4.18.
-    \item[bc] The sources of GNU bc 1.06.
-    \item[\SI{10}{\byte}] An archive that contains \num{1000} files, each containing 10 random bytes.
-\end{description}
+\subsection{Evaluation Settings}
+ \label{sec:eval:settings}
+
+We deploy our experiments over a cluster of machines interconnected by a 1\,Gb/s switched network.
+Each physical host features 8-Core Xeon CPUs and 8\,GB of RAM.
+We deploy virtual machines (VM) on top of the hosts.
+The KVM hypervisor, which controls the execution of the VM, is configured to expose the physical CPU to the guest VM and Docker containers by mean of the \texttt{host-passthrough} option.
+The VMs leverage the \texttt{virtio} module for better I/O performances.
+We deploy Docker (v0.11\vs{check}) containers on each VM without any memory restriction.
+Similarly, the client that injects requests into the testbed runs in an Docker container running in a separate host.
+
+\subsection{Workloads}
+%we evaluate the various aspects or our tester by comparing two data coding algorithms against unprocessed data.
+%The two algorithms under test are \acf{rs} and \acf{lrc}.
+To evaluate the performances of \SYS we use two archives from open-source projects: the Apache \texttt{httpd}\footnote{\vs{add url}} web server (v2.4.18), GNU BC\footnote{\vs{add url}} (v1.06).
+As further example, we created an archive with 1000 files, each containing 10 random bytes (\SI{10}{\byte} in the remainder).
+
+%We use sample file archives for some experiments, here are their descriptions:
+%
+%\begin{description}[\IEEEsetlabelwidth{httpd}]
+%    \item[httpd] The sources of Apache httpd (v2.4.18).
+%    \item[bc] The sources of GNU bc 1.06.
+%    \item[\SI{10}{\byte}] An archive that contains \num{1000} files, each containing 10 random bytes.
+%\end{description}
 
 \begin{figure}
     \centering
