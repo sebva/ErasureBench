@@ -1,63 +1,60 @@
 \begin{tikzpicture}
 \pgfplotsset{
     height=5cm,
-    width=\linewidth,
+    width=\linewidth / 2.305,
 }
 \usetikzlibrary{plotmarks}
-\begin{axis}[
-    xlabel={Dead nodes $\left[\si{\percent}\right]$},
+\begin{groupplot}[
+    group style={
+        group size=3 by 1,
+        vertical sep=0pt,
+        horizontal sep=2mm,
+        xlabels at=edge bottom,
+        ylabels at=edge left,
+        xticklabels at=edge bottom,
+        yticklabels at=edge left,
+    },
     ylabel={Available files $\left[\si{\percent}\right]$},
     cycle list name=exotic,
-    mark phase=7,
-    mark repeat=5,
-    xmin=-0.02,
-    xmax=0.85,
+    xmax=0.8,
     ytick={0, 0.25, 0.5, 0.75, 1},
     minor xtick={0,0.05,...,1},
+    /tikz/mark repeat=5,
+    /tikz/mark phase=2,
     legend style={
         short line legend,
         draw=none,
         cells={anchor=west},
         fill=none,
+        at={(0.5, 1)},
+        anchor=south,
     },
-    legend columns=2,
+    legend columns=-1,
     scaled ticks=base 10:2,
     xtick scale label code/.code={},
     ytick scale label code/.code={},
 ]
-\addplot+[mark phase=2] table[x=bench-apache-Null-x, y=bench-apache-Null-y] {plots/checksum-100nodes.dat};
-\addlegendentry{httpd, Null}
-\addplot table[x=bench-apache-SimpleRegenerating-x, y=bench-apache-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
-\addlegendentry{httpd, LRC}
 
-\addplot+[mark phase=4] table[x=bench-bc-Null-x, y=bench-bc-Null-y] {plots/checksum-100nodes.dat};
-\addlegendentry{bc, Null}
-\addplot+[mark phase=9] table[x=bench-bc-SimpleRegenerating-x, y=bench-bc-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
-\addlegendentry{bc, LRC}
-
-\addplot+[mark phase=2] table[x=bench-10bytes-Null-x, y=bench-10bytes-Null-y] {plots/checksum-100nodes.dat};
-\addlegendentry{\SI{10}{\byte}, Null}
+\nextgroupplot
+\addplot table[x=bench-10bytes-Null-x, y=bench-10bytes-Null-y] {plots/checksum-100nodes.dat};
 \addplot table[x=bench-10bytes-SimpleRegenerating-x, y=bench-10bytes-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
-\addlegendentry{\SI{10}{\byte}, LRC}
-
-\addlegendimage{empty legend}
-\addlegendentry{}
-
-
-\addplot+[mark phase=7] table[x=bench-apache-ReedSolomon-x, y=bench-apache-ReedSolomon-y] {plots/checksum-100nodes.dat};
-\addlegendentry{httpd, RS}
-
-\addlegendimage{empty legend}
-\addlegendentry{}
-
-\addplot+[mark phase=8] table[x=bench-bc-ReedSolomon-x, y=bench-bc-ReedSolomon-y] {plots/checksum-100nodes.dat};
-\addlegendentry{bc, RS}
-
-\addlegendimage{empty legend}
-\addlegendentry{}
-
 \addplot table[x=bench-10bytes-ReedSolomon-x, y=bench-10bytes-ReedSolomon-y] {plots/checksum-100nodes.dat};
-\addlegendentry{\SI{10}{\byte}, RS}
 
-\end{axis}
+\nextgroupplot[xlabel={Dead nodes $\left[\si{\percent}\right]$}]
+\addplot table[x=bench-bc-Null-x, y=bench-bc-Null-y] {plots/checksum-100nodes.dat};
+\addplot table[x=bench-bc-SimpleRegenerating-x, y=bench-bc-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
+\addplot table[x=bench-bc-ReedSolomon-x, y=bench-bc-ReedSolomon-y] {plots/checksum-100nodes.dat};
+
+\legend{No erasure coding, LRC, Reed-Solomon}
+
+\nextgroupplot
+\addplot table[x=bench-apache-Null-x, y=bench-apache-Null-y] {plots/checksum-100nodes.dat};
+\addplot table[x=bench-apache-SimpleRegenerating-x, y=bench-apache-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
+\addplot table[x=bench-apache-ReedSolomon-x, y=bench-apache-ReedSolomon-y] {plots/checksum-100nodes.dat};
+
+\end{groupplot}
+
+\node[anchor=north] at (group c1r1.north) {\SI{10}{\byte}};
+\node[anchor=north] at (group c2r1.north) {bc};
+\node[anchor=north] at (group c3r1.north) {httpd};
 \end{tikzpicture}
