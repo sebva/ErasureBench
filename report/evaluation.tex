@@ -58,6 +58,13 @@ On read operations, \ac{lrc} is inherently faster as it requires the same number
 
 The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and between \SI{-33.6}{\percent} and \SI{-84.9}{\percent} for write operations.
 
+\begin{table*}
+    \centering
+    \caption{Various metrics measured when storing files in the system.\vs{use same names as those in the plots}}
+    \input{overheads-table.tex}
+    \label{fig:overhead-table}
+\end{table*}
+
 \subsection{Storage overheads}
 \label{subsec:storage-overheads}
 
@@ -75,22 +82,22 @@ As Redis can only store strings, we have to apply base 64 encoding to the blocks
 
 The overhead due to erasure coding is always governed by the number of parity blocks added.
 
-\begin{table*}
-    \centering
-    \caption{Various metrics measured when storing files in the system.\vs{use same names as those in the plots}}
-    \input{overheads-table.tex}
-    \label{fig:overhead-table}
-\end{table*}
-
-\subsection{Cluster size impact on latency}
-\label{subsec:latency}
-
 \begin{figure}
     \centering
     \input{latency-plot.tex}
     \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.\vs{use same form factor of Fig 4, remove border around legend, reduce lenght of the horiz bar for each element }}
     \label{fig:latency-plot}
 \end{figure}
+
+\subsection{Cluster size impact on latency}
+\label{subsec:latency}
+
+\begin{figure*}
+    \centering
+    \input{traffic-plot.tex}
+    \caption{Network throughput between the encoder and 100 Redis storage servers when the httpd archive is written and then read. 5 nodes are brutally killed before measuring a degraded read.}
+    \label{fig:traffic-plot}
+\end{figure*}
 
 \subsection{Network traffic to/from storage nodes}
 \label{subsec:network-traffic}
@@ -107,14 +114,10 @@ We can clearly observe that it effectively lowers the network usage as far as de
 
 \begin{figure*}
     \centering
-    \input{traffic-plot.tex}
-    \caption{Network throughput between the encoder and 100 Redis storage servers when the httpd archive is written and then read. 5 nodes are brutally killed before measuring a degraded read.}
-    \label{fig:traffic-plot}
-\end{figure*}
-
-\begin{figure*}
-    \centering
     \input{trace-plot.tex}
     \caption{Top plot: graphical representation of the number of nodes available at a given time as recorded in the trace file. Bottom plots: network traffic incurred by writing \textit{httpd} to the storage cluster, moving blocks between servers when scaling up, and repairing blocks when nodes die.}
     \label{fig:trace-plot}
 \end{figure*}
+
+\subsection{Impact of real faults on network usage}
+\label{subsec:fault-trace}
