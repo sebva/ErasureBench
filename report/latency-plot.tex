@@ -4,7 +4,7 @@
 \begin{axis}[
     x unit=s,
     xlabel=Latency,
-    ylabel=CDF,
+    ylabel={CDF $\left[\si{\percent}\right]$},
     cycle list name=exotic,
     cycle list shift=1,
     legend pos=south east,
@@ -14,6 +14,9 @@
         short line legend,
         draw=none,
     },
+    ytick={0, 0.25, 0.5, 0.75, 1},
+    scaled y ticks=base 10:2,
+    ytick scale label code/.code={},
 ]
 \addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency.csv -c 1};
 \addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency.csv -c 2};
