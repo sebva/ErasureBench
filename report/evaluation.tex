@@ -15,7 +15,7 @@ We conclude our evaluation by asseasing its fault tolerance features by mean of 
 \vs{add refs to specific sections the text is stable}.
 
 \subsection{Evaluation Settings}
- \label{sec:eval:settings}
+\label{sec:eval:settings}
 
 We deploy our experiments over a cluster of machines interconnected by a 1\,Gb/s switched network.
 Each physical host features 8-Core Xeon CPUs and 8\,GB of RAM.
@@ -26,6 +26,7 @@ We deploy Docker (v0.11\vs{check}) containers on each VM without any memory rest
 Similarly, the client that injects requests into the testbed runs in an Docker container running in a separate host.
 
 \subsection{Workloads}
+\label{sec:eval:workloads}
 %we evaluate the various aspects or our tester by comparing two data coding algorithms against unprocessed data.
 %The two algorithms under test are \acf{rs} and \acf{lrc}.
 To evaluate the performances of \SYS we use two archives from open-source projects: the Apache \texttt{httpd}\footnote{\vs{add url}} web server (v2.4.18), GNU BC\footnote{\vs{add url}} (v1.06).
