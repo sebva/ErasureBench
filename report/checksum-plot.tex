@@ -8,31 +8,55 @@
     xlabel={Dead nodes $\left[\si{\percent}\right]$},
     ylabel={Available files $\left[\si{\percent}\right]$},
     cycle list name=exotic,
-    mark phase=0,
+    mark phase=7,
     mark repeat=5,
+    xmin=-0.05,
+    xmax=1.1,
     ytick={0, 0.25, 0.5, 0.75, 1},
     legend style={
         short line legend,
         draw=none,
         cells={anchor=west},
+        fill=none,
     },
+    legend columns=2,
     scaled ticks=base 10:2,
     xtick scale label code/.code={},
     ytick scale label code/.code={},
 ]
-\addplot table[x=bench-apache-Null-x, y=bench-apache-Null-y] {plots/checksum-100nodes.dat};
+\addplot+[mark phase=2] table[x=bench-apache-Null-x, y=bench-apache-Null-y] {plots/checksum-100nodes.dat};
 \addlegendentry{httpd, Null}
-\addplot table[x=bench-10bytes-Null-x, y=bench-10bytes-Null-y] {plots/checksum-100nodes.dat};
-\addlegendentry{10bytes, Null}
-
 \addplot table[x=bench-apache-SimpleRegenerating-x, y=bench-apache-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
 \addlegendentry{httpd, LRC}
+
+\addplot+[mark phase=4] table[x=bench-bc-Null-x, y=bench-bc-Null-y] {plots/checksum-100nodes.dat};
+\addlegendentry{bc, Null}
+\addplot+[mark phase=9] table[x=bench-bc-SimpleRegenerating-x, y=bench-bc-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
+\addlegendentry{bc, LRC}
+
+\addplot+[mark phase=2] table[x=bench-10bytes-Null-x, y=bench-10bytes-Null-y] {plots/checksum-100nodes.dat};
+\addlegendentry{10bytes, Null}
 \addplot table[x=bench-10bytes-SimpleRegenerating-x, y=bench-10bytes-SimpleRegenerating-y] {plots/checksum-100nodes.dat};
 \addlegendentry{10bytes, LRC}
 
-\addplot table[x=bench-apache-ReedSolomon-x, y=bench-apache-ReedSolomon-y] {plots/checksum-100nodes.dat};
+\addlegendimage{empty legend}
+\addlegendentry{}
+
+
+\addplot+[mark phase=7] table[x=bench-apache-ReedSolomon-x, y=bench-apache-ReedSolomon-y] {plots/checksum-100nodes.dat};
 \addlegendentry{httpd, RS}
+
+\addlegendimage{empty legend}
+\addlegendentry{}
+
+\addplot+[mark phase=8] table[x=bench-bc-ReedSolomon-x, y=bench-bc-ReedSolomon-y] {plots/checksum-100nodes.dat};
+\addlegendentry{bc, RS}
+
+\addlegendimage{empty legend}
+\addlegendentry{}
+
 \addplot table[x=bench-10bytes-ReedSolomon-x, y=bench-10bytes-ReedSolomon-y] {plots/checksum-100nodes.dat};
 \addlegendentry{10bytes, RS}
+
 \end{axis}
 \end{tikzpicture}
