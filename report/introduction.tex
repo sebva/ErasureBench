@@ -39,7 +39,7 @@ The testing framework that we contribute offers the possibility to test erasure 
 It provides the possibility to benchmark various aspects of erasure codes.
 Benchmarks can be virtually any piece of software that can run on Linux.
 The interface exposed to the benchmarks is a standard hierarchical file system.
-A unique feature of the tester is its ability to automatically instantiate a cluster of storage nodes based on Redis \autocite{redis}.
+A unique feature of the tester is its ability to automatically instantiate a cluster of storage nodes based on Redis \footnote{\url{http://redis.io/}}.
 Thanks to containerization, the storage cluster can be dynamically scaled during the benchmark execution.
 Failure traces from the \ac{fta} \autocite{fta-journal,fta-paper} can be used to replicate real world failures.
 This setup provides the possibility to analyze many characteristics of a particular erasure code algorithm implementation.
