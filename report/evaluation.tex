@@ -132,12 +132,12 @@ For read operations, \ac{lrc} is equivalent to \ac{rs} when the cluster is intac
 The notable characteristic of \ac{lrc} is its increased block locality compared to \ac{rs}.
 We can clearly observe that it effectively lowers the network usage as far as degraded reads are concerned.
 
-\begin{figure}
+\begin{figure*}
     \centering
     \input{trace-plot.tex}
     \caption{Top plot: graphical representation of the number of nodes available at a given time as recorded in the trace file. Bottom plots: network traffic incurred by writing \textit{httpd} to the storage cluster, moving blocks between servers when scaling up, and repairing blocks when nodes die.}
     \label{fig:trace-plot}
-\end{figure}
+\end{figure*}
 
 \subsection{Impact of real faults on network usage}
 \label{subsec:fault-trace}
@@ -153,3 +153,8 @@ When an existing node departed, we scrubbed the blocks stored in the system and 
 In \autoref{fig:trace-plot}, the uppermost plot shows the size of the storage cluster.
 An increase indicates a node joining the system while a decrease marks a failure.
 The two plots in the lower part of \autoref{fig:trace-plot} show the network throughput that was observed when erasure coding the data using \ac{rs} versus \ac{lrc}.
+The leftmost peak of both plots is cut so that the rest of the plot stays 
+readable.
+This peak consists in the writing of the archive to the filesystem.
+The throughput at that moment reached \SI{3.81}{\mega\byte\per\second} using 
+\ac{rs}, and \SI{3.90}{\mega\byte\per\second} using \ac{lrc}.
