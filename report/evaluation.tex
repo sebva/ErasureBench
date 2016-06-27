@@ -1,5 +1,3 @@
-
-
 \section{Evaluation}
 \label{sec:evaluation}
 
@@ -36,16 +34,24 @@ We store and read files contained in these archives from the \SYS partition.
     \label{fig:throughput-plot}
 \end{figure*}
 
+\begin{table}
+    \centering
+    \caption{Performance of each coding algorithm in isolation in \si{\mega\byte\per\second}}
+    \input{codes-performance-table.tex}
+    \label{fig:codes-performance-table}
+\end{table}
+
 \subsection{Microbenchmark: Read/write throughput}%and overhead of \acs{fuse}
 \label{subsec:rw-perf}
-\vs{add mention of raw throughput of LRC and RS without storage, insert table here}
-Next, we evaluate the observed throughout while reading and writing binary data files of 4MB, 16MB and 64MB. 
-We compare the overhead of the \ac{fuse} layer against a similar system (\textit{Direct}) that completely bypasses it
+
+We evaluate the observed throughput while reading and writing binary data files of \SI{4}{\mega\byte}, \SI{16}{\mega\byte} and \SI{64}{\mega\byte} under three different angles.
+First, we measured the throughput of the encoders in isolation, without the \ac{fuse} and storage layers.
+The results in \autoref{fig:codes-performance-table} show that erasure coding has a significant cost.
+Next, we evaluate the overhead of the \ac{fuse} layer by comparing two cases: the normal access through \ac{fuse} and a special system that we call \textit{Direct} that completely bypasses it.
 \autoref{fig:throughput-plot} presents our results.
 In all considered scenarios with the exception of \ac{fuse} \textit{write}, larger file sizes yield better results.
-When using bigger files through the \ac{fuse} layer, performances degrade: indeed, this is the cost of dynamically increasing \ac{fuse} buffers, by default set to 128KB.
-%Performance when writing increasingly bigger files using \ac{fuse} decreases because some buffers have to be resized as the file grows.
-%Larger writes lead to more resizing operations.
+When using bigger files through the \ac{fuse} layer, the performance degrades.
+It is the cost of dynamically increasing \ac{fuse} buffers, by default set to \SI{128}{\kibi\byte}.
 
 \ac{rs} allows faster write operations than \ac{lrc} (up to \vs{fill me}$\times$), because it requires less blocks to be written to the system.
 For read operations, \ac{lrc} is faster (up to\vs{fill me}$\times$) as it requires the same number of blocks as \ac{rs}.
