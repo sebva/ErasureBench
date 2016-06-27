@@ -25,10 +25,17 @@ We use Docker Compose (v1.7.1) and Docker Swarm (v1.11.2) to orchestrate the dep
 %we evaluate the various aspects or our tester by comparing two data coding algorithms against unprocessed data.
 %The two algorithms under test are \acf{rs} and \acf{lrc}.
 In order to evaluate the performance of \SYS, we selected the source files of two well-known open-source projects: the Apache \texttt{httpd}\footnote{\url{https://archive.apache.org/dist/httpd/httpd-2.4.18.tar.bz2}} server (v2.4.18) and GNU \texttt{bc}\footnote{\url{https://ftp.gnu.org/gnu/bc/bc-1.06.tar.gz}} (v1.06). 
-We chose them because they differ in the total number of files and storage requirements, as can be seen in \autoref{fig:overhead-table}.
+We chose them because they differ in the total number of files and storage requirements.
 Moreover, we created a synthetic archive containing 1000 files, each consisting of 10 random bytes (\SI{10}{\byte} in the remainder).
+\autoref{fig:overhead-table} details further the workloads.
 We store and read files contained in these archives in the \SYS partition. 
 
+\begin{table*}
+    \centering
+    \caption{Workload characterisation and erasure-coding overhead. }
+    \input{overheads-table.tex}
+    \label{fig:overhead-table}
+\end{table*}
 
 \subsection{Microbenchmark: read/write throughput}%and overhead of \acs{fuse}
 \label{subsec:rw-perf}
@@ -62,12 +69,7 @@ When using bigger files through the \ac{fuse} layer, performances degrade: indee
 For read operations, \ac{lrc} is faster (up to\vs{fill me}$\times$) as it requires the same number of blocks as \ac{rs}.
 The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and between \SI{-33.6}{\percent} and \SI{-84.9}{\percent} for write operations.
 
-\begin{table*}
-    \centering
-    \caption{Various metrics measured when storing files in the system.\vs{use same names as those in the plots}}
-    \input{overheads-table.tex}
-    \label{fig:overhead-table}
-\end{table*}
+
 
 \begin{figure}
     \centering
