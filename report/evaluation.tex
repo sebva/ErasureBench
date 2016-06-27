@@ -27,12 +27,13 @@ We use Docker Compose (v1.7.1) and Docker Swarm (v1.11.2) to orchestrate the dep
 In order to evaluate the performance of \SYS, we selected the source files of two well-known open-source projects: the Apache \texttt{httpd}\footnote{\url{https://archive.apache.org/dist/httpd/httpd-2.4.18.tar.bz2}} server (v2.4.18) and GNU \texttt{bc}\footnote{\url{https://ftp.gnu.org/gnu/bc/bc-1.06.tar.gz}} (v1.06). 
 We chose them because they differ in the total number of files and storage requirements.
 Moreover, we created a synthetic archive containing 1000 files, each consisting of 10 random bytes (\SI{10}{\byte} in the remainder).
-\autoref{fig:overhead-table} details further the workloads.
 We store and read files contained in these archives in the \SYS partition. 
+\autoref{fig:overhead-table} details further the workloads, in particular to the storage overhead induced by the different erasure codes, and the serialization tecnique (Base64 or redis-binary) used to persistently save the data. 
+We observe that the redis-binary\footnote{\url{http://redis.io/topics/data-types-intro}\vs{any better?}} is on average ~75\% more space-efficient than Base64 encoders, and therefore used throughout the remaining of our evaluation. 
 
 \begin{table*}
     \centering
-    \caption{Workload characterisation and erasure-coding overhead. }
+    \caption{Workload characterisation and erasure-coding overhead. All values given in \si{\mega\byte}.}
     \input{overheads-table.tex}
     \label{fig:overhead-table}
 \end{table*}

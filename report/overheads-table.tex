@@ -9,24 +9,24 @@
         S[table-format=3.3]
 }
 \toprule
-Archive & \# files & Contents size/\si{\mega\byte} & Erasure code & {\# Redis keys} & {Stored (base64)/\si{\mega\byte}} & {Stored (binary)/\si{\mega\byte}} \\
+Archive & Tot. files & Size & Erasure code & {\# Redis keys} & {Stored w/ Base64} & {Stored w/ redis-binary} \\
 
 \midrule
 
 % 10 bytes
-\multirow{3}{*}{\SI{10}{\byte}} & \multirow{3}{*}{\tablenum{1000}} & \multirow{3}{*}{\tablenum[table-format=2.3]{0.010}} & $\text{Null}\left(10\right)$ & 10000 & 0.160 & 0.120 \\
+\multirow{3}{*}{\SI{10}{\byte}} & \multirow{3}{*}{\tablenum{1000}} & \multirow{3}{*}{\tablenum[table-format=2.3]{0.010}} & $\text{No erasure coding}$ & 10000 & 0.160 & 0.120 \\
  & & & $\text{RS}\left(10,4\right)$ & 14000 & 0.224 & 0.168 \\
  & & & $\text{LRC}\left(10,6,5\right)$ & 16000 & 0.256 & 0.192 \\
 
 \addlinespace
 % bc-1.06
-\multirow{3}{*}{bc} & \multirow{3}{*}{\tablenum{94}} & \multirow{3}{*}{\tablenum[table-format=2.3]{1.017}} & $\text{Null}\left(10\right)$ & 1920 & 5.453 & 4.087 \\
+\multirow{3}{*}{bc} & \multirow{3}{*}{\tablenum{94}} & \multirow{3}{*}{\tablenum[table-format=2.3]{1.017}} & $\text{No erasure coding}$ & 1920 & 5.453 & 4.087 \\
  & & & $\text{RS}\left(10,4\right)$ & 2688 & 7.634 & 5.722 \\
  & & & $\text{LRC}\left(10,6,5\right)$ & 3072 & 8.725 & 6.540 \\
 
 \addlinespace
 % httpd-2.4.18
-\multirow{3}{*}{httpd} & \multirow{3}{*}{\tablenum{2516}} & \multirow{3}{*}{\tablenum[table-format=2.3]{33.02}} & $\text{Null}\left(10\right)$ & 56850 & 176.99 & 132.68 \\
+\multirow{3}{*}{httpd} & \multirow{3}{*}{\tablenum{2516}} & \multirow{3}{*}{\tablenum[table-format=2.3]{33.02}} & $\text{No erasure coding}$ & 56850 & 176.99 & 132.68 \\
  & & & $\text{RS}\left(10,4\right)$ & 79590 & 247.79 & 185.75 \\
  & & & $\text{LRC}\left(10,6,5\right)$ & 90960 & 283.18 & 212.29 \\
 \bottomrule
