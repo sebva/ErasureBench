@@ -16,9 +16,9 @@ For internal reasons, we have to deploy \acp{vm} on top of the hosts.
 We use KVM as a hypervisor.
 To mitigate the performance losses, we configured it to expose the physical CPU to guest \acp{vm} by mean of the \texttt{host-passthrough} option.
 We also leverage the \texttt{virtio} module for better I/O performance.
-The experiments themselves are packaged in Docker images.
-Consequently, we installed Docker (v1.11.2 on each \ac{vm}, and configured it without any memory restrictions.
-The orchestration of the multitude of containers needed by the experiments is devolved to Docker Compose (v1.7.1) and Docker Swarm (v1.2.3).
+The components of the system are packaged in Docker images.
+We installed Docker (v1.11.2) on each \ac{vm}, and configured it without any memory restrictions.
+The deployment and orchestration of the containers rely on Docker Compose (v1.7.1) and Docker Swarm (v1.2.3).
 
 \subsection{Workloads}
 \label{sec:eval:workloads}
@@ -37,19 +37,24 @@ We store and read files contained in these archives in the \SYS partition.
     \label{fig:overhead-table}
 \end{table}
 
-\subsection{Microbenchmark: read/write throughput}%and overhead of \acs{fuse}
+\subsection{Microbenchmark: encoding/decoding throughput}%and overhead of \acs{fuse}
 \label{subsec:rw-perf}
-We begin our evaluation by measuring the raw throughput of our \ac{rs} and \ac{lrc} encoder implementations.
-We compare them against an elementary encoder that simply splits and returns the same blocks.
+We begin our evaluation by measuring the raw encoding throughput of our \ac{rs} and \ac{lrc} encoder implementations.
+We compare them against an naive encoder (No EC) that splits and returns the same blocks, without actually encoding data.
 \autoref{table:codes-performance-table} presents our results.
+We observe that the encoding throughput consistently improves with the size of the blocks and achieves up to 15.3\si{\mega\byte\per\second} with \ac{lrc} and \SI{64}{\mega\byte}.
+When decoding, we achieve 2.2\si{\mega\byte\per\second} and 2.9\si{\mega\byte\per\second}, respectively for \ac{rs} and \ac{lrc}.
+These performances can be explained by the non-optimized nature of the implementation and the lack of native hardware support, which normally improves by orders of magnitude the performances~\cite{Burihabwa2016}. 
+We leave as future work the integration of more efficient implementations.
 
 \begin{table}
     \centering
-    \caption{Performance of each coding algorithm in isolation in \si{\mega\byte\per\second}}
+    \caption{Encoding throughput of the different encoiders in \si{\mega\byte\per\second}}
     \input{codes-performance-table.tex}
     \label{table:codes-performance-table}
 \end{table}
 
+\subsection{Microbenchmark: read/write}
 We evaluate the observed throughput while reading and writing binary data files of \SI{4}{\mega\byte}, \SI{16}{\mega\byte} and \SI{64}{\mega\byte} under three different angles.
 First, we measured the throughput of the encoders in isolation, without the \ac{fuse} and storage layers.
 The results in \autoref{fig:codes-performance-table} show that erasure coding has a significant cost.
