@@ -1,7 +1,6 @@
-%\pgfplotstabletypeset[string type]{plots/websites-size.dat}
-
 \begin{tikzpicture}
 \usetikzlibrary{plotmarks}
+\usetikzlibrary{arrows.meta}
 \pgfplotsset{width=\linewidth,
     every axis plot post/.append style={
         solid,
@@ -62,4 +61,11 @@
 
 \node[anchor=north] at (group c1r2.north) {Reed-Solomon};
 \node[anchor=north] at (group c1r3.north) {Locally Repairable Code};
+
+% RS Arrow
+\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -0.55) -- (0.2, -0.25);
+\node[anchor=west, font=\small] at (0.35, -0.5) {\num{3.8}};
+% LRC Arrow
+\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -3.15) -- (0.2, -2.85);
+\node[anchor=west, font=\small] at (0.35, -3.1) {\num{3.9}};
 \end{tikzpicture}
