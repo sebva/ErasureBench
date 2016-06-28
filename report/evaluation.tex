@@ -55,33 +55,64 @@ We leave as future work the integration of more efficient implementations.
 \end{table}
 
 \subsection{Microbenchmark: read/write}
-We evaluate the observed throughput while reading and writing binary data files of \SI{4}{\mega\byte}, \SI{16}{\mega\byte} and \SI{64}{\mega\byte} under three different angles.
-First, we measured the throughput of the encoders in isolation, without the \ac{fuse} and storage layers.
-The results in \autoref{fig:codes-performance-table} show that erasure coding has a significant cost.
-Next, we evaluate the overhead of the \ac{fuse} layer by comparing two cases: the normal access through \ac{fuse} and a special system that we call \textit{Direct} that completely bypasses it
+Next, we measure the read/write performances of the encoders in a larger context, that is when plugged into the \SYS system.
+In this experiment, we setup a Redis cluster of 100 nodes.
+We compare the performances of \SYS against a modified version of the system (\textit{Direct}) that completely bypass the \ac{fuse} layer.
+For both systems, we compare the performances of \ac{lrc} and \ac{rs} as well as against a system that does not use any erasure coding (No EC).  
+%We evaluate the overhead of the \ac{fuse} layer by comparing two cases: the normal access through \ac{fuse} and a special system that we call \textit{Direct} that completely bypasses it
 \autoref{fig:throughput-plot} presents our results.
 
 \begin{figure*}[t]
     \centering
     \input{throughput-plot.tex}
-    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes. Half confidence interval.}
+    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes. Average (over \vs{fill me} run) and half confidence interval.}
     \label{fig:throughput-plot}
 \end{figure*}
 
-In all considered scenarios, with the exception of \ac{fuse} \textit{write}, larger file sizes yield better results.
-When using bigger files through the \ac{fuse} layer, the performance degrades.
-It is the cost of dynamically increasing buffers in the application, as \ac{fuse} will only write up to \SI{128}{\kibi\byte} at a time.
-
-\ac{rs} allows faster write operations than \ac{lrc} (up to \vs{fill me}$\times$), because it requires less blocks to be written to the system.
+In all considered scenarios, with the exception of \SYS \textit{write}, larger file sizes yield better results.
+When using bigger files through the \SYS's \ac{fuse} layer, the throughput degrades.
+We explain this by the cost of dynamically increasing buffers in the application, as \ac{fuse} will only write up to \SI{128}{\kibi\byte} at a time.
+\ac{rs} allows faster write operations than \ac{lrc} (up to \vs{fill me}$\times$), as it strictly writes fewer blocks.
 For read operations, \ac{lrc} is faster (up to\vs{fill me}$\times$) as it requires the same number of blocks as \ac{rs}.
 The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and between \SI{-33.6}{\percent} and \SI{-84.9}{\percent} for write operations.
 
-\begin{figure}
+\begin{figure}[]
     \centering
     \input{checksum-plot.tex}
-    \caption{Fault tolerance of: no erasure coding (Null), \acl{lrc} $\left(10,6,5\right)$ and \acl{rs} $\left(10,4\right)$. Data written on 100 nodes, and then read after killing each node.\vs{remove border around legend, reduce lenght of the horiz bar for each element}}
+    \caption{Fault tolerance for different encoders: No EC, \ac{lrc} $\left(10,6,5\right)$ and \ac{rs} $\left(10,4\right)$. Redis cluster of 100 nodes. Data checked for availability after progressively killing each Redis node.}
     \label{fig:checksum-plot}
 \end{figure}
+
+
+\subsection{Storage overheads}
+\label{subsec:storage-overheads}
+
+\autoref{fig:overhead-table} shows various metrics relative to the storage space used when unpacking 4 different archives into the filesytem exposed by the tester.
+The \enquote{10 bytes} archive constitutes a worst case, as each file is stored as a single stripe in the system.
+In that case, the number of Redis keys is strictly equal to the number of blocks in the system.
+Storing a 10 bytes file into our system takes 120 bytes, before base 64 is applied.
+Each byte is encoded as a 32 bits integer by the erasure codes.
+Additionally, each aggregation of blocks needs two 32 bits integers to store its decoded size.
+This explains the overhead of $12\times$.
+For real archives, the overhead asymptotically approaches $4\times$, as the two 32 bits integers are only needed once per aggregation.
+The overheads cited above reason upon the binary size.
+As Redis can only store strings, we have to apply base 64 encoding to the blocks, adding \SI{33}{\percent} storage overhead.
+The overhead due to erasure coding is always governed by the number of parity blocks added.
+
+\subsection{Cluster size impact on latency}
+\label{subsec:latency}
+
+In order to test the impact of the cluster size on performances, we measured the time needed to write \SI{16}{\mebi\byte} to storage clusters of various sizes.
+The results are shown as a \ac{cdf} in \autoref{fig:latency-plot}.
+We can see that the growth of the cluster size has an impact on performance, although it is limited.
+
+\begin{figure}[th]
+    \centering
+    \input{latency-plot.tex}
+    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.\vs{use same form factor of Fig 4, remove border around legend, reduce lenght of the horiz bar for each element }}
+    \label{fig:latency-plot}
+\end{figure}
+
 
 \subsection{Fault-tolerance}
 \label{subsec:fault-tolerance}
@@ -98,43 +129,7 @@ We then killed storage nodes one after the other, and checked the files integrit
 It shows that \ac{rs} provides better fault-tolerance than \ac{lrc}.
 It also demonstrates that the larger files contained in httpd are more prone to failures, as a single damaged stripe within a file will corrupt the entire file.
 
-\subsection{Storage overheads}
-\label{subsec:storage-overheads}
 
-\autoref{fig:overhead-table} shows various metrics relative to the storage space used when unpacking 4 different archives into the filesytem exposed by the tester.
-The \enquote{10 bytes} archive constitutes a worst case, as each file is stored as a single stripe in the system.
-In that case, the number of Redis keys is strictly equal to the number of blocks in the system.
-Storing a 10 bytes file into our system takes 120 bytes, before base 64 is applied.
-Each byte is encoded as a 32 bits integer by the erasure codes.
-Additionally, each aggregation of blocks needs two 32 bits integers to store its decoded size.
-This explains the overhead of $12\times$.
-For real archives, the overhead asymptotically approaches $4\times$, as the two 32 bits integers are only needed once per aggregation.
-
-The overheads cited above reason upon the binary size.
-As Redis can only store strings, we have to apply base 64 encoding to the blocks, adding \SI{33}{\percent} storage overhead.
-
-The overhead due to erasure coding is always governed by the number of parity blocks added.
-
-\begin{figure}
-    \centering
-    \input{latency-plot.tex}
-    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.\vs{use same form factor of Fig 4, remove border around legend, reduce lenght of the horiz bar for each element }}
-    \label{fig:latency-plot}
-\end{figure}
-
-\subsection{Cluster size impact on latency}
-\label{subsec:latency}
-
-In order to test the impact of the cluster size on performances, we measured the time needed to write \SI{16}{\mebi\byte} to storage clusters of various sizes.
-The results are shown as a \ac{cdf} in \autoref{fig:latency-plot}.
-We can see that the growth of the cluster size has an impact on performance, although it is limited.
-
-\begin{figure*}
-    \centering
-    \input{traffic-plot.tex}
-    \caption{Network throughput between the encoder and 100 Redis storage servers when the httpd archive is written and then read. 5 nodes are brutally killed before measuring a degraded read.}
-    \label{fig:traffic-plot}
-\end{figure*}
 
 \subsection{Network traffic to/from storage nodes}
 \label{subsec:network-traffic}
@@ -148,13 +143,14 @@ They show that \ac{lrc} needs more time to complete at roughly the same speed as
 For read operations, \ac{lrc} is equivalent to \ac{rs} when the cluster is intact.
 The notable characteristic of \ac{lrc} is its increased block locality compared to \ac{rs}.
 We can clearly observe that it effectively lowers the network usage as far as degraded reads are concerned.
-
 \begin{figure*}
     \centering
-    \input{trace-plot.tex}
-    \caption{Top plot: graphical representation of the number of nodes available at a given time as recorded in the trace file. Bottom plots: network traffic incurred by writing \textit{httpd} to the storage cluster, moving blocks between servers when scaling up, and repairing blocks when nodes die.}
-    \label{fig:trace-plot}
+    \input{traffic-plot.tex}
+    \caption{Network throughput between the encoder and 100 Redis storage servers when the httpd archive is written and then read. 5 nodes are brutally killed before measuring a degraded read.}
+    \label{fig:traffic-plot}
 \end{figure*}
+
+
 
 \subsection{Impact of real faults on network usage}
 \label{subsec:fault-trace}
@@ -175,3 +171,10 @@ readable.
 This peak consists in the writing of the archive to the filesystem.
 The throughput at that moment reached \SI{3.81}{\mega\byte\per\second} using 
 \ac{rs}, and \SI{3.90}{\mega\byte\per\second} using \ac{lrc}.
+
+\begin{figure*}
+    \centering
+    \input{trace-plot.tex}
+    \caption{Top plot: graphical representation of the number of nodes available at a given time as recorded in the trace file. Bottom plots: network traffic incurred by writing \textit{httpd} to the storage cluster, moving blocks between servers when scaling up, and repairing blocks when nodes die.}
+    \label{fig:trace-plot}
+\end{figure*}
