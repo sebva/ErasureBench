@@ -33,6 +33,8 @@
         xshift=4mm,
         yshift=0.3mm,
     },
+    colorbrewer cycle list=Set1,
+    colorbrewer values=3,
     ymajorgrids,
     xtick=data,
     ytick={0,...,4},
@@ -42,19 +44,19 @@
 ]
 \nextgroupplot
 % Write with FUSE
-\addplot+[pattern=north west lines, pattern color=blue, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=north west lines, pattern color=colorbrewer1, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write Null
     (4 MB, 1.590) +- (0, .03162)
     (16 MB, 1.160) +- (0, .05164)
     (64 MB, .579) +- (0, .00738)
 };
-\addplot+[pattern=north east lines, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=north east lines, pattern color=colorbrewer2, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write LRC
     (4 MB, .998) +- (0, .00437)
     (16 MB, .670) +- (0, .01028)
     (64 MB, .340) +- (0, .00141)
 };
-\addplot+[pattern=crosshatch dots, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=crosshatch dots, pattern color=colorbrewer3, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write RS
     (4 MB, 1.090) +- (0, .03291)
     (16 MB, .770) +- (0, .01721)
@@ -65,19 +67,19 @@
 
 % Write direct
 \nextgroupplot
-\addplot+[pattern=north west lines, pattern color=blue, pattern color=blue, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=north west lines, pattern color=blue, pattern color=colorbrewer1, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write Null
     (4 MB, 2.999) +- (0, .8246)
     (16 MB, 3.536) +- (0, .2891)
     (64 MB, 3.838) +- (0, .0811)
 };
-\addplot+[pattern=north east lines, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=north east lines, pattern color=colorbrewer2, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write LRC
     (4 MB, 1.502) +- (0, .2876)
     (16 MB, 1.632) +- (0, .3016)
     (64 MB, 1.817) +- (0, .1973)
 };
-\addplot+[pattern=crosshatch dots, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=crosshatch dots, pattern color=colorbrewer3, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write RS
     (4 MB, 1.743) +- (0, .2355)
     (16 MB, 1.874) +- (0, .4816)
@@ -86,19 +88,19 @@
 
 \nextgroupplot
 % Read with FUSE
-\addplot+[pattern=north west lines, pattern color=blue, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=north west lines, pattern color=colorbrewer1, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read Null
     (4 MB, .930) +- (0, .02922)
     (16 MB, 1.120) +- (0, .04387)
     (64 MB, 1.530) +- (0, .05026)
 };
-\addplot+[pattern=north east lines, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=north east lines, pattern color=colorbrewer2, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read LRC
     (4 MB, .791) +- (0, .01756)
     (16 MB, 1.011) +- (0, .05067)
     (64 MB, 1.130) +- (0, .05026)
 };
-\addplot+[pattern=crosshatch dots, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=crosshatch dots, pattern color=colorbrewer3, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read RS
     (4 MB, .711) +- (0, .01306)
     (16 MB, .891) +- (0, .04030)
@@ -107,19 +109,19 @@
 
 % Read direct
 \nextgroupplot
-\addplot+[pattern=north west lines, pattern color=blue, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=north west lines, pattern color=colorbrewer1, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read Null
     (4 MB, 1.497) +- (0, .5436)
     (16 MB, 1.899) +- (0, .0712)
     (64 MB, 1.907) +- (0, .0341)
 };
-\addplot+[pattern=north east lines, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=north east lines, pattern color=colorbrewer2, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read LRC
     (4 MB, 1.296) +- (0, .4324)
     (16 MB, 1.632) +- (0, .0240)
     (64 MB, 1.599) +- (0, .0331)
 };
-\addplot+[pattern=crosshatch dots, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[mark=none, pattern=crosshatch dots, pattern color=colorbrewer3, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read RS
     (4 MB, 1.116) +- (0, .4119)
     (16 MB, 1.442) +- (0, .0448)
