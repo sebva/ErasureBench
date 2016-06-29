@@ -11,7 +11,7 @@ Computational cost is one of the drawbacks of erasure coding.
 Every write to an erasure-coded system requires computing parity blocks.
 When reading data back from a replicated data storage system, unavailable blocks can be reconstructed using a combination of certain available blocks.
 Reading degraded erasure-coded data implies retrieving a larger amount of blocks than would be needed to read intact data. Also, some computations need to be performed on the blocks retrieved in order to recreate the unavailable blocks.
-Another drawback that modern erasure coding algorithm try to overcome is the high amount of data required to repair faulty blocks.
+Another drawback that modern erasure coding algorithms try to overcome is the high amount of data required to repair faulty blocks.
 Traditional erasure coding algorithms such as \ac{rs} need to decode a complete stripe in order to repair a single faulty block in that stripe.
 It has been calculated that if Facebook coded \SI{50}{\percent} of the data in one of their clusters, its network would be completely saturated~\autocite{XorbasVLDB}.
 
