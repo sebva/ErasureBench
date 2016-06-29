@@ -100,11 +100,11 @@ The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\perce
 To evaluate the scalability of the system, we measure the impact of the backend Redis cluster size to the observed latency of regular file-system operations.
 To do so, we deploy up to 100 storage nodes.
 We report the observed latency (as returned by the Linux's \texttt{time} tool) to write \SI{16}{\mebi\byte} into the \SYS partition.
-\autoref{fig:latency-plot} reports the Cumulative Distribution Functin (CDF) of the measured latencies.
-We observe that the choice of the erasure coding technique has a relevant impact. 
-Conversely, the Redis cluster can be scaled up without major penalties on the performances.
-For instance, with \ac{lrc}, the median (50th) latency is at 22.5s for a 20-nodes cluster, and up to 24.5s for 100-nodes cluster. 
-Note that when using realword archives (such as the \texttt{httpd} workload presented in Section~\ref{sec:eval:workloads}) the observed latencies are on average 0.11s. 
+\autoref{fig:latency-plot} presents our result as a Cumulative Distribution Function (CDF) of the latencies.
+We observe that the choice of the erasure coding technique has a relevant impact on the latency of the operations. 
+Instead, the Redis cluster can be scaled up without major penalties.
+For instance, using \ac{lrc} the median (50th) latency is at 22.5s for a 20-nodes cluster, and up to 24.5s for 100-nodes cluster. 
+Note that when using real-world files (such as those in the \texttt{httpd} archive presented in Section~\ref{sec:eval:workloads}) the latencies are on average 0.11s. 
 We believe these results justify a large-scale deployment with hundrends of storage nodes. 
 
 \begin{figure}[th]
