@@ -21,8 +21,8 @@
     /pgfplots/area legend,
     nodes near coords,
     legend style={
-        anchor=north,
-        at={(0.5,0.97)},
+        anchor=north west,
+        at={(0.03,0.97)},
         cells={anchor=west},
         draw=none,
     },
@@ -33,7 +33,9 @@
         xshift=4mm,
         yshift=0.3mm,
     },
+    ymajorgrids,
     xtick=data,
+    ytick={0,...,4},
     xlabel=File size,
     ylabel={Throughput $\left[\si{\mega\byte\per\second}\right]$},
     symbolic x coords={4 MB, 16 MB, 64 MB},
@@ -46,20 +48,20 @@
     (16 MB, 1.160) +- (0, .05164)
     (64 MB, .579) +- (0, .00738)
 };
-\addplot+[pattern=crosshatch dots, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write RS
-    (4 MB, 1.090) +- (0, .03291)
-    (16 MB, .770) +- (0, .01721)
-    (64 MB, .392) +- (0, .00290)
-};
-\addplot+[pattern=north east lines, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north east lines, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write LRC
     (4 MB, .998) +- (0, .00437)
     (16 MB, .670) +- (0, .01028)
     (64 MB, .340) +- (0, .00141)
 };
+\addplot+[pattern=crosshatch dots, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write RS
+    (4 MB, 1.090) +- (0, .03291)
+    (16 MB, .770) +- (0, .01721)
+    (64 MB, .392) +- (0, .00290)
+};
 
-\legend{No erasure coding, Reed-Solomon, LRC}
+\legend{No EC, LRC, RS}
 
 % Write direct
 \nextgroupplot
@@ -69,17 +71,17 @@
     (16 MB, 3.536) +- (0, .2891)
     (64 MB, 3.838) +- (0, .0811)
 };
-\addplot+[pattern=crosshatch dots, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
-    % Write RS
-    (4 MB, 1.743) +- (0, .2355)
-    (16 MB, 1.874) +- (0, .4816)
-    (64 MB, 2.084) +- (0, .2645)
-};
-\addplot+[pattern=north east lines, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north east lines, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
     % Write LRC
     (4 MB, 1.502) +- (0, .2876)
     (16 MB, 1.632) +- (0, .3016)
     (64 MB, 1.817) +- (0, .1973)
+};
+\addplot+[pattern=crosshatch dots, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+    % Write RS
+    (4 MB, 1.743) +- (0, .2355)
+    (16 MB, 1.874) +- (0, .4816)
+    (64 MB, 2.084) +- (0, .2645)
 };
 
 \nextgroupplot
@@ -90,17 +92,17 @@
     (16 MB, 1.120) +- (0, .04387)
     (64 MB, 1.530) +- (0, .05026)
 };
-\addplot+[pattern=crosshatch dots, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read RS
-    (4 MB, .711) +- (0, .01306)
-    (16 MB, .891) +- (0, .04030)
-    (64 MB, 1.100) +- (0, 0)
-};
-\addplot+[pattern=north east lines, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north east lines, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read LRC
     (4 MB, .791) +- (0, .01756)
     (16 MB, 1.011) +- (0, .05067)
     (64 MB, 1.130) +- (0, .05026)
+};
+\addplot+[pattern=crosshatch dots, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read RS
+    (4 MB, .711) +- (0, .01306)
+    (16 MB, .891) +- (0, .04030)
+    (64 MB, 1.100) +- (0, 0)
 };
 
 % Read direct
@@ -111,22 +113,22 @@
     (16 MB, 1.899) +- (0, .0712)
     (64 MB, 1.907) +- (0, .0341)
 };
-\addplot+[pattern=crosshatch dots, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
-    % Read RS
-    (4 MB, 1.116) +- (0, .4119)
-    (16 MB, 1.442) +- (0, .0448)
-    (64 MB, 1.419) +- (0, .0587)
-};
-\addplot+[pattern=north east lines, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+\addplot+[pattern=north east lines, pattern color=red, error bars/.cd,y dir=both, y explicit] coordinates {
     % Read LRC
     (4 MB, 1.296) +- (0, .4324)
     (16 MB, 1.632) +- (0, .0240)
     (64 MB, 1.599) +- (0, .0331)
 };
+\addplot+[pattern=crosshatch dots, pattern color=brown!60!black, error bars/.cd,y dir=both, y explicit] coordinates {
+    % Read RS
+    (4 MB, 1.116) +- (0, .4119)
+    (16 MB, 1.442) +- (0, .0448)
+    (64 MB, 1.419) +- (0, .0587)
+};
 \end{groupplot}
 
-\node[anchor=south] at (group c1r1.north) {FUSE write};
-\node[anchor=south] at (group c3r1.north) {FUSE read};
+\node[anchor=south] at (group c1r1.north) {\SYS write};
+\node[anchor=south] at (group c3r1.north) {\SYS read};
 \node[anchor=south] at (group c2r1.north) {Direct write};
 \node[anchor=south] at (group c4r1.north) {Direct read};
 \end{tikzpicture}

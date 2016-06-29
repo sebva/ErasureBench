@@ -1,7 +1,6 @@
-%\pgfplotstabletypeset[string type]{plots/websites-size.dat}
-
 \begin{tikzpicture}
 \usetikzlibrary{plotmarks}
+\usetikzlibrary{arrows.meta}
 \pgfplotsset{width=\linewidth,
     every axis plot post/.append style={
         solid,
@@ -19,8 +18,9 @@
         xticklabels at=edge bottom,
         yticklabels at=edge left,
     },
-    xmin=-0.1,
-    xmax=7.1,
+    ymajorgrids,
+    xmin=0,
+    xmax=7,
     xlabel={Elaspsed time $\left[\si{\hour}\right]$},
     table/col sep=comma,
 ]
@@ -28,14 +28,27 @@
     height=2cm,
     ylabel=Nodes,
     ytick={112,118},
+    minor ytick={112,...,118},
+    tick pos=left,
+    ytick align=outside,
+    xmajorgrids,
+    yminorgrids,
 ]
 \addplot+[const plot] table[x=hour, y=size] {plots/websites-size.dat};
 
-\nextgroupplot[height=4cm, scaled y ticks=base 10:-6, ytick scale label code/.code={}]
+\nextgroupplot[
+    height=4cm,
+    ymax=1400000,
+    ytick={0,500000,1000000,1500000},
+    scaled y ticks=base 10:-6,
+    ytick scale label code/.code={}
+]
 \addplot+ table[x=hour, y=throughput] {plots/trace-rs.dat};
 
 \nextgroupplot[
     height=4cm,
+    ymax=1400000,
+    ytick={0,500000,1000000,1500000},
     scaled y ticks=base 10:-6,
     ytick scale label code/.code={},
     ylabel={Network throughput $\left[\si{\mega\byte\per\second}\right]$},
@@ -46,10 +59,13 @@
 \addplot+ table[x=hour, y=throughput] {plots/trace-lrc.dat};
 \end{groupplot}
 
-\node[anchor=north] at (group c1r2.north) {Reed-Solomon};
-\node[anchor=north] at (group c1r3.north) {Locally Repairable Code};
+\node[anchor=north] at (group c1r2.north) {RS};
+\node[anchor=north] at (group c1r3.north) {LRC};
 
-% To remove
-\node[anchor=center, color=red] at (group c1r2.center) {Will be replaced with more precise data};
-\node[anchor=center, color=red] at (group c1r3.center) {Will be replaced with more precise data};
+% RS Arrow
+\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -0.55) -- (0.2, -0.25);
+\node[anchor=west, font=\small] at (0.35, -0.5) {\SI{3.8}{\mega\byte\per\second}};
+% LRC Arrow
+\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -3.15) -- (0.2, -2.85);
+\node[anchor=west, font=\small] at (0.35, -3.1) {\SI{3.9}{\mega\byte\per\second}};
 \end{tikzpicture}

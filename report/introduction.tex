@@ -25,7 +25,7 @@ To verify the characteristics of the implementation of their algorithm, they ran
 Not every researcher can have access to so many machines. 
 Therefore, we decided to develop a system that can be used to benchmark different erasure code implementations using a reasonable amount of hardware.
 
-This article introduces ErasureBench, a testing framework to test erasure coding implementations under real conditions (not simulated). ErasureBench provides the possibility to benchmark parameters of erasure codes. Benchmarks can be virtually any piece of software that can run on Linux, and the interface exposed to the benchmarks is a standard hierarchical file system.
-A unique feature of the ErasureBench is its ability to automatically instantiate a cluster of storage nodes based on Redis \autocite{redis} that can be dynamically scaled during execution using containerization. Furthermore we can seamlessly run the framework with any real world failure trace from the \ac{fta}.
-
-
+This article introduces ErasureBench, a testing framework to test erasure coding implementations under real conditions (not simulated). ErasureBench provides the possibility to benchmark parameters of erasure codes.
+Benchmarks can be virtually any piece of software that can run on Linux, and the interface exposed to the benchmarks is a standard hierarchical file system.
+A unique feature of the ErasureBench is its ability to automatically instantiate a cluster of storage nodes based on Redis\footnote{\url{http://redis.io/}} that can be dynamically scaled during execution using containerization.
+Furthermore we can seamlessly run the framework with any real world failure trace from the \ac{fta} \autocite{fta-journal,fta-paper}.
