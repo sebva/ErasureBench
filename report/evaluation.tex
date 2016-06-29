@@ -29,6 +29,8 @@ We chose them because they differ in the total number of files and storage requi
 Moreover, we created a synthetic archive containing 1000 files, each consisting of 10 random bytes (\SI{10}{\byte} in the remainder).
 We store and read files contained in these archives in the \SYS partition. 
 \autoref{fig:overhead-table} details further the workloads, in particular the storage overhead induced by the different erasure codes, and the serialization technique used to save the data in the storage cluster.
+We indicate the number of Redis keys used to index the blocks of the encoded archives and the size in \si{\mega\byte} of the binary blocks (\vs{explain what this is}). 
+As Redis can only store strings, we apply a Base64 encoding to the blocks, adding on average \SI{33}{\percent} storage overhead.
 
 \begin{table}
     \centering
@@ -76,43 +78,35 @@ We explain this by the cost of dynamically increasing buffers in the application
 For read operations, \ac{lrc} is faster (up to\vs{fill me}$\times$) as it requires the same number of blocks as \ac{rs}.
 The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and between \SI{-33.6}{\percent} and \SI{-84.9}{\percent} for write operations.
 
-\begin{figure}[]
-    \centering
-    \input{checksum-plot.tex}
-    \caption{Fault tolerance for different encoders: No EC, \ac{lrc} $\left(10,6,5\right)$ and \ac{rs} $\left(10,4\right)$. Redis cluster of 100 nodes. Data checked for availability after progressively killing each Redis node.}
-    \label{fig:checksum-plot}
-\end{figure}
 
-\vs{stopped here}
-\subsection{Storage overheads}
-\label{subsec:storage-overheads}
+%\subsection{Storage overheads}
+%\label{subsec:storage-overheads}
+%
+%\autoref{fig:overhead-table} shows various metrics relative to the storage space used when unpacking 4 different archives into the filesytem exposed by the tester.
+%The \enquote{10 bytes} archive constitutes a worst case, as each file is stored as a single stripe in the system.
+%In that case, the number of Redis keys is strictly equal to the number of blocks in the system.
+%Storing a 10 bytes file into our system takes 120 bytes, before base 64 is applied.
+%Each byte is encoded as a 32 bits integer by the erasure codes.
+%Additionally, each aggregation of blocks needs two 32 bits integers to store its decoded size.
+%This explains the overhead of $12\times$.
+%For real archives, the overhead asymptotically approaches $4\times$, as the two 32 bits integers are only needed once per aggregation.
+%The overheads cited above reason upon the binary size.
+%As Redis can only store strings, we have to apply base 64 encoding to the blocks, adding \SI{33}{\percent} storage overhead.
+%The overhead due to erasure coding is always governed by the number of parity blocks added.
 
-\autoref{fig:overhead-table} shows various metrics relative to the storage space used when unpacking 4 different archives into the filesytem exposed by the tester.
-The \enquote{10 bytes} archive constitutes a worst case, as each file is stored as a single stripe in the system.
-In that case, the number of Redis keys is strictly equal to the number of blocks in the system.
-Storing a 10 bytes file into our system takes 120 bytes, before base 64 is applied.
-Each byte is encoded as a 32 bits integer by the erasure codes.
-Additionally, each aggregation of blocks needs two 32 bits integers to store its decoded size.
-This explains the overhead of $12\times$.
-For real archives, the overhead asymptotically approaches $4\times$, as the two 32 bits integers are only needed once per aggregation.
-The overheads cited above reason upon the binary size.
-As Redis can only store strings, we have to apply base 64 encoding to the blocks, adding \SI{33}{\percent} storage overhead.
-The overhead due to erasure coding is always governed by the number of parity blocks added.
-
-\subsection{Cluster size impact on latency}
+\subsection{Scalability}
 \label{subsec:latency}
+We evaluate the impact of the backend Redis cluster size by deploying from 20 to 100 storage nodes and measuring the latency to write \SI{16}{\mebi\byte} into the \SYS partition.
+We report the Cumulative Distribution Functin (CDF) in \autoref{fig:latency-plot}.
 
-In order to test the impact of the cluster size on performances, we measured the time needed to write \SI{16}{\mebi\byte} to storage clusters of various sizes.
-The results are shown as a \ac{cdf} in \autoref{fig:latency-plot}.
 We can see that the growth of the cluster size has an impact on performance, although it is limited.
 
 \begin{figure}[th]
     \centering
     \input{latency-plot.tex}
-    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.\vs{use same form factor of Fig 4, remove border around legend, reduce lenght of the horiz bar for each element }}
+    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster without erasure coding.}
     \label{fig:latency-plot}
 \end{figure}
-
 
 \subsection{Fault-tolerance}
 \label{subsec:fault-tolerance}
@@ -129,6 +123,12 @@ We then killed storage nodes one after the other, and checked the files integrit
 It shows that \ac{rs} provides better fault-tolerance than \ac{lrc}.
 It also demonstrates that the larger files contained in httpd are more prone to failures, as a single damaged stripe within a file will corrupt the entire file.
 
+\begin{figure}[t]
+    \centering
+    \input{checksum-plot.tex}
+    \caption{Fault tolerance for different encoders: No EC, \ac{lrc} $\left(10,6,5\right)$ and \ac{rs} $\left(10,4\right)$. Redis cluster of 100 nodes. Data checked for availability after progressively killing each Redis node.}
+    \label{fig:checksum-plot}
+\end{figure}
 
 
 \subsection{Network traffic to/from storage nodes}
