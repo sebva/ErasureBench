@@ -8,4 +8,6 @@ COPY redis.conf /usr/local/etc/redis/redis.conf
 COPY start_with_capture.sh /opt/start_with_capture.sh
 RUN chmod +x /opt/start_with_capture.sh
 
+# Uncomment to capture the traffic with Wireshark
+# ENTRYPOINT ["/opt/start_with_capture.sh"]
 CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
