@@ -4,7 +4,6 @@
 \pgfplotsset{width=\linewidth,
     every axis plot post/.append style={
         solid,
-        thin,
         mark=none
     }
 }
@@ -18,14 +17,23 @@
         xticklabels at=edge bottom,
         yticklabels at=edge left,
     },
+    legend columns=-1,
+    legend style={
+        fill=none,
+        draw=none,
+        anchor=south,
+        at={(0.5,1.24)},
+    },
+    colorbrewer cycle list=Spectral,
+    colorbrewer values=6,
     ymajorgrids,
     xmin=0,
-    xmax=7,
+    xmax=2,
     xlabel={Elaspsed time $\left[\si{\hour}\right]$},
-    table/col sep=comma,
+    table/col sep=tab,
 ]
 \nextgroupplot[
-    height=2cm,
+    height=1.9cm,
     ylabel=Nodes,
     ytick={112,118},
     minor ytick={112,...,118},
@@ -34,21 +42,30 @@
     xmajorgrids,
     yminorgrids,
 ]
-\addplot+[const plot] table[x=hour, y=size] {plots/websites-size.dat};
+\addplot+[const plot, color=blue] table[x=hour, y=size, col sep=comma] {plots/websites-size.dat};
 
 \nextgroupplot[
-    height=4cm,
-    ymax=1400000,
-    ytick={0,500000,1000000,1500000},
+    area style,
+    stack plots=y,
+    height=3.6cm,
+    ymax=14000000,
     scaled y ticks=base 10:-6,
-    ytick scale label code/.code={}
+    ytick scale label code/.code={},
 ]
-\addplot+ table[x=hour, y=throughput] {plots/trace-rs.dat};
+\addplot+[color=colorbrewer1] table[x=hour, y=exists] {plots/trace-rs.dat} \closedcycle;
+\addplot+[color=colorbrewer2] table[x=hour, y=read] {plots/trace-rs.dat} \closedcycle;
+\addplot+[color=colorbrewer3] table[x=hour, y=write] {plots/trace-rs.dat} \closedcycle;
+\addplot+[color=colorbrewer4] table[x=hour, y=cluster] {plots/trace-rs.dat} \closedcycle;
+\addplot+[color=colorbrewer5] table[x=hour, y=redis] {plots/trace-rs.dat} \closedcycle;
+\addplot+[color=colorbrewer6] table[x=hour, y=general] {plots/trace-rs.dat} \closedcycle;
+
+\legend{Exists, Read, Write, Cluster, Other Redis, Other}
 
 \nextgroupplot[
-    height=4cm,
-    ymax=1400000,
-    ytick={0,500000,1000000,1500000},
+    area style,
+    stack plots=y,
+    height=3.6cm,
+    ymax=14000000,
     scaled y ticks=base 10:-6,
     ytick scale label code/.code={},
     ylabel={Network throughput $\left[\si{\mega\byte\per\second}\right]$},
@@ -56,16 +73,21 @@
         at=(ticklabel cs:1.1)
     }
 ]
-\addplot+ table[x=hour, y=throughput] {plots/trace-lrc.dat};
+\addplot+[color=colorbrewer1] table[x=hour, y=exists] {plots/trace-lrc.dat} \closedcycle;
+\addplot+[color=colorbrewer2] table[x=hour, y=read] {plots/trace-lrc.dat} \closedcycle;
+\addplot+[color=colorbrewer3] table[x=hour, y=write] {plots/trace-lrc.dat} \closedcycle;
+\addplot+[color=colorbrewer4] table[x=hour, y=cluster] {plots/trace-lrc.dat} \closedcycle;
+\addplot+[color=colorbrewer5] table[x=hour, y=redis] {plots/trace-lrc.dat} \closedcycle;
+\addplot+[color=colorbrewer6] table[x=hour, y=general] {plots/trace-lrc.dat} \closedcycle;
 \end{groupplot}
 
 \node[anchor=north] at (group c1r2.north) {RS};
 \node[anchor=north] at (group c1r3.north) {LRC};
 
 % RS Arrow
-\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -0.55) -- (0.2, -0.25);
-\node[anchor=west, font=\small] at (0.35, -0.5) {\SI{3.8}{\mega\byte\per\second}};
+%\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -0.55) -- (0.2, -0.25);
+%\node[anchor=west, font=\small] at (0.35, -0.5) {\SI{3.8}{\mega\byte\per\second}};
 % LRC Arrow
-\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -3.15) -- (0.2, -2.85);
-\node[anchor=west, font=\small] at (0.35, -3.1) {\SI{3.9}{\mega\byte\per\second}};
+%\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -3.15) -- (0.2, -2.85);
+%\node[anchor=west, font=\small] at (0.35, -3.1) {\SI{3.9}{\mega\byte\per\second}};
 \end{tikzpicture}
