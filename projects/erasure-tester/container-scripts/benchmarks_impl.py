@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import random
 import re
 import string
@@ -173,28 +174,38 @@ class BenchmarksImpl:
         return lines
 
     def bench_repair(self, config, redis: RedisCluster, java, nodes_trace):
-        if config[1] < 2 or config[0] == 'Null':
-            # The benchmark would crash needlessly
-            return {}
-
         start1 = time()
-        print('Uncompressing httpd...')
-        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount],
-                                    stdout=subprocess.PIPE, bufsize=1)
-        self._show_subprocess_percent(tar_proc, 2614)
+
+        dirs = [self.mount + '/' + str(i) for i in range(2)]
+        for directory in dirs:
+            os.mkdir(directory)
+
+            print('Uncompressing httpd...')
+            tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', directory],
+                                        stdout=subprocess.PIPE, bufsize=1)
+            self._show_subprocess_percent(tar_proc, 2614)
+            print('Uncompressing bc...')
+            tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/bc.tar.gz', '-C', directory],
+                                        stdout=subprocess.PIPE, bufsize=1)
+            self._show_subprocess_percent(tar_proc, 94)
+            print('Uncompressing 10bytes...')
+            tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/10bytes.tar.bz2', '-C', directory],
+                                        stdout=subprocess.PIPE, bufsize=1)
+            self._show_subprocess_percent(tar_proc, 1001)
 
         start2 = time()
         last_size = -1
         for redis_size in (x[0] for x in nodes_trace):
             if redis_size == last_size:
-                last_size = redis_size
                 sleep(1)
                 continue
             redis.scale(redis_size, brutal=True)
-            print("Flushing read cache")
-            java.flush_read_cache()
-            print("Repairing all files")
-            java.repair_all_files()
+
+            if redis_size < last_size:
+                print("Flushing read cache")
+                java.flush_read_cache()
+                print("Repairing all files")
+                java.repair_all_files()
             last_size = redis_size
 
         return {
