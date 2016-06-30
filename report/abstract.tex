@@ -1,3 +1,5 @@
 \begin{abstract}
-\hm{Should ``storage'' be in the title?} We present ErasureBench, a framework to test and compare erasure coding implementations for distributed storage under realistic conditions. \hm{Expand description.} As a first example, we use ErasureBench to compare three coding implementations: a partition of the data source in ten pieces without error-correction, a (14,10) Reed-Solomon code, and a (10,6,5) locally repairable code. \hm{Conclude}
+We present ErasureBench, a framework to test and benchmark erasure coding implementations for distributed storage systems under realistic conditions. ErasureBench automatically instantiates and scale a cluster of storage nodes, and can seamlessly leverage existing failure traces.
+As a first example, we use ErasureBench to compare three coding implementations: a (10,4) Reed-Solomon code, a (10,6,5) locally repairable code, and a (10,0) code, i.e., a partition of the data source in ten pieces without error-correction.
+\hm{Conclude main results. Will wait until the simulations are settled}
 \end{abstract}
