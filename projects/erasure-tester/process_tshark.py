@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
+# Script that creates the .dat file for trace-plot.tex
+# Reads the output of `tshark -n -l -q -T fields -e frame.time_relative -e frame.len -e redis.value` as input
 
 import sys
+
 
 def hour(sec):
     return float(sec) / 3600
@@ -23,7 +26,6 @@ time_bracket = 0
 
 print("sec\thour\tgeneral\twrite\tread\tredis\tcluster\texists")
 
-
 for line in sys.stdin:
     try:
         cols = line.split('\t')
@@ -35,11 +37,11 @@ for line in sys.stdin:
         if redis.strip() != '':
             if redis.startswith('SET'):
                 write_count += length
-            elif redis.startswith('AA'):
+            elif redis.startswith('AA') or redis.startswith('GET'):
                 read_count += length
             elif redis.startswith('cluster'):
                 cluster_count += length
-            elif redis.startswith('EXISTS'):
+            elif redis.startswith('EXISTS') or redis == '1' or redis == '0':
                 exists_count += length
             else:
                 redis_count += length
@@ -63,4 +65,3 @@ for line in sys.stdin:
             exists_count = 0
     except:
         pass
-
