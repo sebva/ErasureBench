@@ -3,29 +3,30 @@
 
 The business-model of many major consumer-facing Cloud providers like Dropbox consists in storing huge volumes of data. Customers expect a high level of reliability, but rarely envisage paying top dollar for such services\footnote{The hidden costs of these free services is left for another time.}. The very-large scale of Cloud provider setups implies that failures occur fairly often throughout the systems \autocite{failures-study}, thus fault-tolerance is intrinsically built into the design of large-scale systems. The result is that irrecoverable user data loss caused by technical failures is rare \autocite{racs}.
 
-
 To offer that kind of guarantees towards their customers, Cloud providers need to implement techniques providing redundancy, while keeping costs under control. The long-established way of providing redundancy is replication, which consists in duplicating functionality across components that are unlikely to fail simultaneously. For data storage, this means storing multiple carbon copies in geographically distinct locations. The cost of storage is multiplied by the amount of redundancy wanted. To store data on a redundant array, the system has to send write requests to each component in the array. When a copy of the data is unavailable, the system can simply query another copy. A system that is replicated $n$ times allows $n-1$ simultaneous failures.
 
-An alternative solution to providing data redundancy is erasure coding and consists in transforming original data into a longer, fault-tolerant form. Erasure coding can provide the same level of reliability as replication with much less storage overhead \autocite{Weatherspoon2002}.
-Computational cost is one of the drawbacks of erasure coding.
-Every write to an erasure-coded system requires computing parity blocks.
-When reading data back from a replicated data storage system, unavailable blocks can be reconstructed using a combination of certain available blocks.
-Reading degraded erasure-coded data implies retrieving a larger amount of blocks than would be needed to read intact data. Also, some computations need to be performed on the blocks retrieved in order to recreate the unavailable blocks.
-Another drawback that modern erasure coding algorithms try to overcome is the high amount of data required to repair faulty blocks.
-Traditional erasure coding algorithms such as \ac{rs} need to decode a complete stripe in order to repair a single faulty block in that stripe.
-It has been calculated that if Facebook coded \SI{50}{\percent} of the data in one of their clusters, its network would be completely saturated~\autocite{XorbasVLDB}.
+An alternative solution to providing data redundancy is erasure coding. Error-correcting codes can decrease the storage overhead compared to replication, but recovering errors requires decoding. Furthermore, traditional erasure codes, while storage-efficient, were not designed to handle failures occurring on distributed storage systems. Replacing a failed disk requires the decoding of all the data objects with a block on it. With a $(k,n-k)$ MDS code like a Reed-Solomon code, the required bandwidth and latency to fetch $k$ geographically distributed blocks required for decoding is significant, and using such codes on geographically distributed data centers would saturate the network links. This observation has led to the study of codes that can repair failed blocks by using less information than required to recover the original data. The drawback of these \emph{locally repairable codes} (LRCs) is a larger code rate, thus they are a tradeoff between MDS codes and replication.
 
-The newer generation of erasure codes focuses on reducing the amount of data needed for repairing blocks.
-That family of codes are named \acp{lrc} \autocite{lrc}.
-Codes like \ac{rs} are \ac{mds}; they have optimal storage overhead for a given level of fault-tolerance~\autocite{XorbasVLDB}.
-However, they have the worst possible locality.
-\Iac{lrc} is not \ac{mds}, so it requires a little more storage overhead, but provides improved locality.
-The authors of \autocite{XorbasVLDB} developed one algorithm based on that principle.
-To verify the characteristics of the implementation of their algorithm, they ran benchmarks on a full-fledged cluster from Facebook.
-Not every researcher can have access to so many machines. 
-Therefore, we decided to develop a system that can be used to benchmark different erasure code implementations using a reasonable amount of hardware.
+%The tradeoffs between local repairability and storage overhead have been extensively studied over the last few years [2], [3].
 
-This article introduces ErasureBench, a testing framework to test erasure coding implementations under real conditions (not simulated). ErasureBench provides the possibility to benchmark parameters of erasure codes.
-Benchmarks can be virtually any piece of software that can run on Linux, and the interface exposed to the benchmarks is a standard hierarchical file system.
-A unique feature of the ErasureBench is its ability to automatically instantiate a cluster of storage nodes based on Redis\footnote{\url{http://redis.io/}} that can be dynamically scaled during execution using containerization.
-Furthermore we can seamlessly run the framework with any real world failure trace from the \ac{fta} \autocite{fta-journal,fta-paper}.
+%  and consists in transforming original data into a longer, fault-tolerant form. Erasure coding can provide the same level of reliability as replication with much less storage overhead \autocite{Weatherspoon2002}.
+% Computational cost is one of the drawbacks of erasure coding.
+% Every write to an erasure-coded system requires computing parity blocks.
+% When reading data back from a replicated data storage system, unavailable blocks can be reconstructed using a combination of certain available blocks.
+% Reading degraded erasure-coded data implies retrieving a larger amount of blocks than would be needed to read intact data. Also, some computations need to be performed on the blocks retrieved in order to recreate the unavailable blocks.
+% Another drawback that modern erasure coding algorithms try to overcome is the high amount of data required to repair faulty blocks.
+% Traditional erasure coding algorithms such as \ac{rs} need to decode a complete stripe in order to repair a single faulty block in that stripe.
+% It has been calculated that if Facebook coded \SI{50}{\percent} of the data in one of their clusters, its network would be completely saturated~\autocite{XorbasVLDB}.
+
+
+% The newer generation of erasure codes focuses on reducing the amount of data needed for repairing blocks.
+% That family of codes are named \acp{lrc} \autocite{lrc}.
+% Codes like \ac{rs} are \ac{mds};
+%they have optimal storage overhead for a given level of fault-tolerance~\autocite{XorbasVLDB}.
+%However, they have the worst possible locality.
+%\Iac{lrc} is not \ac{mds}, so it requires a little more storage overhead, but provides improved locality.
+
+%Therefore, we decided to develop a system that can be used to benchmark different erasure code implementations using a reasonable amount of hardware.
+
+Testing erasure coding implementations in large distributed systems is a challenging endeavor which, in the absence of being able to run benchmarks on a full-fledged cluster from a large operator like Facebook~\autocite{XorbasVLDB} \hm{We can cite the Microsoft paper here.}, is usually done using simulations. For this reason, this article introduces ErasureBench, a testing framework to test erasure coding implementations under real conditions (not simulated). ErasureBench provides the possibility to benchmark parameters of erasure codes. Benchmarks can be virtually any piece of software that can run on Linux, and the interface exposed to the benchmarks is a standard hierarchical file system. A unique feature of the ErasureBench is its ability to automatically instantiate a cluster of storage nodes based on Redis\footnote{\url{http://redis.io/}} that can be dynamically scaled during execution using containerization.
+Furthermore we can seamlessly run the framework with any real world failure trace from the \ac{fta} \autocite{fta-journal,fta-paper}. The rest of the paper is organised as follows. \hm{Complete.}
