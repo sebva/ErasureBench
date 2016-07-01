@@ -4,10 +4,11 @@
 \pgfplotsset{width=\linewidth,
     every axis plot post/.append style={
         solid,
-        thin,
         mark=none
     }
 }
+\pgfplotstableread{plots/trace-rs.dat}\tracersdat
+\pgfplotstableread{plots/trace-lrc.dat}\tracelrcdat
 \begin{groupplot}[
     group style={
         group size=1 by 3,
@@ -18,54 +19,82 @@
         xticklabels at=edge bottom,
         yticklabels at=edge left,
     },
+    legend columns=3,
+    legend style={
+        fill=none,
+        draw=none,
+        anchor=south,
+        at={(0.5,1.24)},
+        cells={anchor=west},
+    },
+    colorbrewer cycle list=Spectral,
+    colorbrewer values=6,
     ymajorgrids,
     xmin=0,
-    xmax=7,
-    xlabel={Elaspsed time $\left[\si{\hour}\right]$},
-    table/col sep=comma,
-]
-\nextgroupplot[
-    height=2cm,
-    ylabel=Nodes,
-    ytick={112,118},
-    minor ytick={112,...,118},
+    xmax=67,
+    xlabel={Elaspsed time $\left[\si{\minute}\right]$},
+    table/col sep=tab,
     tick pos=left,
     ytick align=outside,
+]
+\nextgroupplot[
+    height=1.9cm,
+    ylabel=Nodes,
+    ytick={114,118},
+    minor ytick={114,...,118},
     xmajorgrids,
     yminorgrids,
+    tick label style={font=\footnotesize},
+    label style={font=\tiny},
 ]
-\addplot+[const plot] table[x=hour, y=size] {plots/websites-size.dat};
+\addplot+[const plot, color=blue] table[x=minute, y=size, col sep=comma] {plots/websites-size.dat};
 
 \nextgroupplot[
-    height=4cm,
-    ymax=1400000,
-    ytick={0,500000,1000000,1500000},
+    area style,
+    stack plots=y,
+    height=3.7cm,
+    ymax=19000000,
     scaled y ticks=base 10:-6,
-    ytick scale label code/.code={}
+    ytick scale label code/.code={},
+    ymin=0,
 ]
-\addplot+ table[x=hour, y=throughput] {plots/trace-rs.dat};
+\addplot+[color=colorbrewer1] table[x=minute, y=exists] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer2] table[x=minute, y=read] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer3] table[x=minute, y=write] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer4] table[x=minute, y=cluster] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer5] table[x=minute, y=redis] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer6] table[x=minute, y=general] {\tracersdat} \closedcycle;
+
+\legend{Check, Read, Write, Cluster, Other Redis, Other}
 
 \nextgroupplot[
-    height=4cm,
-    ymax=1400000,
-    ytick={0,500000,1000000,1500000},
+    area style,
+    stack plots=y,
+    height=3.7cm,
+    ymax=19000000,
     scaled y ticks=base 10:-6,
     ytick scale label code/.code={},
     ylabel={Network throughput $\left[\si{\mega\byte\per\second}\right]$},
     every axis y label/.append style={
         at=(ticklabel cs:1.1)
-    }
+    },
+    ymin=0,
 ]
-\addplot+ table[x=hour, y=throughput] {plots/trace-lrc.dat};
+\addplot+[color=colorbrewer1] table[x=minute, y=exists] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer2] table[x=minute, y=read] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer3] table[x=minute, y=write] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer4] table[x=minute, y=cluster] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer5] table[x=minute, y=redis] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer6] table[x=minute, y=general] {\tracelrcdat} \closedcycle;
 \end{groupplot}
 
 \node[anchor=north] at (group c1r2.north) {RS};
 \node[anchor=north] at (group c1r3.north) {LRC};
 
 % RS Arrow
-\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -0.55) -- (0.2, -0.25);
-\node[anchor=west, font=\small] at (0.35, -0.5) {\SI{3.8}{\mega\byte\per\second}};
+\draw[thick, ->, -{Latex[length=1.5mm]}] (0.5, -0.55) -- (0.4, -0.25);
+\node[anchor=west, font=\small] at (0.55, -0.46) {\SI{77.7}{\mega\byte\per\second}};
 % LRC Arrow
-\draw[thick, ->, -{Latex[length=1.5mm]}] (0.3, -3.15) -- (0.2, -2.85);
-\node[anchor=west, font=\small] at (0.35, -3.1) {\SI{3.9}{\mega\byte\per\second}};
+\draw[thick, ->, -{Latex[length=1.5mm]}] (0.5, -2.85) -- (0.4, -2.55);
+\node[anchor=west, font=\small] at (0.55, -2.77) {\SI{76.3}{\mega\byte\per\second}};
 \end{tikzpicture}

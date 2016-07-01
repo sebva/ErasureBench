@@ -267,7 +267,7 @@ def pgfplotsfile(db_file, start_time=0, end_time=10000000000):
     cur.execute(r'SELECT event_start_time, event_type FROM event_trace WHERE event_start_time > ? AND event_start_time < ? ORDER BY event_start_time;',
                 (start_time, end_time))
 
-    print("hour,size")
+    print("minute,size")
 
     count = 0
     events = cur.fetchall()
@@ -277,7 +277,7 @@ def pgfplotsfile(db_file, start_time=0, end_time=10000000000):
         elif event[1] == 0:
             size -= 1
 
-        hour = (event[0] - start_time) / 3600
+        hour = (event[0] - start_time) / 60
         print('%f,%d' % (hour, size))
         count += 1
 
@@ -286,7 +286,7 @@ def pgfplotsfile(db_file, start_time=0, end_time=10000000000):
 
 
 if __name__ == '__main__':
-    pgfplotsfile('databases/websites02.db', start_time=3370000, end_time=3395000)
+    pgfplotsfile('databases/websites02.db', start_time=3381520-130, end_time=3385840)
 
     # simulate('databases/oneping.db')
     #
