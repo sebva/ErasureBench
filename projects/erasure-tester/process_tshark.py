@@ -8,7 +8,11 @@ import sys
 def hour(sec):
     return float(sec) / 3600
 
-timeres = 15
+
+def minute(sec):
+    return float(sec) / 60
+
+timeres = 20
 
 general_count = 0
 write_count = 0
@@ -24,7 +28,7 @@ timestamp = 0.0
 length = 0
 time_bracket = 0
 
-print("sec\thour\tgeneral\twrite\tread\tredis\tcluster\texists")
+print("sec\tminute\thour\tgeneral\twrite\tread\tredis\tcluster\texists")
 
 for line in sys.stdin:
     try:
@@ -50,11 +54,11 @@ for line in sys.stdin:
         time_bracket = int(timestamp // timeres) * timeres
         if time_bracket > current_time:
             for i in range(last_print + timeres, time_bracket - timeres, timeres):
-                print("{}\t{}\t0\t0\t0\t0\t0\t0".format(i, hour(i)))
+                print("{}\t{}\t{}\t0\t0\t0\t0\t0\t0".format(i, minute(i), hour(i)))
                 last_print = i
                 current_time = i + timeres
         
-            print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(current_time, hour(current_time), general_count, write_count, read_count, redis_count, cluster_count, exists_count))
+            print("{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}".format(current_time, minute(current_time), hour(current_time), general_count, write_count, read_count, redis_count, cluster_count, exists_count))
             last_print = current_time
             current_time = time_bracket
             general_count = 0
