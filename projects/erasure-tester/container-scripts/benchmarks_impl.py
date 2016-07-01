@@ -176,22 +176,18 @@ class BenchmarksImpl:
     def bench_repair(self, config, redis: RedisCluster, java, nodes_trace):
         start1 = time()
 
-        dirs = [self.mount + '/' + str(i) for i in range(2)]
-        for directory in dirs:
-            os.mkdir(directory)
-
-            print('Uncompressing httpd...')
-            tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', directory],
-                                        stdout=subprocess.PIPE, bufsize=1)
-            self._show_subprocess_percent(tar_proc, 2614)
-            print('Uncompressing bc...')
-            tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/bc.tar.gz', '-C', directory],
-                                        stdout=subprocess.PIPE, bufsize=1)
-            self._show_subprocess_percent(tar_proc, 94)
-            print('Uncompressing 10bytes...')
-            tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/10bytes.tar.bz2', '-C', directory],
-                                        stdout=subprocess.PIPE, bufsize=1)
-            self._show_subprocess_percent(tar_proc, 1001)
+        print('Uncompressing httpd...')
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/httpd.tar.bz2', '-C', self.mount],
+                                    stdout=subprocess.PIPE, bufsize=1)
+        self._show_subprocess_percent(tar_proc, 2614)
+        print('Uncompressing bc...')
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/bc.tar.gz', '-C', self.mount],
+                                    stdout=subprocess.PIPE, bufsize=1)
+        self._show_subprocess_percent(tar_proc, 94)
+        print('Uncompressing 10bytes...')
+        tar_proc = subprocess.Popen(['tar', '-xvf', '/opt/erasuretester/10bytes.tar.bz2', '-C', self.mount],
+                                    stdout=subprocess.PIPE, bufsize=1)
+        self._show_subprocess_percent(tar_proc, 1001)
 
         start2 = time()
         last_size = -1
