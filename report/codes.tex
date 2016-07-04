@@ -1,0 +1,43 @@
+\subsection{Erasure codes}
+
+\label{sec:codes}
+
+The motivation to create this piece of software comes from the desire to check claims expressed in \citetitle{XorbasVLDB} \autocite{XorbasVLDB}.
+The authors have developed an erasure coding algorithm in the family of \acfp{lrc}.
+The reference implementation of this algorithm is open-source \autocite{xorbas-github}.
+We capitalized on this fact to include it, along with other algorithms provided in their implementation, within our own tester.
+The following erasure coding algorithms are available in our tester:
+\begin{description}[\IEEEsetlabelwidth{XOR}]
+\item[XOR] A simple XOR algorithm with 2 data blocks and 1 parity block.
+\item[\acs{rs}] The classical \acf{rs} code \autocite{reed-solomon}.
+\item[\acs{lrc}] The primary target of our evaluation. This code is based on \ac{rs}, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}.
+\end{description}
+
+Each of these algorithms take parameters that define the number of blocks devolved to each aspect of erasure-coding.
+XOR takes a single parameter, which defines how many data blocks are XORed together to form the parity block.
+In our case, we always use 2 data blocks for 1 parity block.
+XOR can only recover from the loss of a single block.
+
+The parameters of \iac{rs} code are written as $(k,n-k)$ where $k$ is the number of data blocks and $n-k$ is the number of parity blocks.
+\acp{lrc} admit an extra parameter called $r$ (producing a $(k,n-k,r)$ triplet) that defines the block locality.
+A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}.
+In both cases, any $k$ blocks are sufficient to retrieve the data of the complete stripe.
+In \autoref{sec:evaluation} (\nameref{sec:evaluation}), we will use $(10,4)$ and $(10,6,5)$ as the default parameters for \ac{rs} and \ac{lrc}, respectively.
+
+In addition to these three algorithms, our program also provides the possibility to disable erasure coding for testing purposes.
+In that case, there is still one parameter to set, which is the number of data blocks per stripe.
+We use 10 to be able to compare results between the latter three algorithms.
+
+
+%\subsection{Related work}
+
+%\subsection{XORing Elephants: Novel Erasure Codes for Big Data}
+
+% The article presents a new family of erasure codes called \acp{lrc} \autocite{XorbasVLDB}.
+% These codes enable local repair of faulty data.
+% With traditional erasure codes like Reed-Solomon, the cumulative size of the blocks needed to repair a file has to be bigger or equal than the original size of the file.
+% With \ac{lrc}, a failure affecting a small number of blocks can be repaired using a smaller number of clean blocks.
+% The authors implemented their algorithm in Hadoop HDFS and deployed a test to Facebook clusters.
+% They measured that the repair process of \ac{lrc} uses half the disk and network bandwidth compared to Reed-Solomon, at the expense of \SI{14}{\percent} more storage overhead.
+
+%\subsection{A Performance Evaluation of Erasure Coding Libraries for Cloud-Based Data Stores}

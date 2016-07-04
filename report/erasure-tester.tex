@@ -5,56 +5,20 @@
     \label{fig:architecture}
 \end{figure}
 
-\section{Erasure codes tester}
+\section{ErasureBench code tester}
 
-The erasure codes tester is a program written in Java that exposes a filesystem to the user.
-It is particular in the way it stores the contents of files: they are saved in a key-value store after being processed by an erasure coding algorithm.
-Each of the three components (filesystem interface, key-value store, erasure code) can be replaced to test different implementations against each other.
-While the Java program can be used standalone, it is designed to run in a Docker container shared with associated Python scripts.
-
-\subsection{Erasure codes}
-
-The motivation to create this piece of software comes from the desire to check claims expressed in \citetitle{XorbasVLDB} \autocite{XorbasVLDB}.
-The authors have developed an erasure coding algorithm in the family of \acfp{lrc}.
-The reference implementation of this algorithm is open-source \autocite{xorbas-github}.
-We capitalized on this fact to include it, along with other algorithms provided in their implementation, within our own tester.
-The following erasure coding algorithms are available in our tester:
-\begin{description}[\IEEEsetlabelwidth{XOR}]
-\item[XOR] A simple XOR algorithm with 2 data blocks and 1 parity block.
-\item[\acs{rs}] The classical \acf{rs} code \autocite{reed-solomon}.
-\item[\acs{lrc}] The primary target of our evaluation. This code is based on \ac{rs}, but adds a layer enabling faster repair of unavailable blocks, at the expense of additional storage overhead \autocite{XorbasVLDB}.
-\end{description}
-
-Each of these algorithms take parameters that define the number of blocks devolved to each aspect of erasure-coding.
-XOR takes a single parameter, which defines how many data blocks are XORed together to form the parity block.
-In our case, we always use 2 data blocks for 1 parity block.
-XOR can only recover from the loss of a single block.
-
-The parameters of \iac{rs} code are written as $(k,n-k)$ where $k$ is the number of data blocks and $n-k$ is the number of parity blocks.
-\acp{lrc} admit an extra parameter called $r$ (producing a $(k,n-k,r)$ triplet) that defines the block locality.
-A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}.
-In both cases, any $k$ blocks are sufficient to retrieve the data of the complete stripe.
-In \autoref{sec:evaluation} (\nameref{sec:evaluation}), we will use $(10,4)$ and $(10,6,5)$ as the default parameters for \ac{rs} and \ac{lrc}, respectively.
-
-In addition to these three algorithms, our program also provides the possibility to disable erasure coding for testing purposes.
-In that case, there is still one parameter to set, which is the number of data blocks per stripe.
-We use 10 to be able to compare results between the latter three algorithms.
+The ErasureBench code tester is a program written in Java that exposes a filesystem to the user.
+It saves files in a key-value store after processing them with an erasure coding algorithm.
+Each of the three components (filesystem interface, key-value store, erasure code) can be replaced to test different implementations against each other. While the Java program can be used standalone, it is designed to run in a Docker container shared with associated Python scripts.
 
 \subsection{Software architecture}
 \label{subsec:architecture}
 
-This section presents the architecture of the system.
-It is summarized in \autoref{fig:architecture}.
+The system architecture is summarized in \autoref{fig:architecture}. The Java program exposes a filesystem by using the \ac{fuse} interface. When the user runs the program, the filesystem is mounted under a directory of his choice. The tester intercepts system calls by making use of the \textit{fuse-jna} \autocite{fuse-jna} Java library. Read and write calls are passed through to the encoder/decoder layer.
 
-The Java program exposes a filesystem by using the \ac{fuse} interface.
-When the user runs the program, the filesystem is mounted under a directory of his choice.
-The user can then use this directory like it would with any other one.
-The tester will intercept system calls by making use of the \textit{fuse-jna} \autocite{fuse-jna} Java library.
-Read and write calls will be passed through to the encoder/decoder layer.
-
-The encoder/decoder layer will handle the complicated task of correctly chunking file contents.
+The encoder/decoder handles the task of correctly chunking file contents.
 Its role includes the handling of aligning read and write operations to the correct boundaries.
-Once file contents are chunked in data blocks of the correct size, they are passed to the erasure coding algorithm, which will add redundancy blocks.
+Once file contents are chunked in data blocks of the correct size, they are passed to the erasure coding algorithm, which adds redundancy blocks.
 Data blocks and parity blocks are then passed to the storage backend, which will handle the storage of blocks in a key-value store.
 
 \subsubsection{Available implementations}
