@@ -1,4 +1,4 @@
 \begin{abstract}
 We present ErasureBench, a framework to test and benchmark erasure coding implementations for distributed storage systems under realistic conditions. ErasureBench automatically instantiates and scales a cluster of storage nodes, and can seamlessly leverage existing failure traces.
-As a first example, we use ErasureBench to compare three coding implementations: a (10,4) Reed-Solomon code, a (10,6,5) locally repairable code, and a (10,0) code, i.e., a partition of the data source in ten pieces without error-correction.
+As a first example, we use ErasureBench to compare three coding implementations: a $(10,4)$ Reed-Solomon (RS) code, a $(10,6,5)$ locally repairable code (LRC), and a partition of the data source in ten pieces without error-correction. Our experiments show that LRC and RS codes require the same repair throughput when used with small storage nodes, since cluster and network management traffic dominate at this regime. With large storage nodes, read and write traffic increases and our experiments confirm the theoretical and practical tradeoffs between the storage overhead and repair bandwidth of RS and LRC codes.
 \end{abstract}
