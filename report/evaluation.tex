@@ -3,8 +3,8 @@
 
 This section presents the evaluation of our \SYS prototype. 
 First, we describe our evaluation settings and workload characteristics, respectively in Section~\ref{sec:eval:settings} and Section~\ref{sec:eval:workloads}.
-Then we evaluate our system against several metrics: encoding/decoding throughput performance with and without the FUSE layer, network throughput, the scalability, request latency.
-We conclude our evaluation by assessing its fault tolerance features by mean of synthetic and real-world traces.
+Then we evaluate our system against several metrics: encoding/decoding throughput performance with and without the FUSE layer, network throughput, system scalability and its impact on the request latency.
+We conclude by assessing the fault tolerance properties using synthetic and real-world traces.
 
 \subsection{Evaluation Settings}
 \label{sec:eval:settings}
@@ -67,16 +67,16 @@ For both systems, we compare the performances of \ac{lrc} and \ac{rs} as well as
 \begin{figure*}[t]
     \centering
     \input{throughput-plot.tex}
-    \caption{Throughput of different erasure coding algorithms with different file sizes on a storage cluster of 100 nodes. Average (over 10 run) and half confidence interval.}
+    \caption{Throughput of No EC (baseline), \ac{rs} and \ac{lrc} for different file sizes. Average (10 runs) and half confidence interval.}
     \label{fig:throughput-plot}
 \end{figure*}
 
 In all considered scenarios, with the exception of \SYS \textit{write}, larger file sizes yield better results.
-When using bigger files through the \SYS's \ac{fuse} layer, the throughput degrades.
-We explain this by the cost of dynamically increasing buffers in the application, as \ac{fuse} will only write up to \SI{128}{\kibi\byte} at a time.
-\ac{rs} allows faster write operations than \ac{lrc} (up to \vs{fill me}$\times$), as it strictly writes fewer blocks.
-For read operations, \ac{lrc} is faster (up to\vs{fill me}$\times$) as it requires the same number of blocks as \ac{rs}.
-The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and between \SI{-33.6}{\percent} and \SI{-84.9}{\percent} for write operations.
+When using bigger files through the \SYS's \ac{fuse} layer, the throughput decreaes.
+We explain this effect by the cost of dynamically increasing buffers in the application, as \ac{fuse} will only write up to \SI{128}{\kibi\byte} at a time.
+\ac{rs} allows faster write operations than \ac{lrc} (up to \vs{fill me}$\times$), as it always writes fewer blocks.
+For read operations, \ac{lrc} is faster as it requires the same number of blocks as \ac{rs}\vs{not sure if this is enough to justify}.
+Finally, when compared to \textit{Direct}, we observe slowdown penalties between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and from \SI{-33.6}{\percent} to \SI{-84.9}{\percent} for write operations.
 
 
 %\subsection{Storage overheads}
@@ -96,23 +96,46 @@ The decrease in performance caused by \ac{fuse} ranges between \SI{-19.8}{\perce
 
 \subsection{Scalability}
 \label{subsec:latency}
-
-To evaluate the scalability of the system, we measure the impact of the backend Redis cluster size to the observed latency of regular file-system operations.
-To do so, we deploy up to 100 storage nodes.
-We report the observed latency (as returned by the Linux's \texttt{time} tool) to write \SI{16}{\mebi\byte} into the \SYS partition.
-\autoref{fig:latency-plot} presents our result as a Cumulative Distribution Function (CDF) of the latencies.
-We observe that the choice of the erasure coding technique has a relevant impact on the latency of the operations. 
-Instead, the Redis cluster can be scaled up without major penalties.
+To evaluate the scalability of the system, we measure the impact of the Redis cluster size on the latency of write operations.
+%We use a fixed-size Redis cluster of 100 nodes.
+We report the observed latency as computed by the Linux's \texttt{time} tool to write \SI{16}{\mebi\byte} into the \SYS partition.
+\autoref{fig:latency-plot} presents the Cumulative Distribution Function (CDF) of the latencies for different cluster sizes, from 20 up to 100 nodes.
+We note that the chosen erasure coding technique has a relevant impact on the latency of the operations. 
+Conversely, the size of the cluster does not inflict major penalties to the latency.
 For instance, using \ac{lrc} the median (50th) latency is at 22.5s for a 20-nodes cluster, and up to 24.5s for 100-nodes cluster. 
-Note that when using real-world files (such as those in the \texttt{httpd} archive presented in Section~\ref{sec:eval:workloads}) the latencies are on average 0.11s. 
-We believe these results justify a large-scale deployment with hundrends of storage nodes. 
+Note that when using real-world files (e.g. the \texttt{httpd} archive presented in Section~\ref{sec:eval:workloads}) the median latency is of 0.11s for a 100-nodes cluster. 
+%These results largely justify a large-scale deployment with hundrends of storage nodes. 
 
 \begin{figure}[th]
     \centering
     \input{latency-plot.tex}
-    \caption{Cumulative distribution of the latency observed when writing a \SI{16}{\mebi\byte} file to a storage cluster.}
+    \caption{Scalability: write latency for \SI{16}{\mebi\byte} file.}
     \label{fig:latency-plot}
 \end{figure}
+
+
+\subsection{Network Throughput}
+\label{subsec:network-traffic}
+The \ac{rs} and \ac{lrc} codes have different network impacts.
+First, we observe the network bandwidth consumption while extracting the \texttt{httpd} archive into the \SYS partition.
+We report the observed throughput for \ac{rs} write and \ac{lrc} write in \autoref{fig:traffic-plot}.
+\ac{lrc} writes 2 more blocks per stripe than \ac{rs}: as consequence, the write operations are slighly slower (in our experiment, +8\% slower). %needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
+
+%We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
+We then did the reverse operation, once with all storage nodes intact, and once after killing \SI{5}{\percent} of the nodes.
+
+The results are displayed in \autoref{fig:traffic-plot}.
+They show that \ac{lrc} needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
+For read operations, \ac{lrc} is equivalent to \ac{rs} when the cluster is intact.
+The notable characteristic of \ac{lrc} is its increased block locality compared to \ac{rs}.
+We can clearly observe that it effectively lowers the network usage as far as degraded reads are concerned.
+\begin{figure*}
+    \centering
+    \input{traffic-plot.tex}
+    \caption{Network throughput between the encoder and a Redis cluster of 100 Redis nodes. The \texttt{httpd} archive is written and read. Degrated read measured after killing 5\% of nodes.}
+    \label{fig:traffic-plot}
+\end{figure*}
+
 
 \subsection{Fault-tolerance}
 \label{subsec:fault-tolerance}
@@ -136,25 +159,6 @@ It also demonstrates that the larger files contained in httpd are more prone to 
     \label{fig:checksum-plot}
 \end{figure}
 
-
-\subsection{Network traffic to/from storage nodes}
-\label{subsec:network-traffic}
-
-We evaluated the network capacity used by \ac{rs} and \ac{lrc}.
-We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
-We then did the reverse operation, once with all storage nodes intact, and once after killing \SI{5}{\percent} of the nodes.
-
-The results are displayed in \autoref{fig:traffic-plot}.
-They show that \ac{lrc} needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
-For read operations, \ac{lrc} is equivalent to \ac{rs} when the cluster is intact.
-The notable characteristic of \ac{lrc} is its increased block locality compared to \ac{rs}.
-We can clearly observe that it effectively lowers the network usage as far as degraded reads are concerned.
-\begin{figure*}
-    \centering
-    \input{traffic-plot.tex}
-    \caption{Network throughput between the encoder and 100 Redis storage servers when the httpd archive is written and then read. 5 nodes are brutally killed before measuring a degraded read.}
-    \label{fig:traffic-plot}
-\end{figure*}
 
 
 
