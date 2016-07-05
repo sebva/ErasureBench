@@ -106,7 +106,7 @@ For instance, using \ac{lrc} the median (50th) latency is at 22.5s for a 20-node
 Note that when using real-world files (e.g. the \texttt{httpd} archive presented in Section~\ref{sec:eval:workloads}) the median latency is of 0.11s for a 100-nodes cluster. 
 %These results largely justify a large-scale deployment with hundrends of storage nodes. 
 
-\begin{figure}[th]
+\begin{figure}[t]
     \centering
     \input{latency-plot.tex}
     \caption{Scalability: write latency for \SI{16}{\mebi\byte} file.}
@@ -136,31 +136,26 @@ We can clearly observe that it effectively lowers the network usage as far as de
     \label{fig:traffic-plot}
 \end{figure*}
 
+\begin{figure}[ht]
+    \centering
+    \input{checksum-plot.tex}
+    \caption{Fault tolerance for different codes: No EC, \ac{lrc} $\left(10,6,5\right)$ and \ac{rs} $\left(10,4\right)$. Redis cluster of 100 nodes. Data checked for availability after progressively killing each Redis node.}
+    \label{fig:checksum-plot}
+\end{figure}
 
 \subsection{Fault-tolerance}
 \label{subsec:fault-tolerance}
 
-One of the most important, or perhaps the most important characteristic of an erasure coding algorithm is its tolerance to faults.
-A good code should ensure that data stays completely available when a small fraction of servers goes down.
-We quantified the fault tolerance of \acf{rs}, \acf{lrc} and no erasure coding.
-We instantiated a storage cluster of 100 nodes, and extracted the contents of an archive in it.
-We used 2 different archives: \SI{10}{\byte}, which is an ideal scenario and httpd, which is our real-world scenario.
-After the files were extracted, we checked the integrity of each file contained in the storage cluster.
-We then killed storage nodes one after the other, and checked the files integrity before each step.
-
-\autoref{fig:checksum-plot} shows the availability ratio of individual files with regard to the ratio of dead nodes.
-It shows that \ac{rs} provides better fault-tolerance than \ac{lrc}.
-It also demonstrates that the larger files contained in httpd are more prone to failures, as a single damaged stripe within a file will corrupt the entire file.
-
-\begin{figure}[t]
-    \centering
-    \input{checksum-plot.tex}
-    \caption{Fault tolerance for different encoders: No EC, \ac{lrc} $\left(10,6,5\right)$ and \ac{rs} $\left(10,4\right)$. Redis cluster of 100 nodes. Data checked for availability after progressively killing each Redis node.}
-    \label{fig:checksum-plot}
-\end{figure}
-
-
-
+One important feature of an erasure code is its resilience to faults, i.e. data stays available when some fraction of the storage nodes crash.
+To quantify the fault tolerance of \ac{rs} and \ac{lrc}, we performed the following experiment. 
+We instantiate a Redis cluster of 100 nodes, and extracted the contents of the workload archives.% in it.
+%We used 2 different archives: \SI{10}{\byte}, which is an ideal scenario and httpd, which is our real-world scenario.
+Then, we proceed by killing 5\% random Redis nodes and check the integrity of each file in the storage cluster.
+We continue until 80\% of the nodes are killed.
+%We then killed storage nodes one after the other, and checked the files integrity before each step.
+\autoref{fig:checksum-plot} shows the ratio of available files against to the ratio of killed nodes.
+Clearly, \ac{rs} is more fault-tolerant than \ac{lrc} in the chosen configurations, as it tolerates more failed nodes before irrecoverably losing data.
+It also shows that when using larger files (as in \texttt{httpd}), failures are more likely to occure, as a single damaged stripe within a file will corrupt the entire file.
 
 \subsection{Impact of real faults on network usage}
 \label{subsec:fault-trace}
@@ -182,7 +177,7 @@ This peak consists in the writing of the archive to the filesystem.
 The throughput at that moment reached \SI{3.81}{\mega\byte\per\second} using 
 \ac{rs}, and \SI{3.90}{\mega\byte\per\second} using \ac{lrc}.
 
-\begin{figure}
+\begin{figure}[ht]
     \centering
     \input{trace-plot.tex}
     \caption{Top plot: graphical representation of the number of nodes available at a given time as recorded in the trace file. Bottom plots: network traffic incurred by writing \textit{httpd} to the storage cluster, moving blocks between servers when scaling up, and repairing blocks when nodes die.}
