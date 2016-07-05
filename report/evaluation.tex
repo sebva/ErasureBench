@@ -2,22 +2,21 @@
 \label{sec:evaluation}
 
 This section presents the evaluation of our \SYS prototype. 
-First, we describe the evaluation settings in \autoref{sec:eval:settings}.
-Then we evaluate several characteristics of the system: network throughput, encoding/decoding performance, request latency and scalability.
+First, we describe our evaluation settings and workload characteristics, respectively in Section~\ref{sec:eval:settings} and Section~\ref{sec:eval:workloads}.
+Then we evaluate our system against several metrics: encoding/decoding throughput performance with and without the FUSE layer, network throughput, the scalability, request latency.
 We conclude our evaluation by assessing its fault tolerance features by mean of synthetic and real-world traces.
-\vs{add refs to specific sections the text is stable}.
 
 \subsection{Evaluation Settings}
 \label{sec:eval:settings}
 
 We deploy our experiments over a cluster of \num{20} machines interconnected by a \SI{1}{\giga\bit\per\second} switched network.
-Each host features an octocore Intel Xeon CPU and \SI{8}{\giga\byte} of RAM.
-For internal reasons, we have to deploy \acp{vm} on top of the hosts.
+Each host features an 8-core Intel Xeon CPU and \SI{8}{\giga\byte} of RAM.
+We deploy \acp{vm} on top of the hosts.
 We use KVM as a hypervisor.
-To mitigate the performance losses, we configured it to expose the physical CPU to guest \acp{vm} by mean of the \texttt{host-passthrough} option.
-We also leverage the \texttt{virtio} module for better I/O performance.
-The components of the system are packaged in Docker images.
-We installed Docker (v1.11.2) on each \ac{vm}, and configured it without any memory restrictions.
+To mitigate the performance losses, we expose the physical CPU to guest \acp{vm} by mean of the \texttt{host-passthrough} option.
+We leverage the \texttt{virtio} module for better I/O performance.
+All the components of the system are packaged as Docker images.
+Specifically, we installed Docker (v1.11.2) on each \ac{vm}, and configured it without any memory restrictions.
 The deployment and orchestration of the containers rely on Docker Compose (v1.7.1) and Docker Swarm (v1.2.3).
 
 \subsection{Workloads}
@@ -27,10 +26,11 @@ The deployment and orchestration of the containers rely on Docker Compose (v1.7.
 In order to evaluate the performance of \SYS, we selected the source files of two well-known open-source projects: the Apache \texttt{httpd}\footnote{\url{https://archive.apache.org/dist/httpd/httpd-2.4.18.tar.bz2}} server (v2.4.18) and GNU \texttt{bc}\footnote{\url{https://ftp.gnu.org/gnu/bc/bc-1.06.tar.gz}} (v1.06). 
 We chose them because they differ in the total number of files and storage requirements.
 Moreover, we created a synthetic archive containing 1000 files, each consisting of 10 random bytes (\SI{10}{\byte} in the remainder).
-We store and read files contained in these archives in the \SYS partition. 
-\autoref{fig:overhead-table} details further the workloads, in particular the storage overhead induced by the different erasure codes, and the serialization technique used to save the data in the storage cluster.
-We indicate the number of Redis keys used to index the blocks of the encoded archives and the size in \si{\mega\byte} of the binary blocks (\vs{explain what this is}). 
-As Redis can only store strings, we apply a Base64 encoding to the blocks, adding on average \SI{33}{\percent} storage overhead.
+We write and read files stored in these archives into/from the \SYS partition. 
+\autoref{fig:overhead-table} details further the workloads.
+In particular, we highlight 1) the storage overhead induced by the different erasure codes, and 2) the cost of the serialization technique used to save the data in the storage cluster.
+We indicate the number of Redis keys used to index the blocks of the encoded archives and the size in \si{\mega\byte} of the binary blocks. 
+Redis can only store strings, hence we apply a Base64 encoding to the blocks, incurring on average on a \SI{33}{\percent} storage overhead.
 
 \begin{table}
     \centering
