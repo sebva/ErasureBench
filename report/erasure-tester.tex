@@ -1,22 +1,28 @@
-\begin{figure}
+\begin{figure}[t]
     \centering
     \input{architecture-figure.tex}
-    \caption{System components.}
+    \caption{Architecture of ErasureBench.}
     \label{fig:architecture}
 \end{figure}
 
-\section{ErasureBench code tester}
-
+\section{The ErasureBench Framework}
 \label{sec:erasure-tester}
 
-The ErasureBench code tester is a program written in Java that exposes a filesystem to the user.
-It saves files in a key-value store after processing them with an erasure coding algorithm.
-Each of the three components (filesystem interface, key-value store, erasure code) can be replaced to test different implementations against each other. While the Java program can be used standalone, it is designed to run in a Docker container shared with associated Python scripts.
+The ErasureBench framework allows researchers to easily evaluate the performances of erasure codes when used in a large-scale storage context.
+It exposes a filesystem interface to the end-user.
+Files are processed (encoded), split into blocks and stored in a key-value store.
+Thanks to its decoupled architecture, each of the three components (filesystem interface, key-value store, erasure code implementation) can be easily replaced to test other implementations. 
+In the remainder of this section we provide further details about the software architecture and our implementation choices.
+%While the Java program can be used standalone, it is designed to run in a Docker container shared with associated Python scripts.
 
-\subsection{Software architecture}
+\subsection{ErasureBench Architecture}
 \label{subsec:architecture}
 
-The system architecture is summarized in \autoref{fig:architecture}. The Java program exposes a filesystem by using the \ac{fuse} interface. When the user runs the program, the filesystem is mounted under a directory of his choice. The tester intercepts system calls by making use of the \textit{fuse-jna} \autocite{fuse-jna} Java library. Read and write calls are passed through to the encoder/decoder layer.
+\autoref{fig:architecture} depicts the architecture of ErasureBench.
+The Java program exposes a filesystem by using the \ac{fuse} interface. 
+When the user runs the program, the filesystem is mounted under a directory of his choice. 
+The tester intercepts system calls by making use of the \textit{fuse-jna} \autocite{fuse-jna} Java library. 
+Read and write calls are passed through to the encoder/decoder layer.
 
 The encoder/decoder first chunks data in blocks of the chosen size and aligns read and write operations to the correct boundaries. Once data is chunked, the erasure coding algorithm processes the data blocks and generates the redundancy blocks. Data and parity blocks are then passed to the storage backend, which handles their storage using a key-value store.
 
@@ -32,7 +38,7 @@ Our program is compatible with the \textit{Redis} distributed key-value store th
 
 \subsubsection{Blocks storage}
 
-\begin{figure}[H]
+\begin{figure}[t]
     \centering
     \input{blocks-figure.tex}
     \caption{Splitting file contents in blocks, applying erasure coding, and storing data and parity blocks in a Redis cluster.}
