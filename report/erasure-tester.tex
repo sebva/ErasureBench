@@ -31,7 +31,7 @@ Finally, data and parity blocks are passed to the storage backend.
     \label{fig:blocks}
 \end{figure}
 
-\hm{The part that follows is standard. We can cut there is space is missing.}
+%\hm{The part that follows is standard. We can cut there is space is missing.}
 \textbf{Blocks storage.} The storage backend is designed to operate on 1 byte blocks. 
 As usual, storing each block individually in the key-value store is a very slow operation: the metadata is much bigger than the data itself, leading to unworkable overheads. 
 We therefore added an intermediate layer between the encoder/decoder and the storage backend. 
