@@ -68,7 +68,7 @@ This performance is explained by the non-optimized nature of the implementation 
 \end{figure}
 
 
-\textbf{Read/write throughout.}
+\textbf{Read/write throughput.}
 Next, we measure the read/write performances of the encoders in a larger context, that is when plugged into the ErasureBench system.
 In this experiment, we setup a Redis cluster of 100 nodes.
 We compare the achieved performance against a modified version of the system (\textit{Direct}) that completely bypass the \ac{fuse} layer.
@@ -108,7 +108,7 @@ Finally, when compared to NC, we observe slowdown penalties between \SI{-19.8}{\
 \label{subsec:latency}
 To evaluate the scalability of the system, we measure the impact of the Redis cluster size on the latency of write operations.
 %We use a fixed-size Redis cluster of 100 nodes.
-We report the observed latency as computed by the Linux's \texttt{time} tool to write \SI{16}{\mebi\byte} into the \SYS partition.
+We report the observed latency as computed by the Linux's \texttt{time} tool to write \SI{16}{\mebi\byte} into the ErasureBench partition.
 \autoref{fig:latency-plot} presents the Cumulative Distribution Function (CDF) of the latencies for different cluster sizes, from 20 up to 100 nodes.
 We note that the chosen erasure coding technique has a relevant impact on the latency of the operations. 
 Conversely, the size of the cluster does not inflict major penalties to the latency.
@@ -121,7 +121,7 @@ Note that when using real-world files (e.g. the \texttt{httpd} archive), the med
 \label{subsec:network-traffic}
 %\hm{I rewrote that section. Should be rechecked against my stupidity.}
 \autoref{fig:traffic-plot} illustrates the network impact of \ac{rs} and \ac{lrc} codes. 
-First, we observe the network bandwidth consumption while extracting the \texttt{httpd} archive into the \SYS partition. 
+First, we observe the network bandwidth consumption while extracting the \texttt{httpd} archive into the \ac{fuse} partition. 
 \ac{lrc} writes two more blocks per stripe than \ac{rs}, thus the write operations are slower (8\% slower in our experiments). %needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
 %We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
 We then do the reverse operation and read the entire partition, once with all storage nodes intact and once after killing \SI{5}{\percent} of the nodes. 
