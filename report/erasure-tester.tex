@@ -9,34 +9,20 @@
 \label{sec:erasure-tester}
 
 The ErasureBench framework allows researchers to easily evaluate the performances of erasure codes when used in a large-scale storage context.
-It exposes a filesystem interface to the end-user.
+It exposes a filesystem interface to the end-user to facilitate the adoption of well-known file-system benchmarks.
 Files are processed (encoded), split into blocks and stored in a key-value store.
-Thanks to its decoupled architecture, each of the three components (filesystem interface, key-value store, erasure code implementation) can be easily replaced to test other implementations. 
+Thanks to its decoupled architecture, each of the three components (filesystem interface, key-value store, erasure code implementation) can be easily replaced by alternative implementations. 
 In the remainder of this section we provide further details about the software architecture and our implementation choices.
 %While the Java program can be used standalone, it is designed to run in a Docker container shared with associated Python scripts.
 
-\subsection{ErasureBench Architecture}
-\label{subsec:architecture}
-
-\autoref{fig:architecture} depicts the architecture of ErasureBench.
-The Java program exposes a filesystem by using the \ac{fuse} interface. 
+\textbf{Architecture.} \autoref{fig:architecture} depicts the architecture of ErasureBench.
+The Java program comprises a filesystem interface implemented via \ac{fuse}. 
 When the user runs the program, the filesystem is mounted under a directory of his choice. 
-The tester intercepts system calls by making use of the \textit{fuse-jna} \autocite{fuse-jna} Java library. 
-Read and write calls are passed through to the encoder/decoder layer.
-
-The encoder/decoder first chunks data in blocks of the chosen size and aligns read and write operations to the correct boundaries. Once data is chunked, the erasure coding algorithm processes the data blocks and generates the redundancy blocks. Data and parity blocks are then passed to the storage backend, which handles their storage using a key-value store.
-
-\subsubsection{Available implementations}
-
-Components of our tester can have multiple implementations. The frontend currently has one available implementation: a \ac{fuse} filesystem interface backed by \textit{fuse-jna} \autocite{fuse-jna}.
-The encoder/decoder layer is not modular because it is sufficient to have one correct way of handling that operation. The coding libraries bundled with the program were described in Section~\ref{sec:codes}. We adapted the libraries from \autocite{XorbasVLDB} to remove dependencies on any \textit{Hadoop} component. In addition, an additional code taking two data blocks and generating a single parity block by xoring them is also inherited from~\autocite{XorbasVLDB} and thus available. \hm{Please confirm this last code. We have no simulations for it.}
-%A fourth algorithm is provided, in the name of the \textit{Null} encoder.
-%As its name suggests, its \textit{modus operandi} consists in simply forwarding data blocks without any added redundancy.
-%Failing to read a data block while using the \textit{Null} encoder signifies the loss of the stripe associated with it.
-
-Our program is compatible with the \textit{Redis} distributed key-value store through the \textit{Jedis} library. For testing purposes, a storage backend using an in-memory hash map is also available.
-
-\subsubsection{Blocks storage}
+Low-level IO system calls are intercepted by the \textit{fuse-jna} \autocite{fuse-jna} Java library.
+The blocks are then sent back and forth to the encoder/decoder layer. 
+The encoder/decoder first chunks data in blocks of the chosen size and aligns read and write operations to the correct boundaries\vs{which ones?}. 
+Once chunked, blocks are  processed by the chosen erasure code to generate the redundancy blocks. 
+Finally, data and parity blocks are passed to the storage backend.
 
 \begin{figure}[t]
     \centering
@@ -46,28 +32,62 @@ Our program is compatible with the \textit{Redis} distributed key-value store th
 \end{figure}
 
 \hm{The part that follows is standard. We can cut there is space is missing.}
-The storage backend is designed to operate on 1 byte blocks. 
-As usual, storing each block individually in the key-value store is a very slow operation: the metadata is much bigger than the data itself, leading to unworkable overheads. We therefore added an intermediate layer between the encoder/decoder and the storage backend. This layer is transparent to the encoder/decoder which still deals with single 1 byte blocks. Thanks to this new layer, we aggregate multiple write operations on the key-value store, and each key stores an aggregation of multiple blocks.
-The guarantees offered by the erasure coding process are still kept because one aggregation only stores blocks that belong to the same stripe position. This additional component provides a considerable speed-up comprised between $100\times$ and $1000\times$. \autoref{fig:blocks} shows how files are split in blocks, erasure coded, and then aggregated and stored on multiple Redis servers. \hm{The aggregation is not clear in the figure. Valerio, could you improve it?}
-
+\textbf{Blocks storage.} The storage backend is designed to operate on 1 byte blocks. 
+As usual, storing each block individually in the key-value store is a very slow operation: the metadata is much bigger than the data itself, leading to unworkable overheads. 
+We therefore added an intermediate layer between the encoder/decoder and the storage backend. 
+This layer is transparent to the encoder/decoder which still deals with single 1 byte blocks. 
+Thanks to this new layer, we aggregate multiple write operations on the key-value store, and each key stores an aggregation of multiple blocks.
+The guarantees offered by the erasure coding process are still kept because one aggregation only stores blocks that belong to the same stripe position. 
+This additional component provides a considerable speed-up comprised between $100\times$ and $1000\times$. 
+\autoref{fig:blocks} shows how files are split in blocks, erasure coded, and then aggregated and stored on multiple Redis servers. %\hm{The aggregation is not clear in the figure. Valerio, could you improve it?}
 A \ac{lru} cache optimizes the retrieval of multiple individuals blocks.
 This way, when reading a file sequentially, each block aggregation is only retrieved once from the key-value store.
 
-\subsubsection{Metadata storage}
+\textbf{Metadata management.} We keep track of the location of each stored block. 
+Our strategy is to assign a 3j2-bit key to each block. 
+From each key, we can infer two related identifiers: a Redis key and an offset. 
+The Redis key points to an aggregation of blocks stored in the Redis cluster. 
+We then use the offset to precisely locate the block we want within the aggregation.
+In the current prototype, we store all metadata in memory. 
+Each file consists in a list of identifiers. 
+We also store the size of the file once decoded to discard padding blocks. 
+%Naturally, the space overhead of our solution is important, so ErasureBench is not able to store a large amount of data.
 
-When storing data in the storage cluster, we need to keep track of where each block is stored. Our strategy is to assign a 32-bit key to each block. From each key, we can infer two related identifiers: a Redis key and an offset. The Redis key points to an aggregation of blocks stored in the Redis cluster. We then use the offset to precisely locate the block we want within the aggregation.
+\textbf{Implementation details.}
+%The frontend has one available implementation: a \ac{fuse} filesystem interface backed by \textit{fuse-jna} \autocite{fuse-jna}.
+%The encoder/decoder layer is not modular because it is sufficient to have one correct way of handling that operation. 
+The coding libraries bundled with ErasureBench were described in Section~\ref{sec:codes}. 
+We extracted and adapted the \ac{lrc} libraries from \autocite{XorbasVLDB} to remove dependencies on any other \textit{Hadoop} component. 
+%In addition, an additional code taking two data blocks and generating a single parity block by xoring them is also inherited from~\autocite{XorbasVLDB} and thus available. \hm{Please confirm this last code. We have no simulations for it.}
+%A fourth algorithm is provided, in the name of the \textit{Null} encoder.
+%As its name suggests, its \textit{modus operandi} consists in simply forwarding data blocks without any added redundancy.
+%Failing to read a data block while using the \textit{Null} encoder signifies the loss of the stripe associated with it.
+We use the Redis distributed key-value store\footnote{\url{http://redis.io}} and the efficient \textit{Jedis} Java binding\footnote{\url{https://github.com/xetorthio/jedis}}.
+For testing purposes, an in-memory storage backend is also available.
 
-We store all metadata in memory. Each file consists in a list of identifiers. We also store the size of the file once decoded, so we can discard padding blocks. Naturally, the space overhead of our solution is important, so ErasureBench is not able to store a large amount of data.
+\textbf{Deployment.} The deployment of ErasureBench requires to simultaneously launch multiple independent services and to coordinate their bootstrap. 
+%On top of these services, we want to perform measurements on the performance of different erasure coding libraries. 
+We rely on Docker\footnote{\url{https://www.docker.com}} technology to facilitate this task.
+We also exploit Docker Swarm to reduce as much as possible the differences between a local setup and a cluster setup. % to run the benchmarks on a local machine or on a cluster of machines is similar. 
+All the components as well as the supporting Python scripts are packaged as Docker images.
+The framework allows to easily parametrize the testbed (size of the cluster, erasure code and associated parameters, etc.) by means of configuration files. 
+We further provide Python scripts to setup all the components, execute the benchmarks and collect the resulting logs.
+%When an experimenter wants to start the benchmarks with, say, a 20-node Redis cluster as storage backend, he/she only needs to specify the desired setup in a configuration file.
+%The supporting Python scripts will configure the Redis cluster, run the benchmarks and collect the results. 
+We use a Redis script\footnote{\url{http://download.redis.io/redis-stable/src/redis-trib.rb}} to initialize the storage cluster.
+However we observed severe performance issues with cluster sizes bigger than few dozens.
+Therefore, we implemented similar logics in our own Python scripts in order to scale the cluster faster.
+%We can also use \textit{redis-trib.rb} to scale the cluster, but it is rather slow with more than a dozen nodes. 
+%We instead implemented the same logic in our own Python scripts in order scale the cluster faster.
+%Thanks to Docker Swarm, the setup to run the benchmarks on a local machine or on a cluster of machines is similar. 
+%The system can use any reasonable number of Redis servers. 
+ErasureBench includes shell scripts that automate the complete pipeline, from the compilation of sources to the execution of benchmarks on a remote Docker swarm cluster.
 
-\subsection{Surrounding components}
-
-Running the tester requires to simultaneously launch multiple independent services and bootstrap them together. On top of these services, we want to perform measurements on the performance of different erasure coding libraries. The solution we adopted is the containerization of each service. The tester along with supporting Python scripts are bundled together in a Docker image.
-When an experimenter wants to start the benchmarks with, say, a 20-node Redis cluster as storage backend, he/she only needs to specify the desired setup in a configuration file.
-The supporting Python scripts will configure the Redis cluster, run the benchmarks and collect the results. We use the \textit{redis-trib.rb} script to initialize the Redis cluster.
-We can also use \textit{redis-trib.rb} to scale the cluster, but it is rather slow with more than a dozen nodes. We instead implemented the same logic in our own Python scripts in order scale the cluster faster.
-
-Thanks to Docker Swarm, the setup to run the benchmarks on a local machine or on a cluster of machines is similar. The system can use any reasonable number of Redis servers. ErasureBench includes shell scripts that automate the complete pipeline, from the compilation of sources to the execution of benchmarks on a remote Docker swarm cluster.
-
-\subsection{Faults and traces}
-
-In order to test fault tolerance, ErasureBench can handle synthetic and real failure traces when running experiments. A synthetic trace is simply a list of system sizes; when a benchmark completes an iteration, we resize the storage cluster using the next value in the list. ErasureBench can handle real failure traces from SQLite databases such as those from the \ac{fta} \autocite{fta-journal,fta-paper}. These traces monitor individual nodes of a real-life distributed system and record failure events in a database. Our tester can then replay these traces to replicate a real-world failure pattern by first creating a storage cluster of the same size as the original system. New nodes are instanciated and old nodes killed at the same rates as recorded in the trace. For convenience, the user can specify a limited time interval of the trace; it is also possible to accelerate or decelerate~it.
+\textbf{Fault injection.}
+ErasureBench supports the injection of synthetic and real failure traces. 
+A synthetic trace is simply a list of system sizes: when a benchmark completes an iteration, we resize the storage cluster using the next value in the list. 
+ErasureBench can inject real failure traces stored in a SQLite database in the format described in \autocite{fta-journal}. 
+These traces monitor individual nodes of a real-life distributed system and record failure events in a database. 
+ErasureBench can replay these traces to replicate a real-world failure pattern by first creating a storage cluster of the same size as the original system. 
+New nodes are instanciated and old nodes killed at the same rates as reported in the trace. 
+Finally, the framework allow to restrict the replay to a limited time interval of the trace.
