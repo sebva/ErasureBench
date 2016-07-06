@@ -113,16 +113,20 @@ Note that when using real-world files (e.g. the \texttt{httpd} archive presented
 
 \subsection{Network bandwidth consumption}
 \label{subsec:network-traffic}
-\hm{I rewrote that section. Should be rechecked against my stupidity.}
+%\hm{I rewrote that section. Should be rechecked against my stupidity.}
 \autoref{fig:traffic-plot} illustrates the network impact of \ac{rs} and \ac{lrc} codes. 
-First, we observe the network bandwidth consumption while extracting the \texttt{httpd} archive into the \SYS partition. \ac{lrc} writes two more blocks per stripe than \ac{rs}, thus the write operations are slower (8\% slower in our experiments). %needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
+First, we observe the network bandwidth consumption while extracting the \texttt{httpd} archive into the \SYS partition. 
+\ac{lrc} writes two more blocks per stripe than \ac{rs}, thus the write operations are slower (8\% slower in our experiments). %needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
 %We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
-We then do the reverse operation and read the entire partition, once with all storage nodes intact and once after killing \SI{5}{\percent} of the nodes. We can see that \ac{lrc} is equivalent to \ac{rs} when the cluster is intact. However, with degraded reads we observe the good locality of the \ac{lrc} code, which is much faster than the \ac{rs} code. \hm{Done until here.}
+We then do the reverse operation and read the entire partition, once with all storage nodes intact and once after killing \SI{5}{\percent} of the nodes. 
+We can see that \ac{lrc} is equivalent to \ac{rs} when the cluster is intact. 
+However, with degraded reads we observe the good locality of the \ac{lrc} code, which is much faster than the \ac{rs} code. 
+%\hm{Done until here.}
 
 \begin{figure*}
     \centering
     \input{traffic-plot.tex}
-    \caption{Network throughput between the encoder and a Redis cluster of 100 Redis nodes. The \texttt{httpd} archive is written and read. Degrated read measured after killing 5\% of nodes.}
+    \caption{Network throughput of 100 Redis nodes. The \texttt{httpd} archive is written and read. Degrated read measured after killing 5\% of nodes.}
     \label{fig:traffic-plot}
 \end{figure*}
 
@@ -138,38 +142,40 @@ We then do the reverse operation and read the entire partition, once with all st
 
 One important feature of an erasure code is its resilience to faults, i.e. data stays available when some fraction of the storage nodes crash.
 To quantify the fault tolerance of \ac{rs} and \ac{lrc}, we performed the following experiment. 
-We instantiate a Redis cluster of 100 nodes, and extracted the contents of the workload archives.% in it.
+Given a Redis cluster of 100 nodes, we extract the contents of our workload archives.% in it.
 %We used 2 different archives: \SI{10}{\byte}, which is an ideal scenario and httpd, which is our real-world scenario.
 Then, we proceed by killing 5\% random Redis nodes and check the integrity of each file in the storage cluster.
-We continue until 80\% of the nodes are killed.
+We continue killing nodes up to 80\% of the entire cluster.
 %We then killed storage nodes one after the other, and checked the files integrity before each step.
 \autoref{fig:checksum-plot} shows the ratio of available files against to the ratio of killed nodes.
 Clearly, \ac{rs} is more fault-tolerant than \ac{lrc} in the chosen configurations, as it tolerates more failed nodes before irrecoverably losing data.
 It also shows that when using larger files (as in \texttt{httpd}), failures are more likely to occure, as a single damaged stripe within a file will corrupt the entire file.
 
-\subsection{Impact of real faults on network usage}
+\subsection{Network throughput under failures}
 \label{subsec:fault-trace}
-
-One of the unique features of our erasure codes tester is the possibility to replicate recorded failure patterns.
-We used this feature to evaluate the impact on network throughput when faults happen.
-We replicated a \SI{7}{\hour} subset of the fault trace recorded by the authors of \autocite{websites02}.
-We initialized our cluster with 117 machines, and extracted the \textit{httpd} archive in it.
-During the whole experiment, we tracked the network traffic occurring at the storage nodes.
-Then, when a new node joined the system, we migrated some blocks towards it.
-When an existing node departed, we scrubbed the blocks stored in the system and repaired incomplete stripes.
-
-In \autoref{fig:trace-plot}, the uppermost plot shows the size of the storage cluster.
-An increase indicates a node joining the system while a decrease marks a failure.
-The two plots in the lower part of \autoref{fig:trace-plot} show the network throughput that was observed when erasure coding the data using \ac{rs} versus \ac{lrc}.
-The leftmost peak of both plots is cut so that the rest of the plot stays 
-readable.
-This peak consists in the writing of the archive to the filesystem.
-The throughput at that moment reached \SI{3.81}{\mega\byte\per\second} using 
-\ac{rs}, and \SI{3.90}{\mega\byte\per\second} using \ac{lrc}.
-
+We conclude our extensive evaluation by leveraging a novel feature of ErasureBench to replay failure traces such as those described in \autocite{fta-journal}.
+%One of the unique features of our erasure codes tester is the possibility to replicate recorded failure patterns.
+We evaluate the impact on network throughput by replaying a portion of the website trace described in \autocite{websites02}.
+%We replicated a \SI{7}{\hour} subset of the fault trace recorded by the authors of \autocite{websites02}.
+We map each Redis node to a web server and let nodes crash and join following the pattern presented in \autoref{fig:trace-plot} (top).
+During the replay, we monitor the network traffic occurring at the storage nodes.
+First, we extract the \texttt{httpd} archive in the \SYS partition.
+When a new node joins, existing blocks are migrated according to a rebalancing policy.
+Upon departure, we trigger a procedure to repair incomplete stripes.
+%When an existing node departed, we scrubbed the blocks stored in the system and repaired incomplete stripes.
+%In \autoref{fig:trace-plot}, the uppermost plot shows the size of the storage cluster.
+%An increase indicates a node joining the system while a decrease marks a failure.
+We compare the network throughput achieved by \ac{rs} versus \ac{lrc}, respectively in \autoref{fig:trace-plot} (center) and \autoref{fig:trace-plot} (bottom).
+We used a stacked curve representation to highlight the balance between the different traffic types. 
+Apart from \textit{Write} and \textit{Read} traffic, we further distinguish between \textit{Check} (to check for damaged strips), \textit{Cluster} (for cluster management), \textit{Other Redis} and \textit{Other}, respectively for Redis and application-level traffic.
+%The two plots in the lower part of \autoref{fig:trace-plot} show the network throughput that was observed when erasure coding the data using \ac{rs} versus \ac{lrc}.
+The leftmost peak for both scenario occur while the initial write of the archive into the file system.
+We achieve the highest throughput for both erasure codes during this initial write: \SI{3.81}{\mega\byte\per\second} using \ac{rs}, and \SI{3.90}{\mega\byte\per\second} using \ac{lrc}.
+As expected, \ac{lrc} demonstrates its benefit during read operations, where at most \SI{10.1}{\mega\byte\per\second} are spent between the 20min-30min range (when 4 nodes leave the traffic). 
+In comparison, \ac{rs} requires as much as \SI{15.3}{\mega\byte\per\second}.
 \begin{figure}[ht]
     \centering
     \input{trace-plot.tex}
-    \caption{Top plot: graphical representation of the number of nodes available at a given time as recorded in the trace file. Bottom plots: network traffic incurred by writing \textit{httpd} to the storage cluster, moving blocks between servers when scaling up, and repairing blocks when nodes die.}
+    \caption{Throughput under faults. Top: failure pattern of nodes. Middle and bottom plots: network traffic writing the \textit{httpd} archive, moving blocks (during repair or rebalance) between Redis nodes.}
     \label{fig:trace-plot}
 \end{figure}
