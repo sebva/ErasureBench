@@ -9,15 +9,15 @@
 \label{sec:erasure-tester}
 
 The ErasureBench framework allows researchers to easily evaluate the performances of erasure codes when used in a large-scale storage context.
-It exposes a filesystem interface to the end-user to facilitate the adoption of well-known file-system benchmarks.
+It exposes a filesystem interface to the end-user to facilitate the adoption of well-known file-system benchmarks.\footnote{Due to the lack of space, we omit experiments using tools such as IOzone or FileBench.}
 Files are processed (encoded), split into blocks and stored in a key-value store.
 Thanks to its decoupled architecture, each of the three components (filesystem interface, key-value store, erasure code implementation) can be easily replaced by alternative implementations. 
 In the remainder of this section we provide further details about the software architecture and our implementation choices.
 %While the Java program can be used standalone, it is designed to run in a Docker container shared with associated Python scripts.
 
 \textbf{Architecture.} \autoref{fig:architecture} depicts the architecture of ErasureBench.
-The Java program comprises a filesystem interface implemented via \ac{fuse}. 
-When the user runs the program, the filesystem is mounted under a directory of his choice. 
+At its core, ErasureBench exposes a filesystem interface via a Linux mount point implemented via \ac{fuse}. 
+Upon its execution, the filesystem is mounted under a regular directory. 
 Low-level IO system calls are intercepted by the \textit{fuse-jna} \autocite{fuse-jna} Java library.
 The blocks are then sent back and forth to the encoder/decoder layer. 
 The encoder/decoder first chunks data in blocks of the chosen size and aligns read and write operations to the correct boundaries\vs{which ones?}. 
@@ -62,7 +62,7 @@ We extracted and adapted the \ac{lrc} libraries from \autocite{XorbasVLDB} to re
 %A fourth algorithm is provided, in the name of the \textit{Null} encoder.
 %As its name suggests, its \textit{modus operandi} consists in simply forwarding data blocks without any added redundancy.
 %Failing to read a data block while using the \textit{Null} encoder signifies the loss of the stripe associated with it.
-We use the Redis distributed key-value store\footnote{\url{http://redis.io}} and the efficient \textit{Jedis} Java binding\footnote{\url{https://github.com/xetorthio/jedis}}.
+We use the Redis distributed key-value store\footnote{\url{http://redis.io}} via the efficient and battle-tested \textit{Jedis}  binding.\footnote{\url{https://github.com/xetorthio/jedis}}
 For testing purposes, an in-memory storage backend is also available.
 
 \textbf{Deployment.} The deployment of ErasureBench requires to simultaneously launch multiple independent services and to coordinate their bootstrap. 
