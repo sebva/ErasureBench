@@ -44,7 +44,7 @@ A \ac{lru} cache optimizes the retrieval of multiple individuals blocks.
 This way, when reading a file sequentially, each block aggregation is only retrieved once from the key-value store.
 
 \textbf{Metadata management.} We keep track of the location of each stored block. 
-Our strategy is to assign a 3j2-bit key to each block. 
+Our strategy is to assign a 32-bit key to each block. 
 From each key, we can infer two related identifiers: a Redis key and an offset. 
 The Redis key points to an aggregation of blocks stored in the Redis cluster. 
 We then use the offset to precisely locate the block we want within the aggregation.
