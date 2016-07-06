@@ -63,7 +63,7 @@
     (64 MB, .392) +- (0, .00290)
 };
 
-\legend{No EC, LRC, RS}
+\legend{NC, LRC, RS}
 
 % Write direct
 \nextgroupplot
@@ -129,8 +129,8 @@
 };
 \end{groupplot}
 
-\node[anchor=south] at (group c1r1.north) {\SYS write};
-\node[anchor=south] at (group c3r1.north) {\SYS read};
+\node[anchor=south] at (group c1r1.north) {ErasureBench write};
+\node[anchor=south] at (group c3r1.north) {ErasureBench read};
 \node[anchor=south] at (group c2r1.north) {Direct write};
 \node[anchor=south] at (group c4r1.north) {Direct read};
 \end{tikzpicture}
