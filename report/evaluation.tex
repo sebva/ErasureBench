@@ -113,13 +113,12 @@ Note that when using real-world files (e.g. the \texttt{httpd} archive presented
 
 \subsection{Network bandwidth consumption}
 \label{subsec:network-traffic}
-The \ac{rs} and \ac{lrc} codes have different network impacts.
-First, we observe the network bandwidth consumption while extracting the \texttt{httpd} archive into the \SYS partition. We report the observed throughput for \ac{rs} write and \ac{lrc} write in \autoref{fig:traffic-plot}. \ac{lrc} writes two more blocks per stripe than \ac{rs}: as consequence, the write operations are slower (8\% slower in our experiments). %needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
+\hm{I rewrote that section. Should be rechecked against my stupidity.}
+\autoref{fig:traffic-plot} illustrates the network impact of \ac{rs} and \ac{lrc} codes. 
+First, we observe the network bandwidth consumption while extracting the \texttt{httpd} archive into the \SYS partition. \ac{lrc} writes two more blocks per stripe than \ac{rs}, thus the write operations are slower (8\% slower in our experiments). %needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
 %We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
-We then do the reverse operation and reads the entire partition, once with all storage nodes intact and once after killing \SI{5}{\percent} of the nodes. The results are displayed in \autoref{fig:traffic-plot}. They show that \ac{lrc} needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
-For read operations, \ac{lrc} is equivalent to \ac{rs} when the cluster is intact.
-The notable characteristic of \ac{lrc} is its increased block locality compared to \ac{rs}.
-We can clearly observe that it effectively lowers the network usage as far as degraded reads are concerned.
+We then do the reverse operation and read the entire partition, once with all storage nodes intact and once after killing \SI{5}{\percent} of the nodes. We can see that \ac{lrc} is equivalent to \ac{rs} when the cluster is intact. However, with degraded reads we observe the good locality of the \ac{lrc} code, which is much faster than the \ac{rs} code. \hm{Done until here.}
+
 \begin{figure*}
     \centering
     \input{traffic-plot.tex}
