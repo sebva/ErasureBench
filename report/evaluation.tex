@@ -138,16 +138,14 @@ However, with degraded reads we observe the good locality of the \ac{lrc} code, 
 
 \textbf{Fault-tolerance}
 \label{subsec:fault-tolerance}
-One important feature of an erasure code is its resilience to faults, i.e. data stays available when some fraction of the storage nodes crash.
-To quantify the fault tolerance of \ac{rs} and \ac{lrc}, we performed the following experiment. 
-Given a Redis cluster of 100 nodes, we extract the contents of our workload archives.% in it.
+\hm{For a coding theorist like me, this section is absolutely trivial! I don't like it. I rephrased it a little bit.}
+
+An important feature of an erasure code is its resilience to faults, i.e., data stays available when some of the storage nodes crash. To quantify the fault tolerance of \ac{rs} and \ac{lrc}, we perform the following experiment. Given a Redis cluster of 100 nodes, we first extract the content of our workload archives. % in it.
 %We used 2 different archives: \SI{10}{\byte}, which is an ideal scenario and httpd, which is our real-world scenario.
-Then, we proceed by killing 5\% random Redis nodes and check the integrity of each file in the storage cluster.
-We continue killing nodes up to 80\% of the entire cluster.
+Then, we kill 5\% of the Redis nodes uniformly at random and check the integrity of each file in the storage cluster. We repeat the process by killing an additional 5\% of the nodes at each subsequent iteration until 80\% of the entire cluster is erased.
 %We then killed storage nodes one after the other, and checked the files integrity before each step.
-\autoref{fig:checksum-plot} shows the ratio of available files against to the ratio of killed nodes.
-Clearly, \ac{rs} is more fault-tolerant than \ac{lrc} in the chosen configurations, as it tolerates more failed nodes before irrecoverably losing data.
-It also shows that when using larger files (as in \texttt{httpd}), failures are more likely to occure, as a single damaged stripe within a file will corrupt the entire file.
+\autoref{fig:checksum-plot} shows the ratio of available files against the ratio of killed nodes.
+Clearly, \ac{rs} is more fault-tolerant than \ac{lrc} for the chosen configurations. This might be surprising because both codes have the same minimum distance and \ac{lrc} includes \ac{rs} with extra parity blocks (and a lower code rate), but erasing a constant fraction of the nodes erase more blocks per \ac{lrc} codeword. In practice, our (10,6,5) \ac{lrc} has higher availability than our (10,4) \ac{rs} code because it can repair erased blocks faster in the presence of degraded reads. \hm{We should have tested that :-) My bad.} The figure also shows that when using larger files (as in \texttt{httpd}), failures are more likely to occur, as a single damaged stripe within a file will corrupt the entire file.
 
 \textbf{Network throughput under failures.}
 \label{subsec:fault-trace}
