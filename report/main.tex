@@ -23,7 +23,7 @@
 
 %% Environment for comments: Set the boolean to false to produce a comment-free version.
 \newboolean{showcomments}
-\setboolean{showcomments}{true}
+\setboolean{showcomments}{false}
 \ifthenelse{\boolean{showcomments}}
 { \newcommand{\mynote}[3]{
     \fbox{\bfseries\sffamily\scriptsize#1}
@@ -68,7 +68,7 @@
 %    {\finentry}}
 
 % Constants
-\def\ieeetitle{ErasureBench: an Experimental Testbed \\ to Compare Locally Repairable and \\ Erasure Coding Libraries}
+\def\ieeetitle{ErasureBench: an Experimental Testbed to Compare\\ Locally Repairable and Erasure Coding Libraries}
 
 \def\ieeeauthor{Sébastien Vaucher, Hugues Mercier, Valerio Schiavoni}
 
