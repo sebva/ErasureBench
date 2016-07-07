@@ -18,7 +18,7 @@ Error-correcting codes can decrease the storage overhead compared to replication
 Furthermore, traditional erasure codes, while being storage-efficient, were not designed to handle failures occurring on distributed storage systems. 
 Replacing a failed disk requires the decoding of all the data objects with a block on it. With a $(k,n-k)$ maximum distance separable (MDS)\autocite{macwilliams1977theory} code like a Reed-Solomon code (RS), the required bandwidth and latency to fetch $k$ geographically distributed blocks required for decoding is significant, and using such codes on geographically distributed data centers would saturate the network links. 
 This observation has led to the study of codes that can repair failed blocks by using less information than required to recover the original data. 
-The drawback of these \emph{locally repairable codes} (LRCs) is a lower code rate, thus they are a tradeoff between MDS codes and replication.
+The drawback of these \emph{locally repairable codes} (LRCs)\autocite{papailiopoulos2014locally} is a lower code rate, thus they are a tradeoff between MDS codes and replication.
 
 %The tradeoffs between local repairability and storage overhead have been extensively studied over the last few years [2], [3].
 
