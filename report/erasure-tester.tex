@@ -18,7 +18,7 @@ In the remainder of this section we provide further details about the software a
 \textbf{Architecture.} \autoref{fig:architecture} depicts the architecture of ErasureBench.
 At its core, ErasureBench exposes a filesystem interface via a Linux mount point implemented via \ac{fuse}. 
 Upon its execution, the filesystem is mounted under a regular directory. 
-Low-level IO system calls are intercepted by the \textit{fuse-jna} \autocite{fuse-jna} Java library.
+Low-level IO system calls are intercepted by the \textit{fuse-jna}\footnote{\url{https://github.com/EtiennePerot/fuse-jna}} Java library.
 The blocks are then sent back and forth to the encoder/decoder layer. 
 The encoder/decoder first chunks data in blocks of the chosen size and aligns read and write operations to the correct boundaries\vs{which ones?}. 
 Once chunked, blocks are  processed by the chosen erasure code to generate the redundancy blocks. 
