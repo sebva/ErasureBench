@@ -1,7 +1,7 @@
 \section{Introduction}
 \label{sec:intro}
 
-The business-model of many major consumer-facing Cloud providers like Dropbox consists in storing huge volumes of data. Customers expect a high level of reliability, but rarely envisage paying top dollar for such services\footnote{The hidden costs of these free services are left for another time.}. 
+The business-model of many major consumer-facing Cloud providers like Dropbox consists in storing huge volumes of data. Customers expect a high level of reliability, but rarely envisage paying top dollar for such services.\footnote{The hidden costs of these free services are left for another time.} 
 The very-large scale of Cloud provider setups implies that failures occur fairly often \autocite{failures-study}, thus fault-tolerance is intrinsically built into the design of large-scale systems. 
 The result is that irrecoverable user data loss caused by technical failures is rare\autocite{racs}.
 
@@ -41,7 +41,7 @@ The drawback of these \emph{locally repairable codes} (LRCs)\autocite{papailiopo
 
 This paper introduces ErasureBench, a framework to evaluate erasure coding implementations under real conditions. 
 ErasureBench exposes a familiar hierarchical file system interface leveraging FUSE.
-The architecture is modular and allows to easily plug and configure the erasure codes.
+The architecture is modular and allows to easily plug and configure different erasure codes.
 %ErasureBench allows researchers to benchmark parameters of erasure codes. 
 %Benchmarks can be virtually any piece of software that can run on Linux, and the interface exposed to the benchmarks is a standard hierarchical file system. 
 Our motivation is that testing erasure coding implementations in large distributed systems is a challenging endeavor which, in the absence of being able to run benchmarks on a full-fledged cluster from a large operator like Facebook~\autocite{XorbasVLDB} or Microsoft \cite{DBLP:conf/usenix/HuangSXOCG0Y12}, is usually done using simulations~\autocite{Silberstein2014}. 

@@ -56,7 +56,7 @@ We also store the size of the file once decoded to discard padding blocks.
 \textbf{Implementation details.}
 %The frontend has one available implementation: a \ac{fuse} filesystem interface backed by \textit{fuse-jna} \autocite{fuse-jna}.
 %The encoder/decoder layer is not modular because it is sufficient to have one correct way of handling that operation. 
-The coding libraries bundled with ErasureBench were described in Section~\ref{sec:codes}. 
+We implement the erasure coding algorithms described in Section~\ref{sec:codes} and we bundled them in ErasureBench. 
 We extracted and adapted the \ac{lrc} libraries from \autocite{XorbasVLDB} to remove dependencies on any other \textit{Hadoop} component. 
 %In addition, an additional code taking two data blocks and generating a single parity block by xoring them is also inherited from~\autocite{XorbasVLDB} and thus available. \hm{Please confirm this last code. We have no simulations for it.}
 %A fourth algorithm is provided, in the name of the \textit{Null} encoder.
@@ -67,21 +67,21 @@ For testing purposes, an in-memory storage backend is also available.
 
 \textbf{Deployment.} The deployment of ErasureBench requires to simultaneously launch multiple independent services and to coordinate their bootstrap. 
 %On top of these services, we want to perform measurements on the performance of different erasure coding libraries. 
-We rely on Docker\footnote{\url{https://www.docker.com}} technology to facilitate this task.
-We also exploit Docker Swarm to reduce as much as possible the differences between a local setup and a cluster setup. % to run the benchmarks on a local machine or on a cluster of machines is similar. 
+We leverage the Docker\footnote{\url{https://www.docker.com}} technology to facilitate this task.
+We also exploit Docker Swarm\footnote{\url{https://docs.docker.com/swarm/}} to reduce as much as possible the deployment differences between a local and a remote cluster setup. % to run the benchmarks on a local machine or on a cluster of machines is similar. 
 All the components as well as the supporting Python scripts are packaged as Docker images.
 The framework allows to easily parametrize the testbed (size of the cluster, erasure code and associated parameters, etc.) by means of configuration files. 
 We further provide Python scripts to setup all the components, execute the benchmarks and collect the resulting logs.
 %When an experimenter wants to start the benchmarks with, say, a 20-node Redis cluster as storage backend, he/she only needs to specify the desired setup in a configuration file.
 %The supporting Python scripts will configure the Redis cluster, run the benchmarks and collect the results. 
-We use a Redis script\footnote{\url{http://download.redis.io/redis-stable/src/redis-trib.rb}} to initialize the storage cluster.
+We use the Redis's own \texttt{redis-trib.rb} script\footnote{\url{http://download.redis.io/redis-stable/src/redis-trib.rb}} to initialize the storage cluster.
 However we observed severe performance issues with cluster sizes bigger than few dozens.
 Therefore, we implemented similar logics in our own Python scripts in order to scale the cluster faster.
 %We can also use \textit{redis-trib.rb} to scale the cluster, but it is rather slow with more than a dozen nodes. 
 %We instead implemented the same logic in our own Python scripts in order scale the cluster faster.
 %Thanks to Docker Swarm, the setup to run the benchmarks on a local machine or on a cluster of machines is similar. 
 %The system can use any reasonable number of Redis servers. 
-ErasureBench includes shell scripts that automate the complete pipeline, from the compilation of sources to the execution of benchmarks on a remote Docker swarm cluster.
+ErasureBench includes shell scripts that automate the complete pipeline, from the compilation of sources to the execution of benchmarks on a remote Docker Swarm cluster.
 
 \textbf{Fault injection.}
 ErasureBench supports the injection of synthetic and real failure traces. 
@@ -89,5 +89,6 @@ A synthetic trace is simply a list of system sizes: when a benchmark completes a
 ErasureBench can inject real failure traces stored in a SQLite database in the format described in \autocite{fta-journal}. 
 These traces monitor individual nodes of a real-life distributed system and record failure events in a database. 
 ErasureBench can replay these traces to replicate a real-world failure pattern by first creating a storage cluster of the same size as the original system. 
-New nodes are instanciated and old nodes killed at the same rates as reported in the trace. 
+New nodes are instantiated and old nodes killed at the same rates as reported in the trace. 
 Finally, the framework allow to restrict the replay to a limited time interval of the trace.
+We use this trace replay feature in the last set of experiments in the next section.

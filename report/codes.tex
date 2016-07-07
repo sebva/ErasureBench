@@ -4,7 +4,7 @@
 We write $(k,n-k)$ for the parameters of maximum distance separable (MDS) codes, such as \iac{rs} codes~\autocite{reed-solomon}, where $k$ is the number of data blocks and $n-k$ is the number of parity blocks. 
 The parameters of \acp{lrc} are  $(k,n-k,r)$, where $r$ is the block locality. 
 A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}. Correcting a single erased block using a $(k,n-k,r)$ code requires to fetch $r$ (hopefully $<k$) blocks. 
-At both extremes of the spectrum, MDS codes have the worst locality $r=k$ but the best storage overhead, whereas replication has locality $r=1$ but the worst storage overheard. 
+At both extremes of the spectrum, MDS codes have the worst locality $r=k$ but the best storage overhead, whereas replication has locality $r=1$ but the worst storage overhead. 
 Since we target distributed storage, we consider systematic erasure-correcting codes, although our work seamlessly extends to non-systematic codes. %Extending ErasureBench to consider other types of errors would require more work.
 
 We emphasize again that we can use ErasureBench with any erasure coding scheme. This being said, to test our platform, we implement and test the following schemes:

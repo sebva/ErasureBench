@@ -40,7 +40,7 @@ Redis can only store strings, hence we apply a Base64 encoding to the blocks, in
 We begin our evaluation by measuring the raw encoding throughput of our \ac{rs} and \ac{lrc} encoder implementations.
 We compare them against the NC naive encoder (Section~\ref{sec:codes}).
 \autoref{table:codes-performance-table} presents our results. \hm{The throughput seem faster for LRC. This is counter-intuitive since more operations are required for LRCs. It should be the throughput in MB/s of original data, not of coded data. Please check that it is correct.} We observe that the encoding throughput consistently improves with the size of the blocks and achieves up to 15.3\si{\mega\byte\per\second} with \ac{lrc} and \SI{64}{\mega\byte}.
-When decoding, we achieve 2.2\si{\mega\byte\per\second} and 2.9\si{\mega\byte\per\second}, respectively for \ac{rs} and \ac{lrc}.
+When decoding (not shown), we achieve 2.2\si{\mega\byte\per\second} and 2.9\si{\mega\byte\per\second}, respectively for \ac{rs} and \ac{lrc}.
 This performance is explained by the non-optimized nature of the implementation and the lack of native hardware support, which normally improve the performance by orders of magnitude~\cite{Burihabwa2016}. We leave as future work the integration of more efficient implementations.
 
 
@@ -72,7 +72,7 @@ This performance is explained by the non-optimized nature of the implementation 
 Next, we measure the read/write performances of the encoders in a larger context, that is when plugged into the ErasureBench system.
 In this experiment, we setup a Redis cluster of 100 nodes.
 We compare the achieved performance against a modified version of the system (\textit{Direct}) that completely bypass the \ac{fuse} layer.
-In both cases, we compare the performances of \ac{lrc} and \ac{rs} as well as against a system that does not use any erasure coding (NC).  
+In both cases, we compare the performances of NC, \ac{lrc} and \ac{rs}. % as well as against a system that does not use any erasure coding (NC).  
 %We evaluate the overhead of the \ac{fuse} layer by comparing two cases: the normal access through \ac{fuse} and a special system that we call \textit{Direct} that completely bypasses it
 \autoref{fig:throughput-plot} presents our results.
 \begin{figure*}[t]
@@ -85,8 +85,8 @@ In all considered scenarios, with the exception of \ac{lrc} \textit{write}, larg
 When using bigger files through the \ac{fuse} layer, the throughput decreases.
 We explain this effect by the cost of dynamically increasing buffers in the application, as \ac{fuse} will only write up to \SI{128}{\kibi\byte} at a time.
 \ac{rs} allows faster write operations than \ac{lrc}, as it always writes 14 instead of 16 blocks per codeword.
-For read operations, all schemes require ten blocks per codeword, but we observe that \ac{lrc} is slightly faster. \ac{rs}\vs{not sure if this is enough to justify}. \hm{No. They should be roughly equal without erasure, and at worst RS should be faster since LRC is built on top of it. I have no idea why this is so.}
-Finally, when compared to NC, we observe slowdown penalties between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and from \SI{-33.6}{\percent} to \SI{-84.9}{\percent} for write operations.
+For read operations, all schemes require ten blocks per codeword, but we observe that \ac{lrc} is slightly faster than \ac{rs}. \vs{not sure if this is enough to justify}. \hm{No. They should be roughly equal without erasure, and at worst RS should be faster since LRC is built on top of it. I have no idea why this is so.}
+Finally, when compared to NC, we observe slowdown penalties between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and from \SI{-33.6}{\percent} to \SI{-84.9}{\percent} for write operations, respectively for \ac{lrc} and \ac{rs}.
 
 
 %\subsection{Storage overheads}
@@ -113,7 +113,8 @@ We report the observed latency as computed by the Linux's \texttt{time} tool to 
 We note that the chosen erasure coding technique has a relevant impact on the latency of the operations. 
 Conversely, the size of the cluster does not inflict major penalties to the latency.
 For instance, using \ac{lrc} the median (50th) latency is at 22.5s for a 20-nodes cluster, and up to 24.5s for 100-nodes cluster. 
-Note that when using real-world files (e.g. the \texttt{httpd} archive), the median latency is 0.11s for a 100-nodes cluster. 
+Note that when using real-world files the performances are much better.
+For example, when the average size of the files in the \texttt{httpd} archive (\SI{3}{\kibi\byte}), the median write latency is 0.11s for a 100-nodes cluster. 
 %These results largely justify a large-scale deployment with hundrends of storage nodes. 
 
 
@@ -126,13 +127,14 @@ First, we observe the network bandwidth consumption while extracting the \texttt
 %We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
 We then do the reverse operation and read the entire partition, once with all storage nodes intact and once after killing \SI{5}{\percent} of the nodes. 
 We can see that \ac{lrc} is equivalent to \ac{rs} when the cluster is intact. 
-However, with degraded reads we observe the good locality of the \ac{lrc} code, which is much faster than the \ac{rs} code. 
+However, with degraded reads (that is, when there are missing blocks due to failed nodes), we observe the good locality of the \ac{lrc} code, which is much faster than the \ac{rs} code. 
+In our evaluation, LRC completes a degraded read of the \texttt{httpd} archive after 90 seconds, while using RS it takes 125 seconds.
 %\hm{Done until here.}
 
 \begin{figure*}
     \centering
     \input{traffic-plot.tex}
-    \caption{Network throughput of 100 Redis nodes. The \texttt{httpd} archive is written and read. Degrated read measured after killing 5\% of nodes.}
+    \caption{Network throughput of 100 Redis nodes. The \texttt{httpd} archive is written and read. Degraded read measured after killing 5\% of nodes.}
     \label{fig:traffic-plot}
 \end{figure*}
 
@@ -166,7 +168,7 @@ We used a stacked curve representation to highlight the balance between the diff
 Apart from \textit{Write} and \textit{Read} traffic, we further distinguish between \textit{Check} (to check for damaged strips), \textit{Cluster} (for cluster management), \textit{Other Redis} and \textit{Other}, respectively for Redis and application-level traffic.
 %The two plots in the lower part of \autoref{fig:trace-plot} show the network throughput that was observed when erasure coding the data using \ac{rs} versus \ac{lrc}.
 The leftmost peak for both scenario occur while the initial write of the archive into the file system.
-We achieve the highest throughput for both erasure codes during this initial write: \SI{3.81}{\mega\byte\per\second} using \ac{rs}, and \SI{3.90}{\mega\byte\per\second} using \ac{lrc}.
+We achieve the highest throughput for both erasure codes during this initial write: \SI{77.7}{\mega\byte\per\second} using \ac{rs}, and \SI{76.3}{\mega\byte\per\second} using \ac{lrc}.
 As expected, \ac{lrc} demonstrates its benefit during read operations, where at most \SI{10.1}{\mega\byte\per\second} are spent between the 20min-30min range (when 4 nodes leave the traffic). 
 In comparison, \ac{rs} requires as much as \SI{15.3}{\mega\byte\per\second}.
 \begin{figure}[ht]
