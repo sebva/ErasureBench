@@ -10,8 +10,7 @@
 
 The ErasureBench framework allows researchers to easily evaluate the performances of erasure codes when used in a large-scale storage context.
 It exposes a filesystem interface to the end-user to facilitate the adoption of well-known file-system benchmarks.\footnote{Due to the lack of space, we omit experiments using tools such as IOzone or FileBench.}
-Files are processed (encoded), split into blocks and stored in a key-value store.
-Thanks to its decoupled architecture, each of the three components (filesystem interface, key-value store, erasure code implementation) can be easily replaced by alternative implementations. 
+Files are split into blocks, processed (encoded), and stored in a key-value store. Thanks to its decoupled architecture, each of the three components (filesystem interface, key-value store, erasure code) can be easily replaced by alternative implementations. 
 In the remainder of this section we provide further details about the software architecture and our implementation choices.
 %While the Java program can be used standalone, it is designed to run in a Docker container shared with associated Python scripts.
 
@@ -74,9 +73,7 @@ The framework allows to easily parametrize the testbed (size of the cluster, era
 We further provide Python scripts to setup all the components, execute the benchmarks and collect the resulting logs.
 %When an experimenter wants to start the benchmarks with, say, a 20-node Redis cluster as storage backend, he/she only needs to specify the desired setup in a configuration file.
 %The supporting Python scripts will configure the Redis cluster, run the benchmarks and collect the results. 
-We use the Redis's own \texttt{redis-trib.rb} script\footnote{\url{http://download.redis.io/redis-stable/src/redis-trib.rb}} to initialize the storage cluster.
-However we observed severe performance issues with cluster sizes bigger than few dozens.
-Therefore, we implemented similar logics in our own Python scripts in order to scale the cluster faster.
+We originally used the Redis's own \texttt{redis-trib.rb} script\footnote{\url{http://download.redis.io/redis-stable/src/redis-trib.rb}} to initialize the storage cluster, however we observed severe performance issues with cluster sizes bigger than a few dozens. Hence, we also implemented similar logics in our own Python scripts in order to scale the cluster faster.
 %We can also use \textit{redis-trib.rb} to scale the cluster, but it is rather slow with more than a dozen nodes. 
 %We instead implemented the same logic in our own Python scripts in order scale the cluster faster.
 %Thanks to Docker Swarm, the setup to run the benchmarks on a local machine or on a cluster of machines is similar. 
@@ -90,5 +87,5 @@ ErasureBench can inject real failure traces stored in a SQLite database in the f
 These traces monitor individual nodes of a real-life distributed system and record failure events in a database. 
 ErasureBench can replay these traces to replicate a real-world failure pattern by first creating a storage cluster of the same size as the original system. 
 New nodes are instantiated and old nodes killed at the same rates as reported in the trace. 
-Finally, the framework allow to restrict the replay to a limited time interval of the trace.
-We use this trace replay feature in the last set of experiments of next section.
+Finally, the framework allows to restrict the replay to a limited time interval of the trace.
+We use this trace replay feature in the last set of experiments of the next section.

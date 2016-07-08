@@ -11,6 +11,6 @@ We emphasize again that we can use ErasureBench with any erasure coding scheme. 
 \begin{description}[\IEEEsetlabelwidth{LRC}]
 \item[\textbf{NC}] A $(10,0)$ \emph{no coding} scheme, with 10 data blocks per stripe, that simply forwards data blocks without redundancy. %\hm{Either change the figures to write NC, otherwise change the description here.}
 \item[\textbf{\acs{rs}}] A $(10,4)$ RS code. We use the Vandermonde-RS implementation provided in~\autocite{XorbasVLDB}.  
-\item[\textbf{\acs{lrc}}] The $(10,6,5)$ \acs{lrc} code, optimal for the given parameters with respect to the distance. We use the open-source implementation provided in~\autocite{XorbasVLDB}.
+\item[\textbf{\acs{lrc}}] The $(10,6,5)$ \acs{lrc} code from~\autocite{XorbasVLDB}. The code is based on a $(10,4)$ RS code, with three extra parity symbols (two explicit and one implicit) providing locality. The storage overhead/locality tradeoff of the code is optimal. We use the open-source implementation provided in~\autocite{XorbasVLDB}.
 \end{description}
-The last two schemes correspond to storage overheads of $1.4$ and $1.6$, in the sweet spot of their use in large-scale distributed storage systems in the cloud.
+The last two schemes correspond to storage overheads of $1.4$ and $1.6$, in the sweet spot of their use in large-scale distributed storage systems in the Cloud.
