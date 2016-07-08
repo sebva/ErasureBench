@@ -3,7 +3,7 @@
 
 We write $(k,n-k)$ for the parameters of maximum distance separable (MDS) codes, such as \iac{rs} codes~\autocite{reed-solomon}, where $k$ is the number of data blocks and $n-k$ is the number of parity blocks. 
 The parameters of \acp{lrc} are  $(k,n-k,r)$, where $r$ is the block locality. 
-A block locality of $r$ means that any block is a function of at most $r$ other blocks \autocite{XorbasVLDB}. Correcting a single erased block using a $(k,n-k,r)$ code requires to fetch $r$ (hopefully $<k$) blocks. 
+Block locality $r$ means that the block is a function of $r$ other blocks~\autocite{XorbasVLDB}. Correcting a single erased block using a $(k,n-k,r)$ code requires to fetch $r$ (hopefully $<k$) blocks. 
 At both extremes of the spectrum, MDS codes have the worst locality $r=k$ but the best storage overhead, whereas replication has locality $r=1$ but the worst storage overhead. 
 Since we target distributed storage, we consider systematic erasure-correcting codes, although our work seamlessly extends to non-systematic codes. %Extending ErasureBench to consider other types of errors would require more work.
 
@@ -11,6 +11,6 @@ We emphasize again that we can use ErasureBench with any erasure coding scheme. 
 \begin{description}[\IEEEsetlabelwidth{LRC}]
 \item[\textbf{NC}] A $(10,0)$ \emph{no coding} scheme, with 10 data blocks per stripe, that simply forwards data blocks without redundancy. %\hm{Either change the figures to write NC, otherwise change the description here.}
 \item[\textbf{\acs{rs}}] A $(10,4)$ RS code. We use the Vandermonde-RS implementation provided in~\autocite{XorbasVLDB}.  
-\item[\textbf{\acs{lrc}}] The $(10,6,5)$ \acs{lrc} code, optimal for the given parameters. We use the open-source implementation provided in~\autocite{XorbasVLDB}.
+\item[\textbf{\acs{lrc}}] The $(10,6,5)$ \acs{lrc} code, optimal for the given parameters with respect to the distance. We use the open-source implementation provided in~\autocite{XorbasVLDB}.
 \end{description}
 The last two schemes correspond to storage overheads of $1.4$ and $1.6$, in the sweet spot of their use in large-scale distributed storage systems in the cloud.

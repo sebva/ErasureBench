@@ -3,7 +3,7 @@
 
 The business-model of many major consumer-facing Cloud providers like Dropbox consists in storing huge volumes of data. Customers expect a high level of reliability, but rarely envisage paying top dollar for such services.\footnote{The hidden costs of these free services are left for another time.} 
 The very-large scale of Cloud provider setups implies that failures occur fairly often \autocite{failures-study}, thus fault-tolerance is intrinsically built into the design of large-scale systems. 
-The result is that irrecoverable user data loss caused by technical failures is rare\autocite{racs}.
+The result is that irrecoverable user data loss caused by technical failures is rare~\autocite{racs}.
 
 To offer that kind of guarantees towards their customers, Cloud providers need to implement techniques providing redundancy, while keeping costs under control. 
 The long-established way of providing redundancy is replication, which consists in duplicating functionality across components that are unlikely to fail simultaneously. 
@@ -11,14 +11,14 @@ For data storage, this means storing multiple replicas in geographically distinc
 The cost of storage is multiplied by the amount of redundancy wanted. 
 To store data on a redundant array, the system has to send write requests to each component in the array. 
 When a copy of the data is unavailable, the system can simply query another copy. 
-A system that is replicated $n$ times allows $n-1$ simultaneous failures.
+A system that is configured with a replication factor of $n$ tolerates $n-1$ simultaneous failures.
 
 An alternative solution to provide data redundancy is erasure coding. 
 Error-correcting codes can decrease the storage overhead compared to replication, but recovering errors requires decoding. 
 Furthermore, traditional erasure codes, while being storage-efficient, were not designed to handle failures occurring on distributed storage systems. 
-Replacing a failed disk requires the decoding of all the data objects with a block on it. With a $(k,n-k)$ maximum distance separable (MDS)\autocite{macwilliams1977theory} code like a Reed-Solomon code (RS), the required bandwidth and latency to fetch $k$ geographically distributed blocks required for decoding is significant, and using such codes on geographically distributed data centers would saturate the network links. 
+Replacing a failed disk requires the decoding of all the data objects with a block on it. With a $(k,n-k)$ maximum distance separable (MDS)~\autocite{macwilliams1977theory} code like a Reed-Solomon code (RS), the required bandwidth and latency to fetch $k$ geographically distributed blocks required for decoding is significant, and using such codes on geographically distributed data centers would saturate the network links. 
 This observation has led to the study of codes that can repair failed blocks by using less information than required to recover the original data. 
-The drawback of these \emph{locally repairable codes} (LRCs)\autocite{papailiopoulos2014locally} is a lower code rate, thus they are a tradeoff between MDS codes and replication.
+The drawback of these \emph{locally repairable codes} (LRCs)~\autocite{papailiopoulos2014locally} is a lower code rate, in a middle ground position between MDS codes and replication.
 
 %The tradeoffs between local repairability and storage overhead have been extensively studied over the last few years [2], [3].
 
@@ -44,11 +44,13 @@ ErasureBench exposes a familiar hierarchical file system interface leveraging FU
 The architecture is modular and allows to easily plug and configure different erasure codes.
 %ErasureBench allows researchers to benchmark parameters of erasure codes. 
 %Benchmarks can be virtually any piece of software that can run on Linux, and the interface exposed to the benchmarks is a standard hierarchical file system. 
-Our motivation is that testing erasure coding implementations in large distributed systems is a challenging endeavor which, in the absence of being able to run benchmarks on a full-fledged cluster from a large operator like Facebook~\autocite{XorbasVLDB} or Microsoft \cite{DBLP:conf/usenix/HuangSXOCG0Y12}, is usually done using simulations~\autocite{Silberstein2014}. 
-In contrast, we target real implementations using a small amount of hardware. 
-A unique feature of ErasureBench is its ability to automatically instantiate a cluster of storage nodes that can be dynamically scaled during execution using containerization. % based on Redis\footnote{\url{http://redis.io/}} 
-Furthermore, ErasureBench can inject real-world failure trace from the \ac{fta} \autocite{fta-journal} to evaluate a system under realistic conditions. 
+Testing erasure coding implementations in large distributed systems is a challenging endeavor.
+Big players like Facebook~\autocite{XorbasVLDB} or Microsoft \cite{DBLP:conf/usenix/HuangSXOCG0Y12} have the capacity to execute benchmarks on full-fledged, production-ready clusters.
+Alternatively, the usual path to perform these evaluations is to rely on  simulations~\autocite{Silberstein2014}. 
 
+ErasureBench allow to test real implementations using a cluster of commodity hardware. 
+It can automatically instantiate a cluster of storage nodes and dynamically scale it during execution using Docker containers. 
+Furthermore, ErasureBench can inject real-world failure trace from the \ac{fta} \autocite{fta-journal} to evaluate a system under realistic conditions. 
 Our framework is partially inspired by \autocite{Burihabwa2016}, which mainly targets
 the measurement of read/write throughput and data storage overhead. 
 They tested algorithms in low-level languages, and their framework exposes a REST API exposed through HTTP.

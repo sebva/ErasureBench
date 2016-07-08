@@ -4,7 +4,7 @@ The evaluation of erasure coding libraries in a realistic context is a difficult
 The usual approach explored in literature is to rely on simulations.
 This however negatively impact the outcome and the lessons learned that practitioners and researchers can exploit. 
 In this paper we design, implement and evaluate ErasureBench, a modular framework to overcome these limitations.
-ErasureBench offers a familiar file-system interface, it allows to plug different erasure-coding libraries, to inject real-world failure traces and to deploy locally or on a cluster without major modifications to the code.
+ErasureBench exposes a canonical file-system interface, it allows to easily plug and test different erasure-coding libraries, to inject real-world failure traces and to deploy locally or on a cluster without any modifications to the source code.
 We test the validity of our prototype by evaluating the cost of two different erasure coding algorithms, based respectively on Reed-Solomon and on Locally Repairable Codes.
 Our evaluation confirm well-known theoretical results on the efficiency of \ac{lrc} codes in a large-scale setting.  
 

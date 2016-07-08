@@ -26,9 +26,9 @@ The deployment and orchestration of the containers rely on Docker Compose (v1.7.
 \textbf{Workloads.}
 %we evaluate the various aspects or our tester by comparing two data coding algorithms against unprocessed data.
 %The two algorithms under test are \acf{rs} and \acf{lrc}.
-In order to evaluate the performance of ErasureBench, we selected the source files of two well-known open-source projects: the Apache \texttt{httpd}\footnote{\url{https://archive.apache.org/dist/httpd/httpd-2.4.18.tar.bz2}} server (v2.4.18) and GNU \texttt{bc}\footnote{\url{https://ftp.gnu.org/gnu/bc/bc-1.06.tar.gz}} (v1.06). 
+In order to evaluate the performance of ErasureBench, we select the source files of two well-known open-source projects: the Apache \texttt{httpd}\footnote{\url{https://archive.apache.org/dist/httpd/httpd-2.4.18.tar.bz2}} server (v2.4.18) and GNU \texttt{bc}\footnote{\url{https://ftp.gnu.org/gnu/bc/bc-1.06.tar.gz}} (v1.06). 
 We choose them because they differ in the total number of files and storage requirements.
-Moreover, we created a synthetic archive containing 1000 files, each consisting of 10 random bytes (\SI{10}{\byte} in the remainder).
+Moreover, we create a synthetic archive containing 1000 files, each consisting of 10 random bytes (\SI{10}{\byte} in the remainder).
 We write and read files stored in these archives into/from the ErasureBench partition. 
 \autoref{fig:overhead-table} details further the workloads.
 In particular, we highlight 1) the storage overhead induced by the different erasure codes, and 2) the cost of the serialization technique used to save the data in the storage cluster.
@@ -69,7 +69,7 @@ This performance is explained by the non-optimized nature of the implementation 
 
 
 \textbf{Read/write throughput.}
-Next, we measure the read/write performances of the encoders in a larger context, that is when plugged into the ErasureBench system.
+Next, we measure the read/write performances of the encoders in a more complex scenario, plugging them into the ErasureBench system and user-space file-system.
 In this experiment, we setup a Redis cluster of 100 nodes.
 We compare the achieved performance against a modified version of the system (\textit{Direct}) that completely bypass the \ac{fuse} layer.
 In both cases, we compare the performances of NC, \ac{lrc} and \ac{rs}. % as well as against a system that does not use any erasure coding (NC).  
@@ -83,10 +83,10 @@ In both cases, we compare the performances of NC, \ac{lrc} and \ac{rs}. % as wel
 \end{figure*}
 In all considered scenarios, with the exception of \ac{lrc} \textit{write}, larger file sizes yield better results.
 When using bigger files through the \ac{fuse} layer, the throughput decreases.
-We explain this effect by the cost of dynamically increasing buffers in the application, as \ac{fuse} will only write up to \SI{128}{\kibi\byte} at a time.
+We justify this result by the cost of dynamically increasing buffers in the application, as \ac{fuse} will only write up to \SI{128}{\kibi\byte} at a time.
 \ac{rs} allows faster write operations than \ac{lrc}, as it always writes 14 instead of 16 blocks per codeword.
-For read operations, all schemes require ten blocks per codeword, but we observe that \ac{lrc} is slightly faster than \ac{rs}. \vs{not sure if this is enough to justify}. \hm{No. They should be roughly equal without erasure, and at worst RS should be faster since LRC is built on top of it. I have no idea why this is so.}
-Finally, when compared to NC, we observe slowdown penalties between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and from \SI{-33.6}{\percent} to \SI{-84.9}{\percent} for write operations, respectively for \ac{lrc} and \ac{rs}.
+For read operations, all schemes require ten blocks per codeword, but we observe that \ac{lrc} is slightly faster than \ac{rs}. \vs{not sure if this is enough to justify.} \hm{No. They should be roughly equal without erasure, and at worst RS should be faster since LRC is built on top of it. I have no idea why this is so.}
+Finally, when compared to NC, we observe slowdown factors between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and from \SI{-33.6}{\percent} to \SI{-84.9}{\percent} for write operations, respectively for \ac{lrc} and \ac{rs}.
 
 
 %\subsection{Storage overheads}
@@ -127,7 +127,7 @@ First, we observe the network bandwidth consumption while extracting the \texttt
 %We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
 We then do the reverse operation and read the entire partition, once with all storage nodes intact and once after killing \SI{5}{\percent} of the nodes. 
 We can see that \ac{lrc} is equivalent to \ac{rs} when the cluster is intact. 
-However, with degraded reads (that is, when there are missing blocks due to failed nodes), we observe the good locality of the \ac{lrc} code, which is much faster than the \ac{rs} code. 
+However, with degraded reads (that is, when there are missing blocks due to failed nodes), we observe  good locality properties of the \ac{lrc} code, which is much faster than the \ac{rs} code. 
 In our evaluation, LRC completes a degraded read of the \texttt{httpd} archive after 90 seconds, while using RS it takes 125 seconds.
 %\hm{Done until here.}
 
@@ -138,10 +138,8 @@ In our evaluation, LRC completes a degraded read of the \texttt{httpd} archive a
     \label{fig:traffic-plot}
 \end{figure*}
 
-\textbf{Fault-tolerance}
-\label{subsec:fault-tolerance}
+\textbf{Fault-tolerance.}
 \hm{For a coding theorist like me, this section is absolutely trivial! I don't like it. I rephrased it a little bit.}
-
 An important feature of an erasure code is its resilience to faults, i.e., data stays available when some of the storage nodes crash. To quantify the fault tolerance of \ac{rs} and \ac{lrc}, we perform the following experiment. Given a Redis cluster of 100 nodes, we first extract the content of our workload archives. % in it.
 %We used 2 different archives: \SI{10}{\byte}, which is an ideal scenario and httpd, which is our real-world scenario.
 Then, we kill 5\% of the Redis nodes uniformly at random and check the integrity of each file in the storage cluster. We repeat the process by killing an additional 5\% of the nodes at each subsequent iteration until 80\% of the entire cluster is erased.
@@ -155,7 +153,7 @@ We conclude our extensive evaluation by leveraging a novel feature of ErasureBen
 %One of the unique features of our erasure codes tester is the possibility to replicate recorded failure patterns.
 We evaluate the impact on network throughput by replaying a portion of the website trace described in \autocite{websites02}.
 %We replicated a \SI{7}{\hour} subset of the fault trace recorded by the authors of \autocite{websites02}.
-We map each Redis node to a web server and let nodes crash and join following the pattern presented in \autoref{fig:trace-plot} (top).
+We map each Redis node to a web server and let nodes crash and join following the pattern presented in \autoref{fig:trace-plot}.top and vary between 114 (min) and 118 (max).
 During the replay, we monitor the network traffic occurring at the storage nodes.
 First, we extract the \texttt{httpd} archive in the ErasureBench partition.
 When a new node joins, existing blocks are migrated according to a rebalancing policy.
@@ -163,7 +161,7 @@ Upon departure, we trigger a procedure to repair incomplete stripes.
 %When an existing node departed, we scrubbed the blocks stored in the system and repaired incomplete stripes.
 %In \autoref{fig:trace-plot}, the uppermost plot shows the size of the storage cluster.
 %An increase indicates a node joining the system while a decrease marks a failure.
-We compare the network throughput achieved by \ac{rs} versus \ac{lrc}, respectively in \autoref{fig:trace-plot} (center) and \autoref{fig:trace-plot} (bottom).
+We compare the network throughput achieved by \ac{rs} versus \ac{lrc}, respectively in ~\autoref{fig:trace-plot}.middle and ~\autoref{fig:trace-plot}.bottom.
 We used a stacked curve representation to highlight the balance between the different traffic types. 
 Apart from \textit{Write} and \textit{Read} traffic, we further distinguish between \textit{Check} (to check for damaged strips), \textit{Cluster} (for cluster management), \textit{Other Redis} and \textit{Other}, respectively for Redis and application-level traffic.
 %The two plots in the lower part of \autoref{fig:trace-plot} show the network throughput that was observed when erasure coding the data using \ac{rs} versus \ac{lrc}.

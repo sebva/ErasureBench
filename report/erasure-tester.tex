@@ -19,7 +19,7 @@ In the remainder of this section we provide further details about the software a
 At its core, ErasureBench exposes a filesystem interface via a Linux mount point implemented via \ac{fuse}. 
 Upon its execution, the filesystem is mounted under a regular directory. 
 Low-level IO system calls are intercepted by the \textit{fuse-jna}\footnote{\url{https://github.com/EtiennePerot/fuse-jna}} Java library.
-The blocks are then sent back and forth to the encoder/decoder layer. 
+The blocks are then sent back and forth between the encoder/decoder layer and the erasure code component. 
 The encoder/decoder first chunks data in blocks of the chosen size and aligns read and write operations to the correct boundaries\vs{which ones?}. 
 Once chunked, blocks are  processed by the chosen erasure code to generate the redundancy blocks. 
 Finally, data and parity blocks are passed to the storage backend.
@@ -56,13 +56,13 @@ We also store the size of the file once decoded to discard padding blocks.
 \textbf{Implementation details.}
 %The frontend has one available implementation: a \ac{fuse} filesystem interface backed by \textit{fuse-jna} \autocite{fuse-jna}.
 %The encoder/decoder layer is not modular because it is sufficient to have one correct way of handling that operation. 
-We implement the erasure coding algorithms described in Section~\ref{sec:codes} and we bundled them in ErasureBench. 
-We extracted and adapted the \ac{lrc} libraries from \autocite{XorbasVLDB} to remove dependencies on any other \textit{Hadoop} component. 
+We implement the erasure coding algorithms described in Section~\ref{sec:codes} and bundle them in ErasureBench. 
+We extract and adapt the \ac{lrc} libraries from~\autocite{XorbasVLDB} to remove dependencies on any other \textit{Hadoop} component. 
 %In addition, an additional code taking two data blocks and generating a single parity block by xoring them is also inherited from~\autocite{XorbasVLDB} and thus available. \hm{Please confirm this last code. We have no simulations for it.}
 %A fourth algorithm is provided, in the name of the \textit{Null} encoder.
 %As its name suggests, its \textit{modus operandi} consists in simply forwarding data blocks without any added redundancy.
 %Failing to read a data block while using the \textit{Null} encoder signifies the loss of the stripe associated with it.
-We use the Redis distributed key-value store\footnote{\url{http://redis.io}} via the efficient and battle-tested \textit{Jedis}  binding.\footnote{\url{https://github.com/xetorthio/jedis}}
+We use the Redis distributed key-value store\footnote{\url{http://redis.io}} leveraging the battle-tested \textit{Jedis} binding.\footnote{\url{https://github.com/xetorthio/jedis}}
 For testing purposes, an in-memory storage backend is also available.
 
 \textbf{Deployment.} The deployment of ErasureBench requires to simultaneously launch multiple independent services and to coordinate their bootstrap. 
@@ -91,4 +91,4 @@ These traces monitor individual nodes of a real-life distributed system and reco
 ErasureBench can replay these traces to replicate a real-world failure pattern by first creating a storage cluster of the same size as the original system. 
 New nodes are instantiated and old nodes killed at the same rates as reported in the trace. 
 Finally, the framework allow to restrict the replay to a limited time interval of the trace.
-We use this trace replay feature in the last set of experiments in the next section.
+We use this trace replay feature in the last set of experiments of next section.
