@@ -5,7 +5,8 @@ We write $(k,n-k)$ for the parameters of maximum distance separable (MDS) codes,
 The parameters of \acp{lrc} are  $(k,n-k,r)$, where $r$ is the block locality. 
 Block locality $r$ means that the block is a function of $r$ other blocks~\autocite{XorbasVLDB}. Correcting a single erased block using a $(k,n-k,r)$ code requires to fetch $r$ (hopefully $<k$) blocks. 
 At both extremes of the spectrum, MDS codes have the worst locality $r=k$ but the best storage overhead, whereas replication has locality $r=1$ but the worst storage overhead. 
-Since we target distributed storage, we consider systematic erasure-correcting codes, although our work seamlessly extends to non-systematic codes. %Extending ErasureBench to consider other types of errors would require more work.
+Since we target distributed storage, we consider systematic erasure-correcting codes.
+It's trivial to extends it to non-systematic codes. %Extending ErasureBench to consider other types of errors would require more work.
 
 We emphasize again that we can use ErasureBench with any erasure coding scheme. This being said, to test our platform, we implement and test the following schemes:
 \begin{description}[\IEEEsetlabelwidth{LRC}]
@@ -13,4 +14,4 @@ We emphasize again that we can use ErasureBench with any erasure coding scheme. 
 \item[\textbf{\acs{rs}}] A $(10,4)$ RS code. We use the Vandermonde-RS implementation provided in~\autocite{XorbasVLDB}.  
 \item[\textbf{\acs{lrc}}] The $(10,6,5)$ \acs{lrc} code from~\autocite{XorbasVLDB}. The code is based on a $(10,4)$ RS code, with three extra parity symbols (two explicit and one implicit) providing locality. The storage overhead/locality tradeoff of the code is optimal. We use the open-source implementation provided in~\autocite{XorbasVLDB}.
 \end{description}
-The last two schemes correspond to storage overheads of $1.4$ and $1.6$, in the sweet spot of their use in large-scale distributed storage systems in the Cloud.
+The last two schemes correspond to storage overheads of $1.4$ and $1.6$, in the sweet spot of their use in large-scale distributed storage systems in the cloud.

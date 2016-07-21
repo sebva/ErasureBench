@@ -1,10 +1,11 @@
+\vspace{-1mm}
 \section{Evaluation}
 \label{sec:evaluation}
 This section presents the experimental evaluation of the ErasureBench prototype. 
 First, we describe our evaluation settings and workload characteristics.  %, respectively in Section~\ref{sec:eval:settings} and Section~\ref{sec:eval:workloads}.
 Then we evaluate our system against several metrics: encoding/decoding throughput performance with and without the FUSE layer, network throughput, system scalability and its impact on the request latency.
-We conclude by assessing the fault tolerance properties using synthetic and real-world traces.
-
+%We conclude by assessing the fault tolerance properties using synthetic and real-world traces.
+We conclude by evaluating the repairing costs using synthetic and real-world traces.
 \textbf{Evaluation Settings.}
 We deploy our experiments over a cluster of \num{20} machines interconnected by a \SI{1}{\giga\bit\per\second} switched network.
 Each host features an 8-core Intel Xeon CPU and \SI{8}{\giga\byte} of RAM.
@@ -69,7 +70,7 @@ This performance is explained by the non-optimized nature of the implementation 
 \textbf{Read/write throughput.}
 Next, we measure the read/write performances of the encoders in a more complex scenario, plugging them into the ErasureBench system and user-space file-system.
 In this experiment, we setup a Redis cluster of 100 nodes.
-We compare the achieved performance against a modified version of the system (\textit{Direct}) that bypasses the \ac{fuse} layer.
+We compare against a modified version of the system (\textit{Direct}) that bypasses the \ac{fuse} layer.
 In both cases, we compare the performances of NC, \ac{lrc} and \ac{rs}. % as well as against a system that does not use any erasure coding (NC).  
 %We evaluate the overhead of the \ac{fuse} layer by comparing two cases: the normal access through \ac{fuse} and a special system that we call \textit{Direct} that completely bypasses it
 \autoref{fig:throughput-plot} presents our results.
@@ -170,4 +171,5 @@ As expected, we observe the benefit of \ac{lrc} during read operations, where at
     \input{trace-plot.tex}
     \caption{Throughput under faults. Top: failure pattern of nodes. Middle and bottom plots: network traffic writing the \textit{httpd} archive, moving blocks (during repair or rebalance) between Redis nodes.}
     \label{fig:trace-plot}
+	\vspace{-1.5mm}
 \end{figure}
