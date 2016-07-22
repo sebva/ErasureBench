@@ -4,7 +4,6 @@
     \caption{Architecture of ErasureBench.}
     \label{fig:architecture}
 \end{figure}
-
 \section{The ErasureBench Framework}
 \label{sec:erasure-tester}
 
@@ -63,6 +62,7 @@ We extract and adapt the \ac{lrc} libraries from~\autocite{XorbasVLDB} to remove
 %Failing to read a data block while using the \textit{Null} encoder signifies the loss of the stripe associated with it.
 We use the Redis distributed key-value store\footnote{\url{http://redis.io}} leveraging the battle-tested \textit{Jedis} binding.\footnote{\url{https://github.com/xetorthio/jedis}}
 For testing purposes, an in-memory storage backend is also available.
+ErasureBench is open-source.\footnote{\url{https://github.com/safecloud-project/ErasureBench}}
 
 \textbf{Deployment.} The deployment of ErasureBench requires to simultaneously launch multiple independent services and to coordinate their bootstrap. 
 %On top of these services, we want to perform measurements on the performance of different erasure coding libraries. 

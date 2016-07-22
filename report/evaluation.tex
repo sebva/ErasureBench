@@ -77,8 +77,10 @@ In both cases, we compare the performances of NC, \ac{lrc} and \ac{rs}. % as wel
 \begin{figure*}[t]
     \centering
     \input{throughput-plot.tex}
+	\vspace{-2mm}	
     \caption{Throughput of NC, \ac{rs} and \ac{lrc} for different file sizes. Average (10 runs) and half confidence interval.}
     \label{fig:throughput-plot}
+	\vspace{-2mm}
 \end{figure*}
 In all considered scenarios, with the exception of \ac{lrc} \textit{write}, larger file sizes yield better results.
 When using bigger files through the \ac{fuse} layer, the throughput decreases.

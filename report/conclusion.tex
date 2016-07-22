@@ -8,9 +8,11 @@ ErasureBench exposes a canonical file-system interface, allows to easily plug an
 We test the validity of our prototype by evaluating the cost of two different erasure coding algorithms based on Reed-Solomon and Locally Repairable Codes. 
 Our evaluation confirms well-known theoretical results on the efficiency of \ac{lrc} codes in large-scale settings.  
 
-We can improve ErasureBench and our evaluation in several ways. We currently store metadata in memory, which is convenient but unrealistic. 
-Also, we tested ErasureBench with non-optimized coding libraries and without native hardware support. 
-As observed in~\cite{Burihabwa2016}, for fixed code parameters, the encoding and decoding algorithms do not matter as much as their optimization for the targeted hardware. It would be interesting to test ErasureBench in such an optimized setting.
+Our future work includes support of persistent storage for metadata, testing of optimized libraries with hardware support, an important aspect also observed in ~\cite{Burihabwa2016}.
+%We can improve ErasureBench and our evaluation in several ways. 
+%We currently store metadata in memory, which is convenient but unrealistic. 
+%Also, we tested ErasureBench with non-optimized coding libraries and without native hardware support. 
+%As observed in~\cite{Burihabwa2016}, for fixed code parameters, the encoding and decoding algorithms do not matter as much as their optimization for the targeted hardware. It would be interesting to test ErasureBench in such an optimized setting.
 
 \section{Acknowledegements}
 The research leading to these results was partially supported by the European Union's Horizon 2020 -  The EU Framework Programme for Research and Innovation 2014-2020, under grant agreement No. 653884.
