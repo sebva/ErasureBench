@@ -1,0 +1,73 @@
+\section{Introduction}
+\label{sec:intro}
+
+The business model of consumer-facing Cloud providers like Dropbox often consists in storing huge volumes of data. Customers expect a high level of reliability, but rarely envisage paying top dollar for such services.\footnote{The hidden costs of these free services are left for another time.} 
+The very-large scale of Cloud provider setups implies that failures occur fairly often \autocite{failures-study}, thus fault-tolerance is intrinsically built into the design of large-scale systems. 
+The result is that irrecoverable user data loss caused by technical failures is rare~\autocite{racs}.
+
+In order to offer reliability and availability guarantees towards their customers, Cloud providers need to implement techniques providing redundancy, while keeping costs under control. 
+The long-established way of providing redundancy is replication, which consists in duplicating functionality across components that are unlikely to fail simultaneously. 
+For data storage, this means storing multiple replicas in geographically distinct locations. 
+The cost of storage is multiplied by the amount of redundancy wanted. 
+To store data on a redundant array, the system has to send write requests to each component in the array. 
+When a copy of the data is unavailable, the system can simply query another copy. 
+A system that is configured with a replication factor of $f$ tolerates $f-1$ simultaneous failures.
+
+An alternative solution to provide data redundancy is erasure coding. 
+Error-correcting codes can decrease the storage overhead compared to replication, but recovering errors requires decoding. 
+Furthermore, traditional erasure codes, while being storage-efficient, were not designed to handle failures occurring on distributed storage systems. 
+Replacing a failed disk requires the decoding of all the data objects with a block on it. With a $(k,n-k)$ maximum distance separable (MDS)~\autocite{lin2004error} code like a Reed-Solomon code (RS), the required bandwidth and latency to fetch $k$ geographically distributed blocks required for decoding is significant, and using such codes on geographically distributed data centers would saturate the network links. 
+This observation has led to the study of codes that can repair failed blocks by using less information than required to recover the original data. 
+The drawback of these \emph{locally repairable codes} (LRCs)~\autocite{papailiopoulos2014locally} is a lower code rate, thus they are a tradeoff between MDS codes and replication.
+
+%The tradeoffs between local repairability and storage overhead have been extensively studied over the last few years [2], [3].
+
+%  and consists in transforming original data into a longer, fault-tolerant form. Erasure coding can provide the same level of reliability as replication with much less storage overhead \autocite{Weatherspoon2002}.
+% Computational cost is one of the drawbacks of erasure coding.
+% Every write to an erasure-coded system requires computing parity blocks.
+% When reading data back from a replicated data storage system, unavailable blocks can be reconstructed using a combination of certain available blocks.
+% Reading degraded erasure-coded data implies retrieving a larger amount of blocks than would be needed to read intact data. Also, some computations need to be performed on the blocks retrieved in order to recreate the unavailable blocks.
+% Another drawback that modern erasure coding algorithms try to overcome is the high amount of data required to repair faulty blocks.
+% Traditional erasure coding algorithms such as \ac{rs} need to decode a complete stripe in order to repair a single faulty block in that stripe.
+% It has been calculated that if Facebook coded \SI{50}{\percent} of the data in one of their clusters, its network would be completely saturated~\autocite{XorbasVLDB}.
+
+
+% The newer generation of erasure codes focuses on reducing the amount of data needed for repairing blocks.
+% That family of codes are named \acp{lrc} \autocite{lrc}.
+% Codes like \ac{rs} are \ac{mds};
+%they have optimal storage overhead for a given level of fault-tolerance~\autocite{XorbasVLDB}.
+%However, they have the worst possible locality.
+%\Iac{lrc} is not \ac{mds}, so it requires a little more storage overhead, but provides improved locality.
+
+This paper introduces ErasureBench, a framework to evaluate erasure coding implementations under real conditions. 
+ErasureBench exposes a familiar hierarchical file system interface leveraging FUSE.
+The architecture is modular and allows to easily plug and configure different erasure codes.
+%ErasureBench allows researchers to benchmark parameters of erasure codes. 
+%Benchmarks can be virtually any piece of software that can run on Linux, and the interface exposed to the benchmarks is a standard hierarchical file system. 
+Testing erasure coding implementations in large distributed systems is a challenging endeavor.
+Big players like Facebook~\autocite{XorbasVLDB} or Microsoft \cite{DBLP:conf/usenix/HuangSXOCG0Y12} have the capacity to execute benchmarks on full-fledged, production-ready clusters.
+Alternatively, the usual path to perform these evaluations is to rely on  simulations~\autocite{Silberstein2014}. 
+
+ErasureBench allows to test real implementations using a cluster of commodity hardware. 
+It can automatically instantiate a cluster of storage nodes and dynamically scale it during execution using Docker containers. 
+Furthermore, it can inject real-world failure trace from the \ac{fta} \autocite{fta-journal} to evaluate a system under realistic conditions. 
+ErasureBench is partially inspired by \autocite{Burihabwa2016}, whose framework exposes a REST API through HTTP. It targets the measurement of read/write throughput and data storage overhead of  low-level languages coding libraries. As an improvement over \autocite{Burihabwa2016}, ErasureBench offers a file-system interface and the ability to inject failure traces.
+
+%Therefore, we decided to develop a system that can be used to benchmark different erasure code implementations using a reasonable amount of hardware.
+% In \autocite{Silberstein2014}, the authors target a lazy block repair strategy and implemented a simulator called \textit{ds-sim}. It models failures in a storage cluster, and can evaluate the costs of repair of different erasure coding algorithm, as well as replication.
+
+%\subsection{Hyfs: Design and Implementation of a Reliable File System}
+
+%A filesystem that uses erasure codes and stores data on multiple nodes is presented in \autocite{hyfs}. It exposes a \ac{fuse} interface to the user, and employs standard NFS servers as its backend. The system has is tested using at most 4 nodes.
+
+%\subsection{Lazy Means Smart: Reducing Repair Bandwidth Costs in Erasure-coded Distributed Storage}
+
+% The article evaluates the costs applying a lazy block repair strategy \autocite{Silberstein2014}.
+% Instead of repairing blocks right after any failure, a waiting time is introduced before repairing blocks. In case of a temporary failure, no network capacity is wasted repairing intact blocks.
+% As part of their evaluation, 
+
+The rest of the article is organised as follows. 
+In Section~\ref{sec:codes}, we briefly introduce erasure coding concepts and the codes used in our evaluation. 
+The architecture of ErasureBench is detailed in Section~\ref{sec:erasure-tester}. 
+Section~\ref{sec:evaluation} presents our evaluation, comparing RS and LRC codes. We conclude in Section~\ref{sec:conclusion}. 
+%\hm{I did not write any result in this section, but they are in the abstract. We could add them here as well if there is room.}

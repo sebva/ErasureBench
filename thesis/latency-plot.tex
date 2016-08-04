@@ -1,0 +1,68 @@
+\begin{tikzpicture}
+\usetikzlibrary{plotmarks}
+\pgfplotsset{width=\linewidth / 2.305, height=5cm}
+\begin{groupplot}[
+    group style={
+        group size=3 by 1,
+        vertical sep=0pt,
+        horizontal sep=2mm,
+        xlabels at=edge bottom,
+        ylabels at=edge left,
+        xticklabels at=edge bottom,
+        yticklabels at=edge left,
+    },
+    ylabel={CDF $\left[\si{\percent}\right]$},
+    colorbrewer cycle list=Set1,
+    colorbrewer values=5,
+    legend pos=south east,
+    /tikz/mark phase=4,
+    /tikz/mark repeat=6,
+    legend style={
+        short line legend,
+        draw=none,
+        fill=none,
+        anchor=south,
+        at={(0.5, 1)},
+    },
+    ymax=1.2,
+    legend columns=-1,
+    ytick={0, 0.25, 0.5, 0.75, 1},
+    scaled y ticks=base 10:2,
+    ytick scale label code/.code={},
+    minor xtick={0.5,1,...,25},
+]
+
+\nextgroupplot[xtick={13, 14}]
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-null.csv -c 1};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-null.csv -c 2};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-null.csv -c 3};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-null.csv -c 4};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-null.csv -c 5};
+
+\nextgroupplot[x unit=s, xlabel=Latency]
+\addlegendimage{empty legend}
+\addlegendentry{Cluster size:}
+
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-lrc.csv -c 1};
+\addlegendentry{20}
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-lrc.csv -c 2};
+\addlegendentry{40}
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-lrc.csv -c 3};
+\addlegendentry{60}
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-lrc.csv -c 4};
+\addlegendentry{80}
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-lrc.csv -c 5};
+\addlegendentry{100}
+
+\nextgroupplot
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-rs.csv -c 1};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-rs.csv -c 2};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-rs.csv -c 3};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-rs.csv -c 4};
+\addplot+ table[x index=0, y index=5] shell {./gencdf.rb -f plots/latency-rs.csv -c 5};
+\end{groupplot}
+
+\node[anchor=north, font=\small] at (group c1r1.north) {NC};
+\node[anchor=north] at (group c2r1.north) {LRC};
+\node[anchor=north] at (group c3r1.north) {RS};
+\end{tikzpicture}

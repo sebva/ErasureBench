@@ -1,0 +1,177 @@
+\vspace{-1mm}
+\section{Evaluation}
+\label{sec:evaluation}
+This section presents the experimental evaluation of the ErasureBench prototype. 
+First, we describe our evaluation settings and workload characteristics.  %, respectively in Section~\ref{sec:eval:settings} and Section~\ref{sec:eval:workloads}.
+Then we evaluate our system against several metrics: encoding/decoding throughput performance with and without the FUSE layer, network throughput, system scalability and its impact on the request latency.
+%We conclude by assessing the fault tolerance properties using synthetic and real-world traces.
+We conclude by evaluating the repairing costs using synthetic and real-world traces.
+\textbf{Evaluation Settings.}
+We deploy our experiments over a cluster of \num{20} machines interconnected by a \SI{1}{\giga\bit\per\second} switched network.
+Each host features an 8-core Intel Xeon CPU and \SI{8}{\giga\byte} of RAM.
+We deploy \acp{vm} on top of the hosts.
+We use KVM as a hypervisor.
+To mitigate the performance losses, we expose the physical CPU to guest \acp{vm} by mean of the \texttt{host-passthrough} option.
+We leverage the \texttt{virtio} module for better I/O performance.
+All the components of the system are packaged as Docker images.
+Specifically, we installed Docker (v1.11.2) on each \ac{vm}, and configured it without any memory restrictions.
+The deployment and orchestration of the containers rely on Docker Compose (v1.7.1) and Docker Swarm (v1.2.3).
+
+\begin{table}[t]
+    \centering
+    \caption{Workload characteristics and erasure-coding overhead. Sizes are given in \si{\mega\byte}.}
+    \input{overheads-table.tex}
+    \label{fig:overhead-table}
+\end{table}
+
+\textbf{Workloads.}
+%we evaluate the various aspects or our tester by comparing two data coding algorithms against unprocessed data.
+%The two algorithms under test are \acf{rs} and \acf{lrc}.
+In order to evaluate the performance of ErasureBench, we select the source files of two well-known open-source projects: the Apache \texttt{httpd}\footnote{\url{https://archive.apache.org/dist/httpd/httpd-2.4.18.tar.bz2}} server (v2.4.18) and GNU \texttt{bc}\footnote{\url{https://ftp.gnu.org/gnu/bc/bc-1.06.tar.gz}} (v1.06). 
+We choose them because they differ in the total number of files and storage requirements.
+Moreover, we create a synthetic archive containing 1000 files, each consisting of 10 random bytes (\SI{10}{\byte} in the remainder).
+We write and read files stored in these archives into/from the ErasureBench partition. 
+\autoref{fig:overhead-table} details further the workloads.
+In particular, we highlight 1) the storage overhead induced by the different erasure codes, and 2) the cost of the serialization technique used to save the data in the storage cluster.
+We indicate the number of Redis keys used to index the blocks of the encoded archives and the size in \si{\mega\byte} of the binary blocks. 
+Redis can only store strings, hence we apply a Base64 encoding to the blocks, incurring on average a \SI{33}{\percent} storage overhead.
+
+\textbf{Encoding/decoding throughput.}%and overhead of \acs{fuse}
+\label{subsec:rw-perf}
+We begin our evaluation by measuring the raw encoding throughput of our \ac{rs} and \ac{lrc} encoder implementations.
+We compare them against the NC naive encoder (Section~\ref{sec:codes}).
+\autoref{table:codes-performance-table} presents our results. \hm{The throughput seem faster for LRC. This is counter-intuitive since more operations are required for LRCs. It should be the throughput in MB/s of original data, not of coded data. Please check that it is correct.} We observe that the encoding throughput consistently improves with the size of the blocks and achieves up to 15.3\si{\mega\byte\per\second} with \ac{lrc} and \SI{64}{\mega\byte}.
+When decoding (not shown), we achieve 2.2\si{\mega\byte\per\second} and 2.9\si{\mega\byte\per\second}, respectively for \ac{rs} and \ac{lrc}.
+This performance is explained by the non-optimized nature of the implementation and the lack of native hardware support, which normally improve the performance by orders of magnitude~\cite{Burihabwa2016}. 
+
+\begin{figure}[t]
+    \centering
+    \input{latency-plot.tex}
+    \caption{Scalability: write latency for \SI{16}{\mebi\byte} file.}
+    \label{fig:latency-plot}
+\end{figure}
+
+
+\begin{table}
+    \centering
+    \caption{Encoding throughput of the different encoders in \si{\mega\byte\per\second}}
+    \input{codes-performance-table.tex}
+    \label{table:codes-performance-table}
+\end{table}
+
+\begin{figure}[ht]
+    \centering
+    \input{checksum-plot.tex}
+    \caption{Fault tolerance for different codes: NC, \ac{lrc} $\left(10,6,5\right)$ and \ac{rs} $\left(10,4\right)$. Redis cluster of 100 nodes. Data checked for availability after progressively killing each Redis node.}
+    \label{fig:checksum-plot}
+\end{figure}
+
+
+\textbf{Read/write throughput.}
+Next, we measure the read/write performances of the encoders in a more complex scenario, plugging them into the ErasureBench system and user-space file-system.
+In this experiment, we setup a Redis cluster of 100 nodes.
+We compare against a modified version of the system (\textit{Direct}) that bypasses the \ac{fuse} layer.
+In both cases, we compare the performances of NC, \ac{lrc} and \ac{rs}. % as well as against a system that does not use any erasure coding (NC).  
+%We evaluate the overhead of the \ac{fuse} layer by comparing two cases: the normal access through \ac{fuse} and a special system that we call \textit{Direct} that completely bypasses it
+\autoref{fig:throughput-plot} presents our results.
+\begin{figure*}[t]
+    \centering
+    \input{throughput-plot.tex}
+	\vspace{-2mm}	
+    \caption{Throughput of NC, \ac{rs} and \ac{lrc} for different file sizes. Average (10 runs) and half confidence interval.}
+    \label{fig:throughput-plot}
+	\vspace{-2mm}
+\end{figure*}
+In all considered scenarios, with the exception of \ac{lrc} \textit{write}, larger file sizes yield better results.
+When using bigger files through the \ac{fuse} layer, the throughput decreases.
+We justify this result by the cost of dynamically increasing buffers in the application, as \ac{fuse} will only write up to \SI{128}{\kibi\byte} at a time.
+\ac{rs} allows faster write operations than \ac{lrc}, as it always writes 14 instead of 16 blocks per codeword.
+For read operations, all schemes require ten blocks per codeword, but we observe that \ac{lrc} is slightly faster than \ac{rs}. \vs{not sure if this is enough to justify.} \hm{No. They should be roughly equal without erasure, and at worst RS should be faster since LRC is built on top of it. I have no idea why this is so.}
+Finally, when compared to NC, we observe slowdown factors between \SI{-19.8}{\percent} and \SI{-41}{\percent} for read operations, and from \SI{-33.6}{\percent} to \SI{-84.9}{\percent} for write operations, respectively for \ac{lrc} and \ac{rs}.
+
+
+%\subsection{Storage overheads}
+%\label{subsec:storage-overheads}
+%
+%\autoref{fig:overhead-table} shows various metrics relative to the storage space used when unpacking 4 different archives into the filesytem exposed by the tester.
+%The \enquote{10 bytes} archive constitutes a worst case, as each file is stored as a single stripe in the system.
+%In that case, the number of Redis keys is strictly equal to the number of blocks in the system.
+%Storing a 10 bytes file into our system takes 120 bytes, before base 64 is applied.
+%Each byte is encoded as a 32 bits integer by the erasure codes.
+%Additionally, each aggregation of blocks needs two 32 bits integers to store its decoded size.
+%This explains the overhead of $12\times$.
+%For real archives, the overhead asymptotically approaches $4\times$, as the two 32 bits integers are only needed once per aggregation.
+%The overheads cited above reason upon the binary size.
+%As Redis can only store strings, we have to apply base 64 encoding to the blocks, adding \SI{33}{\percent} storage overhead.
+%The overhead due to erasure coding is always governed by the number of parity blocks added.
+
+\textbf{Scalability.}
+\label{subsec:latency}
+To evaluate the scalability of the system, we measure the impact of the Redis cluster size on the latency of write operations.
+%We use a fixed-size Redis cluster of 100 nodes.
+We report the observed latency as computed by the Linux's \texttt{time} tool to write \SI{16}{\mebi\byte} into the ErasureBench partition.
+\autoref{fig:latency-plot} presents the Cumulative Distribution Function (CDF) of the latencies for different cluster sizes, from 20 up to 100 nodes.
+We note that the chosen erasure coding technique has a relevant impact on the latency of the operations. 
+Conversely, the size of the cluster does not inflict major penalties to the latency.
+For instance, using \ac{lrc} the median (50th) latency is at 22.5s for a 20-nodes cluster, and up to 24.5s for 100-nodes cluster. 
+Note that when using real-world files the performances are much better.
+For example, when the average size of the files in the \texttt{httpd} archive (\SI{3}{\kibi\byte}), the median write latency is 0.11s for a 100-nodes cluster. 
+%These results largely justify a large-scale deployment with hundrends of storage nodes. 
+
+
+\textbf{Bandwidth consumption.}
+\label{subsec:network-traffic}
+%\hm{I rewrote that section. Should be rechecked against my stupidity.}
+\autoref{fig:traffic-plot} illustrates the network impact of \ac{rs} and \ac{lrc} codes. 
+First, we observe the network bandwidth consumption while extracting the \texttt{httpd} archive into the \ac{fuse} partition. 
+\ac{lrc} writes two more blocks per stripe than \ac{rs}, thus the write operations are slower (8\% slower in our experiments). %needs more time to complete at roughly the same speed as \ac{rs}, due to 2 more blocks per stripe.
+%We extracted the \textit{httpd} archive into the system while monitoring network traffic between the encoder and all Redis storage nodes.
+We then do the reverse operation and read the entire partition, once with all storage nodes intact and once after killing \SI{5}{\percent} of the nodes. 
+We can see that \ac{lrc} is equivalent to \ac{rs} when the cluster is intact. 
+However, with degraded reads (that is, when there are missing blocks due to failed nodes), we observe the good locality properties of the \ac{lrc}, which is much faster than the \ac{rs} code. In our evaluation, LRC completes a degraded read of the \texttt{httpd} archive after 90 seconds, while using RS requires 125 seconds.
+%\hm{Done until here.}
+
+\begin{figure*}
+    \centering
+    \input{traffic-plot.tex}
+    \caption{Network throughput of 100 Redis nodes. The \texttt{httpd} archive is written and read. Degraded read measured after killing 5\% of nodes.}
+    \label{fig:traffic-plot}
+\end{figure*}
+
+\textbf{Fault-tolerance.}
+\hm{For a coding theorist like me, this section is absolutely trivial! I don't like it. I rephrased it a little bit.}
+An important feature of an erasure code is its resilience to faults, i.e., data stays available when some of the storage nodes crash. To quantify the fault tolerance of \ac{rs} and \ac{lrc}, we perform the following experiment. Given a Redis cluster of 100 nodes, we first extract the content of our workload archives. % in it.
+%We used 2 different archives: \SI{10}{\byte}, which is an ideal scenario and httpd, which is our real-world scenario.
+Then, we kill 5\% of the Redis nodes uniformly at random and check the integrity of each file in the storage cluster. We repeat the process by killing an additional 5\% of the nodes at each subsequent iteration until 80\% of the entire cluster is erased.
+%We then killed storage nodes one after the other, and checked the files integrity before each step.
+\autoref{fig:checksum-plot} shows the ratio of available files against the ratio of killed nodes.
+Clearly, \ac{rs} is more fault-tolerant than \ac{lrc} for the chosen configurations. This might be surprising because both codes have the same minimum distance and \ac{lrc} includes \ac{rs} with extra parity blocks (and a lower code rate), but erasing a constant fraction of the nodes erases  more blocks per \ac{lrc} codeword. In practice, our (10,6,5) \ac{lrc} has higher availability than our (10,4) \ac{rs} code because it can repair erased blocks faster in the presence of degraded reads. \hm{We should have tested that :-) My bad.} The figure also shows that when using larger files (as in \texttt{httpd}), failures are more likely to occur, as a single damaged stripe within a file will corrupt the entire file.
+
+\textbf{Network throughput under failures.}
+\label{subsec:fault-trace}
+We conclude our evaluation by leveraging a novel feature of ErasureBench to replay failure traces such as those described in \autocite{fta-journal}.
+%One of the unique features of our erasure codes tester is the possibility to replicate recorded failure patterns.
+We evaluate the impact on the network throughput by replaying a portion of the website trace described in \autocite{websites02}.
+%We replicated a \SI{7}{\hour} subset of the fault trace recorded by the authors of \autocite{websites02}.
+We map each Redis node to a web server and let nodes crash and join following the pattern presented in \autoref{fig:trace-plot}.top. The number of healthy nodes varies between 114 (min) and 118 (max).
+During the replay, we monitor the network traffic occurring at the storage nodes.
+First, we extract the \texttt{httpd} archive in the ErasureBench partition.
+When a new node joins, existing blocks are migrated according to a rebalancing policy.
+Upon departure, we trigger a procedure to repair incomplete stripes.
+%When an existing node departed, we scrubbed the blocks stored in the system and repaired incomplete stripes.
+%In \autoref{fig:trace-plot}, the uppermost plot shows the size of the storage cluster.
+%An increase indicates a node joining the system while a decrease marks a failure.
+We compare the network throughput required by \ac{rs} versus \ac{lrc}, respectively in ~\autoref{fig:trace-plot}.middle and ~\autoref{fig:trace-plot}.bottom.
+We use a stack curve representation to highlight the different traffic types:  
+apart from \textit{Write} and \textit{Read} traffic, we further distinguish between \textit{Check} (to check for damaged strips), \textit{Cluster} (for cluster management), \textit{Other Redis} (for Redis traffic), and \textit{Other} (for application-level traffic).
+%The two plots in the lower part of \autoref{fig:trace-plot} show the network throughput that was observed when erasure coding the data using \ac{rs} versus \ac{lrc}.
+The leftmost peak for both codes occurs during the initial write of the archive into the file system. We achieve the highest throughput for both erasure codes during this initial write: \SI{77.7}{\mega\byte\per\second} using \ac{rs}, and \SI{76.3}{\mega\byte\per\second} using \ac{lrc}.
+As expected, we observe the benefit of \ac{lrc} during read operations, where at most \SI{10.1}{\mega\byte\per\second} are spent between the 20min-30min range (when 4 nodes leave the network). In comparison, \ac{rs} requires as much as \SI{15.3}{\mega\byte\per\second}. We also ran experiments using smaller storage nodes (not shown), where the difference between \ac{lrc} and \ac{rs} was negligible because cluster and network management traffic overshadowed read/write traffic. 
+   
+\begin{figure}[ht]
+    \centering
+    \input{trace-plot.tex}
+    \caption{Throughput under faults. Top: failure pattern of nodes. Middle and bottom plots: network traffic writing the \textit{httpd} archive, moving blocks (during repair or rebalance) between Redis nodes.}
+    \label{fig:trace-plot}
+	\vspace{-1.5mm}
+\end{figure}

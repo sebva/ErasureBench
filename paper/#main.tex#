@@ -1,0 +1,163 @@
+\documentclass[10pt,conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[rm={oldstyle=false}]{cfr-lm}
+\usepackage[australian,american]{babel}
+
+\usepackage[backend=biber,style=ieee,bibencoding=utf8,sorting=none,doi=false,isbn=false,url=false,date=short]{biblatex}
+\usepackage{csquotes}
+\usepackage[caption=false]{subfig}
+\usepackage[nolist]{acronym}
+\usepackage[binary-units,per-mode=symbol]{siunitx}
+\usepackage{float}
+\usepackage{todonotes}
+\usepackage{pgfplots}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{lipsum}
+\usepackage[hidelinks]{hyperref}
+\usepackage{xspace}
+
+%% Added by Hugues
+\usepackage{amsmath, amssymb}
+
+%% Environment for comments: Set the boolean to false to produce a comment-free version.
+\newboolean{showcomments}
+\setboolean{showcomments}{false}
+\ifthenelse{\boolean{showcomments}}
+{ \newcommand{\mynote}[3]{
+    \fbox{\bfseries\sffamily\scriptsize#1}
+    {\small$\blacktriangleright$\textsf{\emph{\color{#3}{#2}}}$\blacktriangleleft$}}}
+{ \newcommand{\mynote}[3]{}}
+% One command per author:
+\newcommand{\hm}[1]{\mynote{Hugues}{#1}{orange}}
+\newcommand{\vs}[1]{\mynote{Valerio}{#1}{red}}
+
+\newcommand{\SYS}{\textsc{LuRChFS}\xspace}
+
+\newif\ifjmcs
+% Change false to true to have the JMCS cover page
+\jmcsfalse
+
+\pgfplotsset{
+    compat=1.12,
+    tick label style={font=\small},
+    label style={font=\small},
+    legend style={font=\small},
+    /pgfplots/short line legend/.style={
+        legend image code/.code={
+            \draw[mark repeat=2,mark phase=2,##1]
+                plot coordinates {
+                    (0cm,0cm)
+                    (0.2cm,0cm)
+                    (0.4cm,0cm)
+                };%
+        }
+    },
+    /pgfplots/xtick pos=left,
+}
+
+\usepgfplotslibrary{external, dateplot, groupplots, units, colorbrewer}
+\tikzexternalize
+\tikzsetexternalprefix{generated-figures/}
+
+% Columns balancing, enable before final pass
+%\renewbibmacro{finentry}{%
+%    \iffieldequalstr{entrykey}{fta-paper}%<- key after which you want the break
+%    {\finentry\newpage}
+%    {\finentry}}
+%Alternative titles:
+%- Take a seat on the ErasureBench: framework for smooth evaluation of coding libraries in the wild
+%- Take a seat on the ErasureBench (subtitle: easy evaluation of coding libraries)
+%- Real-world evaluation of coding libraries with the ErasureBench framework
+%- Practical evaluation of coding libraries with ErasureBench
+% Constants
+\def\ieeetitle{Have3 a Seat on the ErasureBench: \\ Easy Evaluation of Erasure Coding Libraries \\ for Distributed Storage Systems}
+
+%\def\ieeetitle{ErasureBench: an Experimental Testbed to Compare\\ Locally Repairable and Erasure Coding Libraries}
+
+\def\ieeeauthor{Sébastien Vaucher, Hugues Mercier, Valerio Schiavoni}
+
+\def\thesistitle{ErasureBench}
+\def\thesissubtitle{An experimental testbed to evaluate erasure-coding libraries}
+\def\thesisauthor{Sébastien Vaucher}
+
+
+\author{\IEEEauthorblockN{\ieeeauthor}
+    \IEEEauthorblockA{University of Neuchâtel, Switzerland\\
+        \href{mailto:first.last@unine.ch}{first.last@unine.ch}}
+}
+\title{\ieeetitle}
+
+\addbibresource{references.bib}
+\renewcommand*{\bibfont}{\small}
+
+\hypersetup{
+	pdftitle=\thesistitle,
+	pdfauthor=\thesisauthor
+}
+
+% \noautocite{*}
+
+\begin{document}
+
+\ifjmcs
+\begin{titlepage}
+    \begin{otherlanguage}{australian}
+        \begin{center}
+            \begin{figure}[t]
+                \center{\includegraphics[scale=0.2]{logos/MSc_quer.png}}
+                \vspace{0.4in}
+            \end{figure}
+
+            {\bfseries\Huge \thesistitle \par
+                \Large \vspace{0.1in} \thesissubtitle \par}
+
+            \vspace{0.3in}
+            \LARGE{\textbf{Master Thesis} \\}
+            \vspace{0.4in}
+
+            {\Large \thesisauthor}
+
+            \vspace{0.3in}
+            {\Large Université de Neuchâtel \par}
+            \vfill
+            {\Large \today \par}
+
+            \vspace{0.9in}
+
+            % === Logos ==============================================
+            \begin{figure}[htp]
+                \centering
+                \subfloat{\includegraphics[scale=0.60]{logos/UNI_Bern.pdf}}\hfill
+                \subfloat{\includegraphics[scale=0.54]{logos/UNI_Neuchatel.pdf}}\hfill
+                \subfloat{\includegraphics[scale=0.81]{logos/UNI_Fribourg.pdf}}
+            \end{figure}
+            % === // Logos ===========================================
+
+        \end{center}
+    \end{otherlanguage}
+\end{titlepage}
+
+\pagebreak
+\fi
+
+\maketitle
+
+\input{abstract.tex}
+
+\input{introduction.tex}
+
+\input{codes.tex}
+
+\input{erasure-tester.tex}
+
+\input{evaluation.tex}
+
+\input{conclusion.tex}
+
+\input{acro.tex}
+
+\printbibliography
+
+\end{document}

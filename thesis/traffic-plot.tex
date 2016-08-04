@@ -1,0 +1,102 @@
+\begin{tikzpicture}
+\usetikzlibrary{plotmarks}
+\pgfplotsset{
+    height=4cm,
+    width=\linewidth / 2.6,
+    every axis plot post/.append style={
+        solid,
+        very thin,
+        mark=none
+    },
+    /pgfplots/area cycle list/.style={/pgfplots/cycle list={%
+            {black,fill=black,mark=none},%
+            {black,fill=white!25!black,mark=none},%
+            {black,fill=white!50!black,mark=none},%
+            {black,fill=white!75!black,mark=none},%
+            {black,fill=white,mark=none},%
+        }
+    },
+}
+\begin{groupplot}[
+    ymajorgrids,
+    group style={
+        group size=3 by 2,
+        vertical sep=2mm,
+        horizontal sep=2mm,
+        xlabels at=edge bottom,
+        ylabels at=edge left,
+        xticklabels at=edge bottom,
+        yticklabels at=edge left,
+    },
+    reverse legend,
+    area style,
+    xlabel={Elapsed time $\left[\si{\second}\right]$},
+    ymax=29500000,
+    ymin=0,
+    xmax=125,
+    xmin=0,
+    legend style={
+        anchor=south,
+        at={(0.5,1)},
+        draw=none,
+    },
+    area cycle list=black white,
+    legend cell align=left,
+    legend columns=5,
+    scaled y ticks=base 10:-6,
+    ytick scale label code/.code={},
+]
+
+\nextgroupplot
+\addplot table[x=x, y=write-100nodes-ReedSolomon-5] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=write-100nodes-ReedSolomon-4] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=write-100nodes-ReedSolomon-3] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=write-100nodes-ReedSolomon-2] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=write-100nodes-ReedSolomon-1] {plots/throughput.dat}\closedcycle;
+
+\nextgroupplot
+\addplot table[x=x, y=read-normal-100nodes-ReedSolomon-5] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-normal-100nodes-ReedSolomon-4] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-normal-100nodes-ReedSolomon-3] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-normal-100nodes-ReedSolomon-2] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-normal-100nodes-ReedSolomon-1] {plots/throughput.dat}\closedcycle;
+
+\legend{Max, \SI{75}{\percent}, \SI{50}{\percent}, \SI{25}{\percent}, Min}
+
+\nextgroupplot
+\addplot table[x=x, y=read-degraded-100nodes-ReedSolomon-5] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-degraded-100nodes-ReedSolomon-4] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-degraded-100nodes-ReedSolomon-3] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-degraded-100nodes-ReedSolomon-2] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-degraded-100nodes-ReedSolomon-1] {plots/throughput.dat}\closedcycle;
+
+\nextgroupplot[ylabel={Network throughput $\left[\si{\mega\byte\per\second}\right]$}, every axis y label/.append style={at=(ticklabel cs:1.1)}]
+\addplot table[x=x, y=write-100nodes-SimpleRegenerating-5] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=write-100nodes-SimpleRegenerating-4] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=write-100nodes-SimpleRegenerating-3] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=write-100nodes-SimpleRegenerating-2] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=write-100nodes-SimpleRegenerating-1] {plots/throughput.dat}\closedcycle;
+
+\nextgroupplot
+\addplot table[x=x, y=read-normal-100nodes-SimpleRegenerating-5] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-normal-100nodes-SimpleRegenerating-4] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-normal-100nodes-SimpleRegenerating-3] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-normal-100nodes-SimpleRegenerating-2] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-normal-100nodes-SimpleRegenerating-1] {plots/throughput.dat}\closedcycle;
+
+\nextgroupplot
+\addplot table[x=x, y=read-degraded-100nodes-SimpleRegenerating-5] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-degraded-100nodes-SimpleRegenerating-4] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-degraded-100nodes-SimpleRegenerating-3] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-degraded-100nodes-SimpleRegenerating-2] {plots/throughput.dat}\closedcycle;
+\addplot table[x=x, y=read-degraded-100nodes-SimpleRegenerating-1] {plots/throughput.dat}\closedcycle;
+\end{groupplot}
+
+\node[anchor=north] at (group c1r1.north) {RS write};
+\node[anchor=north] at (group c2r1.north) {RS read};
+\node[anchor=north] at (group c3r1.north) {RS degraded read};
+\node[anchor=north] at (group c1r2.north) {LRC write};
+\node[anchor=north] at (group c2r2.north) {LRC read};
+\node[anchor=north] at (group c3r2.north) {LRC degraded read};
+
+\end{tikzpicture}

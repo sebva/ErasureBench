@@ -1,0 +1,37 @@
+\sisetup{table-format=4.0}
+\begin{tabular}{
+        l
+        c
+        c
+        l
+        S[table-format=5.0]
+        S[table-format=3.2]
+        S[table-format=3.2]
+}
+\toprule
+\multirow{2}{*}{Name} & \multirow{2}{*}{Files} & \multirow{2}{*}{Size} & \multicolumn{1}{c}{Erasure} & {Redis} & {Binary} & {Base64} \\
+& & & \multicolumn{1}{c}{code} & {keys} & {blocks} & {blocks} \\
+
+\midrule
+
+% 10 bytes
+\multirow{3}{*}{\SI{10}{\byte}} & \multirow{3}{*}{\tablenum{1000}} & \multirow{3}{*}{\tablenum[table-format=2.2]{0.01}} & NC
+           & 10000 & 0.12 & 0.16 \\
+ & & & RS  & 14000 & 0.17 & 0.22 \\
+ & & & LRC & 16000 & 0.19 & 0.26 \\
+
+\addlinespace
+% bc-1.06
+\multirow{3}{*}{bc} & \multirow{3}{*}{\tablenum{94}} & \multirow{3}{*}{\tablenum[table-format=2.2]{1.02}} & NC
+           & 1920 & 4.09 & 5.45 \\
+ & & & RS  & 2688 & 5.72 & 7.63 \\
+ & & & LRC & 3072 & 6.54 & 8.73 \\
+
+\addlinespace
+% httpd-2.4.18
+\multirow{3}{*}{httpd} & \multirow{3}{*}{\tablenum{2516}} & \multirow{3}{*}{\tablenum[table-format=2.2]{33.02}} & NC
+           & 56850 & 132.68 & 176.99 \\
+ & & & RS  & 79590 & 185.75 & 247.79 \\
+ & & & LRC & 90960 & 212.29 & 283.18 \\
+\bottomrule
+\end{tabular}
