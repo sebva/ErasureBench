@@ -1,0 +1,55 @@
+% Copyright 2007 by Till Tantau
+%
+% This file may be distributed and/or modified
+%
+% 1. under the LaTeX Project Public License and/or
+% 2. under the GNU Public License.
+%
+% See the file doc/licenses/LICENSE for more details.
+
+\ProvidesPackageRCS $Header: /Users/joseph/Documents/LaTeX/beamer/base/themes/theme/beamerthemeSingapore.sty,v d02a7cf4d8ae 2010/06/17 09:11:41 rivanvx $
+
+\DeclareOptionBeamer{compress}{\beamer@compresstrue}
+\ProcessOptionsBeamer
+  
+\mode<presentation>
+
+% Removes section titles in headers while keeping the shading
+\renewcommand{\insertnavigation}[1]{}
+
+% tc and back color can be redefined in the .tex files. They must be in the .sty file, 
+% otherwise it does not compile.
+\definecolor{tc}{rgb}{0,0,0.6}  % Main text color
+\colorlet{backcolor}{tc!10!white} % Background color
+
+\setbeamercolor{section in head/foot}{bg=backcolor}
+\setbeamercolor{title}{fg=tc}
+\setbeamercolor{frametitle}{fg=tc}
+\setbeamercolor{local structure}{fg=tc}
+\setbeamercolor{structure}{fg=tc}
+\setbeamercolor{footline}{fg=tc}
+
+\useoutertheme[subsection=false]{miniframes}
+
+\setbeamertemplate{frametitle}[default][center]
+
+\AtBeginDocument{%
+  {
+    \usebeamercolor{section in head/foot}
+  }
+  
+  \pgfdeclareverticalshading{beamer@headfade}{\paperwidth}
+  {%
+    color(0cm)=(bg);
+    color(2cm)=(section in head/foot.bg)%
+  }
+
+  \setbeamercolor{section in head/foot}{bg=}
+}
+
+\addtoheadtemplate{\pgfuseshading{beamer@headfade}\vskip-2cm}{}
+
+\beamertemplatedotitem
+
+\mode
+<all>

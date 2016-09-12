@@ -1,0 +1,184 @@
+% -------------------------------------------------------------------------------
+
+% Génère deux pdf, avec et sans les overlays.
+
+\ifdefined\ishandout
+  \documentclass[handout]{beamer}
+\else
+  \documentclass{beamer}
+\fi
+
+% -------------------------------------------------------------------------------
+
+% For sans serif fonts compiled with lualatex. Better for presentations.
+
+\usepackage{fontspec}
+\fontspec[Scale=MatchLowercase]{Trebuchet MS}
+
+% -------------------------------------------------------------------------------
+
+% For regular serif fonts compiled with pdflatex
+
+%\usepackage[T1]{fontenc} 
+%\usepackage[utf8]{inputenc}
+
+% -------------------------------------------------------------------------------
+
+% Packages and settings
+
+\usepackage[french,english]{babel}
+
+\usepackage{algorithm,algorithmic}
+\usepackage{framed} % Put frames around text
+\usepackage{textpos} % Put text on slides with (pos_x, pos_y)
+
+\usepackage{mdframed}
+
+\usepackage{caption}
+\captionsetup[figure]{labelformat=empty}%
+
+\graphicspath{{figures/}} 
+
+\setlength{\unitlength}{1cm}
+
+% -------------------------------------------------------------------------------
+
+% Generates a section frame with the title as an input argument
+\newcommand{\sectionframe}[1]
+{
+\section[aaa]{#1}
+\begin{frame}[plain]
+\Large
+  \begin{snugshade}
+    \begin{center}
+    \tc{#1}
+  \end{center}
+\end{snugshade}
+\vspace{3cm}\mbox{}
+\end{frame}
+}
+
+% -------------------------------------------------------------------------------
+
+% Definitions
+
+\newcommand{\pr}{\text{Pr}} % probabilities in math mode
+
+\newcommand{\N}{\ensuremath{\mathbb{N}}\xspace}
+\newcommand{\Z}{\ensuremath{\mathbb{Z}}\xspace}
+\newcommand{\R}{\ensuremath{\mathbb{R}}\xspace}
+\newcommand{\Q}{\ensuremath{\mathbb{Q}}\xspace}
+
+\newcommand{\K}{\ensuremath{\mathcal{K}}\xspace}
+\newcommand{\X}{\ensuremath{\mathcal{X}}\xspace}
+\newcommand{\Y}{\ensuremath{\mathcal{Y}}\xspace}
+
+% Logical operators
+\renewcommand{\lnot}{\neg}
+\newcommand{\lxor}{\oplus}
+\newcommand{\lif}{\rightarrow}
+\newcommand{\liff}{\leftrightarrow}
+\newcommand{\lnand}{\mid}
+\newcommand{\lnor}{\downarrow}
+
+\newcommand{\tc}[1]{{\color{tc}#1}} % Theme color for the text
+
+% Parametrized names for the system
+\newcommand{\EPTO}{\textsc{EpTO}\xspace}
+
+% -------------------------------------------------------------------------------
+
+% Colors
+
+\newcommand{\colorformatblue}
+{
+\definecolor{tc}{rgb}{0.2,0,0.4}
+\colorlet{backcolor}{tc!15!white}
+\colorlet{shadecolor}{tc!10!white}
+}
+
+\newcommand{\colorformatgreen}
+{
+\definecolor{tc}{rgb}{0,0.3,0}
+\colorlet{backcolor}{tc!30!white}
+\colorlet{shadecolor}{tc!30!white}
+}
+
+\newcommand{\colorformatred}
+{
+\definecolor{tc}{rgb}{0.5,0,0}
+\colorlet{backcolor}{tc!30!white}
+\colorlet{shadecolor}{tc!10!white}
+}
+
+\newcommand{\colorformatpurple}
+{
+\definecolor{tc}{rgb}{0.5,0,0.5}
+\colorlet{backcolor}{tc!30!white}
+\colorlet{shadecolor}{tc!10!white}
+}
+
+\newcommand{\colorformatgray}
+{
+\definecolor{tc}{rgb}{0.5,0.5,0.5}
+\colorlet{backcolor}{tc!40!white}
+\colorlet{shadecolor}{tc!40!white}
+}
+
+\newcommand{\colorformatpink}
+{
+\definecolor{tc}{rgb}{0.8,0.2,0.8}
+\colorlet{backcolor}{tc!40!white}
+\colorlet{shadecolor}{tc!40!white}
+}
+
+\newcommand{\colorformatorange}
+{
+\definecolor{tc}{rgb}{1,0.7,0.4}
+\colorlet{backcolor}{tc!40!white}
+\colorlet{shadecolor}{tc!40!white}
+}
+
+\newcommand{\colorformatcornflowerblue}
+{
+\definecolor{tc}{rgb}{0.39,0.58,0.93}
+\colorlet{backcolor}{tc!40!white}
+\colorlet{shadecolor}{tc!40!white}
+}
+
+% -------------------------------------------------------------------------------
+
+\usetheme{SingaporeHugues}
+
+% To include a logo in each slide
+% \logo{\includegraphics[width=1cm\vspace{-1cm}]{unine}}
+
+\setbeamertemplate{navigation symbols}{}
+
+\title[\EPTO]{\textbf{\EPTO: An Epidemic Total Order Algorithm for Large-Scale Distributed Systems}}
+
+\author[]{Miguel Matos, \textbf{Hugues Mercier}, \\ Pascal Felber, Rui Oliveira, José Pereira}
+
+\subtitle[]{2015 ACM/IFIP/USENIX Middleware conference}
+
+\institute[]{Institutes of Computer Science and Mathematics \\ Université de Neuchâtel, Switzerland \\ \vspace{0.3cm} HASLab – INESC TEC \& University of Minho, Portugal \\ \vspace{0.3cm} \href{mailto:hugues.mercier@unine.ch}{hugues.mercier@unine.ch}} 
+\date[9 December 2015]{Vancouver, Canada, 9 December 2015}
+
+\setbeamertemplate{footline}[text line]{%
+\parbox{\linewidth}{\vspace*{-8pt}  Middleware 2015 \hfill \insertshorttitle\ \ - \  \insertshortsubtitle \hfill \href{mailto:hugues.mercier@unine.ch}{hugues.mercier@unine.ch} \hfill \hfill\insertframenumber}} 
+
+\setbeamertemplate{navigation symbols}{}
+
+% Beamer footline without logo
+%\setbeamertemplate{footline}[text line]{%
+%\vspace*{-8pt} \insertsh \ - \insertshortsubtitle \hfill \insertframenumber \hspace{-0.5cm}}
+
+% This allows to set pdf bookmarks at the frame level
+%\usepackage{bookmark}
+%\makeatletter
+%\apptocmd{\beamer@@frametitle}{\only<1>{\bookmark[page=\the\c@page,level=3]{#1}}}
+%\makeatother
+
+% -------------------------------------------------------------------------------
+
+\include{slides}
