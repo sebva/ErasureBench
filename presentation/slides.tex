@@ -46,6 +46,34 @@
     \end{figure}
 \end{frame}
 
+\subtitle{Description}
+
+\begin{frame}{Key features}
+    \begin{itemize}
+        \item Compatible with existing benchmark programs
+        \item Automated benchmarks execution
+        \item Containerized storage nodes ($>1$ per physical node)
+        \item Replay fault traces
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Evaluation example}
+    How to evaluate a new algorithm.
+    \begin{enumerate}
+        \item Program the algorithm as a Java class
+        \item Write benchmarks as Python functions
+        \begin{itemize}
+            \item Debian-compatible programs can be launched as sub-processes
+        \end{itemize}
+        \item Configure the evaluation
+        \begin{itemize}
+            \item e.g. algorithm parameters, fault trace, ...
+        \end{itemize}
+        \item Easily deploy the solution to a Docker cluster
+        \item Collect results
+    \end{enumerate}
+\end{frame}
+
 \subtitle[Architecture]{Architecture}
 
 \begin{frame}{Technical components}
@@ -58,24 +86,36 @@
     \input{../paper/blocks-figure.tex}
 \end{frame}
 
-\begin{frame}{Key features of \sys}
-    \begin{itemize}
-        \item Compatible with existing benchmark programs
-        \item Automated benchmarks execution
-        \item Can artificially create many node
-        \item Fault 
-    \end{itemize}
+\begin{frame}{Metadata management}
+    Each block is identified by a 32-bit key.
+    Using it, we derive:
+    \begin{enumerate}
+        \item Key of the blocks aggregation stored in Redis
+        \item Offset within that aggregation
+    \end{enumerate}
+    
+    The list of all block keys is kept in memory.
+\end{frame}
+
+\begin{frame}{Automated deployment and scaling}
+    As part of \sys, we provide scripts that completely automate 
 \end{frame}
 
 \subtitle[Evaluation]{Evaluation}
 
 \begin{frame}{Evaluation}
-    \todo[inline]{Present some interesting results}
+    We evaluated algorithms from "XORing Elephants: Novel Erasure Codes for Big Data".
+    \begin{description}
+        \item[NC] No erasure coding
+        \item[RS] Reed-Solomon $(10,4)$
+        \item[LRC] Locally Repairable Code $(10,6,5)$
+    \end{description}
 \end{frame}
 
 \subtitle[Conclusion]{Conclusion}
 
 \begin{frame}{Conclusion}
+    Using \sys, evaluating an erasure coding algorithm under real conditions is easier and cheaper.
     \begin{itemize}
         \item Todo
     \end{itemize}
