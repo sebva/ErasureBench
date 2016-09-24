@@ -1,4 +1,5 @@
 \colorformatcornflowerblue
+\setbeamercovered{transparent}
 
 \begin{document}
 
@@ -20,6 +21,20 @@
 
 \subtitle[Introduction]{Introduction}
 
+\begin{frame}{Motivation}
+    More and more data needs to be stored reliably on online servers.
+    Reliability can be provided through:
+    \begin{itemize}
+        \item<1> Replication
+        \item<1-2> Erasure coding
+    \end{itemize}
+\end{frame}
+
+\begin{frame}{Motivation}
+    The characteristics of an erasure coding algorithm are difficult to evaluate.\\
+    Evaluation is often done theoretically or by simulation.
+\end{frame}
+
 \begin{frame}{Erasure coding}
     \begin{snugshade}
         Goal: add redundancy to cope with data loss/corruption
@@ -31,10 +46,6 @@
     \end{figure}
 \end{frame}
 
-\begin{frame}{Motivation}
-    \todo[inline]{Why we created \sys}
-\end{frame}
-
 \subtitle[Architecture]{Architecture}
 
 \begin{frame}{Technical components}
@@ -42,11 +53,17 @@
     \input{../paper/architecture-figure.tex}
 \end{frame}
 
+\begin{frame}{Blocks distribution}
+    \centering
+    \input{../paper/blocks-figure.tex}
+\end{frame}
+
 \begin{frame}{Key features of \sys}
     \begin{itemize}
-        \item Possible to run existing benchmarks
+        \item Compatible with existing benchmark programs
         \item Automated benchmarks execution
-        \item Can run on heterogeneous nodes, as long as Docker Swarm is supported
+        \item Can artificially create many node
+        \item Fault 
     \end{itemize}
 \end{frame}
 
@@ -60,8 +77,10 @@
 
 \begin{frame}{Conclusion}
     \begin{itemize}
-        \item Things
+        \item Todo
     \end{itemize}
+    
+    Available open-source at \url{https://github.com/safecloud-project/erasurebench}
 \end{frame}
 
 % -------------------------------------------------------------------------------
