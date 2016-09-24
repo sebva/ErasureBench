@@ -34,12 +34,33 @@
 
 \usepackage{mdframed}
 
+\usepackage[binary-units,per-mode=symbol]{siunitx}
 \usepackage{todonotes}
+\usepackage{pgfplots}
 
 \usepackage{caption}
 \captionsetup[figure]{labelformat=empty}%
 
-\graphicspath{{figures/}} 
+\graphicspath{{figures/}}
+\pgfplotsset{
+    compat=1.12,
+    tick label style={font=\small},
+    label style={font=\small},
+    legend style={font=\small},
+    /pgfplots/short line legend/.style={
+        legend image code/.code={
+            \draw[mark repeat=2,mark phase=2,##1]
+            plot coordinates {
+                (0cm,0cm)
+                (0.2cm,0cm)
+                (0.4cm,0cm)
+            };%
+        }
+    },
+    /pgfplots/xtick pos=left,
+}
+
+\usepgfplotslibrary{dateplot, groupplots, units, colorbrewer}
 
 \setlength{\unitlength}{1cm}
 

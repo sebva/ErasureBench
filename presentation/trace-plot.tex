@@ -1,0 +1,100 @@
+\begin{tikzpicture}
+\usetikzlibrary{plotmarks}
+\usetikzlibrary{arrows.meta}
+\pgfplotsset{width=\linewidth,
+    every axis plot post/.append style={
+        solid,
+        mark=none
+    }
+}
+\pgfplotstableread{../paper/plots/trace-rs.dat}\tracersdat
+\pgfplotstableread{../paper/plots/trace-lrc.dat}\tracelrcdat
+\begin{groupplot}[
+    group style={
+        group size=1 by 3,
+        vertical sep=2mm,
+        horizontal sep=0pt,
+        xlabels at=edge bottom,
+        ylabels at=edge left,
+        xticklabels at=edge bottom,
+        yticklabels at=edge left,
+    },
+    legend columns=3,
+    legend style={
+        fill=none,
+        draw=none,
+        anchor=south,
+        at={(0.5,1.24)},
+        cells={anchor=west},
+    },
+    colorbrewer cycle list=Spectral,
+    colorbrewer values=6,
+    ymajorgrids,
+    xmin=0,
+    xmax=67,
+    xlabel={Elaspsed time $\left[\si{\minute}\right]$},
+    table/col sep=tab,
+    tick pos=left,
+    ytick align=outside,
+]
+\nextgroupplot[
+    height=1.9cm,
+    ylabel=Nodes,
+    ytick={114,118},
+    minor ytick={114,...,118},
+    xmajorgrids,
+    yminorgrids,
+    tick label style={font=\footnotesize},
+    label style={font=\tiny},
+]
+\addplot+[const plot, color=blue] table[x=minute, y=size, col sep=comma] {../paper/plots/websites-size.dat};
+
+\nextgroupplot[
+    area style,
+    stack plots=y,
+    height=3.7cm,
+    ymax=19000000,
+    scaled y ticks=base 10:-6,
+    ytick scale label code/.code={},
+    ymin=0,
+]
+\addplot+[color=colorbrewer1] table[x=minute, y=exists] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer2] table[x=minute, y=read] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer3] table[x=minute, y=write] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer4] table[x=minute, y=cluster] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer5] table[x=minute, y=redis] {\tracersdat} \closedcycle;
+\addplot+[color=colorbrewer6] table[x=minute, y=general] {\tracersdat} \closedcycle;
+
+\legend{Check, Read, Write, Cluster, Other Redis, Other}
+
+\nextgroupplot[
+    area style,
+    stack plots=y,
+    height=3.7cm,
+    ymax=19000000,
+    scaled y ticks=base 10:-6,
+    ytick scale label code/.code={},
+    ylabel={Network throughput $\left[\si{\mega\byte\per\second}\right]$},
+    every axis y label/.append style={
+        at=(ticklabel cs:1.1)
+    },
+    ymin=0,
+]
+\addplot+[color=colorbrewer1] table[x=minute, y=exists] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer2] table[x=minute, y=read] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer3] table[x=minute, y=write] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer4] table[x=minute, y=cluster] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer5] table[x=minute, y=redis] {\tracelrcdat} \closedcycle;
+\addplot+[color=colorbrewer6] table[x=minute, y=general] {\tracelrcdat} \closedcycle;
+\end{groupplot}
+
+\node[anchor=north] at (group c1r2.north) {RS};
+\node[anchor=north] at (group c1r3.north) {LRC};
+
+% RS Arrow
+\draw[thick, ->, -{Latex[length=1.5mm]}] (0.5, -0.55) -- (0.4, -0.25);
+\node[anchor=west, font=\small] at (0.55, -0.46) {\SI{77.7}{\mega\byte\per\second}};
+% LRC Arrow
+\draw[thick, ->, -{Latex[length=1.5mm]}] (0.5, -2.85) -- (0.4, -2.55);
+\node[anchor=west, font=\small] at (0.55, -2.77) {\SI{76.3}{\mega\byte\per\second}};
+\end{tikzpicture}
