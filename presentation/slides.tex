@@ -31,8 +31,11 @@
 \end{frame}
 
 \begin{frame}{Motivation}
-    The characteristics of an erasure coding algorithm are difficult to evaluate.\\
-    Evaluation is often done theoretically or by simulation.
+  \begin{itemize}
+  \item  The characteristics of erasure coding algorithms are difficult to evaluate (encoding, decoding, complexity, latency, ...)
+  \item  Evaluation is often done theoretically or by simulation
+  \end{itemize}
+
 \end{frame}
 
 \begin{frame}{Erasure coding}
@@ -48,17 +51,17 @@
 
 \subtitle{Description}
 
-\begin{frame}{Key features}
+\begin{frame}{\sys \enspace key features}
     \begin{itemize}
         \item Compatible with existing benchmark programs
         \item Automated benchmarks execution
         \item Containerized storage nodes ($>1$ per physical node)
-        \item Replay fault traces
+        \item Can replay fault traces
     \end{itemize}
 \end{frame}
 
 \begin{frame}{Evaluation example}
-    How to evaluate a new algorithm.
+    How to evaluate a new erasure coding algorithm
     \begin{enumerate}
         \item Program the algorithm as a Java class
         \item Write benchmarks as Python functions
@@ -76,7 +79,7 @@
 
 \subtitle[Architecture]{Architecture}
 
-\begin{frame}{Technical components}
+\begin{frame}{\sys \enspace technical components}
     \centering
     \input{architecture-figure.tex}
 \end{frame}
@@ -86,19 +89,23 @@
     \input{../paper/blocks-figure.tex}
 \end{frame}
 
-\begin{frame}{Metadata management}
-    Each block is identified by a 32-bit key.
-    Using it, we derive:
+\begin{frame}{\sys\enspace metadata management}
+  \begin{itemize}
+  \item Each block is identified by a 32-bit key. Using it, we derive:
     \begin{enumerate}
         \item Key of the blocks aggregation stored in Redis
         \item Offset within that aggregation
     \end{enumerate}
     
-    The list of all block keys is kept in memory.
+    \item The list of all block keys is kept in memory
+
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Automated deployment and scaling}
-    As part of \sys, we provide scripts that automate the deployment of the solution to a Docker Swarm cluster, up to the collection of results.
+\begin{frame}{\sys\enspace automated deployment and scaling}
+  \begin{snugshade}
+    As part of \sys, we provide scripts that automate the deployment of the solution to a Docker Swarm cluster, up to the collection of results
+  \end{snugshade}
 \end{frame}
 
 \subtitle[Evaluation]{Evaluation}
@@ -107,8 +114,8 @@
     We evaluated algorithms from "XORing Elephants: Novel Erasure Codes for Big Data".
     \begin{description}
         \item[NC] No erasure coding
-        \item[RS] Reed-Solomon $(10,4)$
-        \item[LRC] Locally Repairable Code $(10,6,5)$
+        \item[RS] $(10,4)$ Reed-Solomon code
+        \item[LRC] $(10,6,5)$ Locally Repairable Code
     \end{description}
 \end{frame}
 
@@ -133,10 +140,15 @@
 \subtitle[Conclusion]{Conclusion}
 
 \begin{frame}{Conclusion}
-    Using \sys, evaluating an erasure coding algorithm under real conditions is easier and cheaper.
-    \vspace*{5mm}
-    
-    Available open-source at \url{https://github.com/safecloud-project/erasurebench}
+
+  \begin{snugshade}
+    Using \sys, evaluating an erasure coding algorithm under real conditions is easier and cheaper
+  \end{snugshade}
+  
+  \begin{snugshade}
+    Available open-source at \url{https://github.com/safecloud-project/erasurebench}    
+  \end{snugshade}
+
 \end{frame}
 
 % -------------------------------------------------------------------------------
