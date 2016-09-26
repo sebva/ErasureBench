@@ -19,6 +19,16 @@
 % -------------------------------------------------------------------------------
 % -------------------------------------------------------------------------------
 
+\begin{frame}{Outline}
+    \begin{itemize}
+        \item Motivation
+        \item Recap about erasure coding
+        \item \sys
+        \item Evaluation
+        \item Conclusion
+    \end{itemize}
+\end{frame}
+
 \subtitle[Introduction]{Introduction}
 
 \begin{frame}{Motivation}
@@ -32,8 +42,8 @@
 
 \begin{frame}{Motivation}
   \begin{itemize}
-  \item  The characteristics of erasure coding algorithms are difficult to evaluate (encoding, decoding, complexity, latency, ...)
-  \item  Evaluation is often done theoretically or by simulation
+  \item The characteristics of erasure coding algorithms are difficult to evaluate (encoding, decoding, complexity, latency, ...)
+  \item Evaluation is often done theoretically or by simulation
   \end{itemize}
 
 \end{frame}
@@ -145,11 +155,21 @@
 
 \subtitle[Conclusion]{Conclusion}
 
+\begin{frame}{Limitations}
+    \begin{itemize}
+        \item Algorithms need to be written in Java
+        \item High memory consumption
+        \item Strong dependency on Docker and Redis
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Conclusion}
 
   \begin{snugshade}
     Using \sys, evaluating an erasure coding algorithm under real conditions is easier and cheaper
   \end{snugshade}
+  
+  
   
   \begin{snugshade}
     Available open-source at \url{https://github.com/safecloud-project/erasurebench}    
