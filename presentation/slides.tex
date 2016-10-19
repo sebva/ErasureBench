@@ -19,6 +19,16 @@
 % -------------------------------------------------------------------------------
 % -------------------------------------------------------------------------------
 
+\begin{frame}{Outline}
+    \begin{itemize}
+        \item Motivation
+        \item Recap about erasure coding
+        \item \sys
+        \item Evaluation
+        \item Conclusion
+    \end{itemize}
+\end{frame}
+
 \subtitle[Introduction]{Introduction}
 
 \begin{frame}{Motivation}
@@ -32,8 +42,8 @@
 
 \begin{frame}{Motivation}
   \begin{itemize}
-  \item  The characteristics of erasure coding algorithms are difficult to evaluate (encoding, decoding, complexity, latency, ...)
-  \item  Evaluation is often done theoretically or by simulation
+  \item The characteristics of erasure coding algorithms are difficult to evaluate (encoding, decoding, complexity, latency, ...)
+  \item Evaluation is often done theoretically or by simulation
   \end{itemize}
 
 \end{frame}
@@ -111,7 +121,13 @@
 \subtitle[Evaluation]{Evaluation}
 
 \begin{frame}{Evaluation}
-    We evaluated algorithms from "XORing Elephants: Novel Erasure Codes for Big Data".
+    We evaluated algorithms from the following paper:
+
+    \begin{snugshade}
+        \footnotesize
+        M.~Sathiamoorthy, M.~Asteris, D.~Papailiopoulos, A.~G.~Dimakis, R.~Vadali, S.~Chen, and D.~Borthakur, “\textbf{XORing elephants: Novel erasure codes for big data},” in Proceedings of the VLDB Endowment, vol. 6, 2013, pp. 325–336.
+    \end{snugshade}
+    
     \begin{description}
         \item[NC] No erasure coding
         \item[RS] $(10,4)$ Reed-Solomon code
@@ -139,11 +155,21 @@
 
 \subtitle[Conclusion]{Conclusion}
 
+\begin{frame}{Limitations}
+    \begin{itemize}
+        \item Algorithms need to be written in Java
+        \item High memory consumption
+        \item Strong dependency on Docker and Redis
+    \end{itemize}
+\end{frame}
+
 \begin{frame}{Conclusion}
 
   \begin{snugshade}
     Using \sys, evaluating an erasure coding algorithm under real conditions is easier and cheaper
   \end{snugshade}
+  
+  
   
   \begin{snugshade}
     Available open-source at \url{https://github.com/safecloud-project/erasurebench}    
