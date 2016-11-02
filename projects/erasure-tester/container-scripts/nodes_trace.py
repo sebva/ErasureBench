@@ -58,7 +58,7 @@ class NodesTrace:
             else:
                 next_size = self.synthetic_sizes[self.synthetic_index]
 
-                ret = next_size, list(range(self.current_size, next_size)), list(range(next_size, self.current_size))
+                ret = next_size, list(range(next_size, self.current_size)), list(range(self.current_size, next_size))
                 self.current_size = next_size
                 return ret
         else:
