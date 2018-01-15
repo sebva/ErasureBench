@@ -1,17 +1,16 @@
-FROM debian:jessie
+FROM debian:stretch
 
-RUN echo 'deb http://mirror.switch.ch/ftp/mirror/debian/ jessie-backports main' >> /etc/apt/sources.list && \
-    apt-get -yqq update && \
+RUN apt-get -yqq update && \
     apt-get -yqq dist-upgrade && \
-    apt-get -yqq install --no-install-recommends openjdk-8-jre-headless libfuse2 nfs-kernel-server ruby-redis python3-pip redis-tools wget bzip2 wireshark-common && \
+    apt-get -yqq install --no-install-recommends openjdk-8-jre-headless libfuse2 nfs-kernel-server ruby-redis python3-pip python3-setuptools redis-tools wget bzip2 wireshark-common && \
     apt-get -yqq clean
 
-RUN pip3 install docker-compose pydevd redis
+RUN pip3 install docker-py==1.10.6 docker-compose==1.9.0 pydevd redis requests==2.11.1
 
 RUN mkdir -p /opt/erasuretester/results
 
 RUN echo '79c1a9d34e904413f5fb659980df60fc6d7f199e /opt/erasuretester/httpd.tar.bz2' > /opt/erasuretester/httpd-2.4.18.tar.bz2.sha1 && \
-    wget -q -O /opt/erasuretester/httpd.tar.bz2 https://dl.dropboxusercontent.com/u/31349479/thesis/httpd-2.4.18.tar.bz2 && \
+    wget -q -O /opt/erasuretester/httpd.tar.bz2 https://alfa.vaucher.org/thesis/httpd-2.4.18.tar.bz2 && \
     sha1sum -c /opt/erasuretester/httpd-2.4.18.tar.bz2.sha1 && \
     tar -jxf /opt/erasuretester/httpd.tar.bz2 -C /tmp && \
     find /tmp/httpd-2.4.18 -type f -exec sha256sum {} \; | sed s-/tmp/-/mnt/erasure/- > /opt/erasuretester/httpd.sha256 && \
@@ -25,7 +24,7 @@ RUN echo 'c8f258a7355b40a485007c40865480349c157292 /opt/erasuretester/bc.tar.gz'
     rm -rf /tmp/bc-1.06
 
 RUN echo 'f34d73521f34681ac651f1ddd85a837d70782c45 /opt/erasuretester/10bytes.tar.bz2' > /opt/erasuretester/10bytes.tar.bz2.sha1 && \
-    wget -q -O /opt/erasuretester/10bytes.tar.bz2 https://dl.dropboxusercontent.com/u/31349479/thesis/10bytes.tar.bz2 && \
+    wget -q -O /opt/erasuretester/10bytes.tar.bz2 https://alfa.vaucher.org/thesis/10bytes.tar.bz2 && \
     sha1sum -c /opt/erasuretester/10bytes.tar.bz2.sha1 && \
     tar -jxf /opt/erasuretester/10bytes.tar.bz2 -C /tmp && \
     find /tmp/10bytes -type f -exec sha256sum {} \; | sed s-/tmp/-/mnt/erasure/- > /opt/erasuretester/10bytes.sha256 && \

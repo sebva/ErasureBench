@@ -1,9 +1,9 @@
 plugins {
     id 'java'
-    id 'com.palantir.docker' version '0.5.2'
+    id 'com.palantir.docker' version '0.17.2'
     // Plugin to create a Jar with all dependencies in it
-    id 'com.github.johnrengelman.shadow' version '1.2.3'
-    id 'me.champeau.gradle.jmh' version '0.3.0'
+    id 'com.github.johnrengelman.shadow' version '1.2.4'
+    id 'me.champeau.gradle.jmh' version '0.4.5'
 }
 
 group 'ch.unine.vauchers'
@@ -60,11 +60,11 @@ jmh {
 dependencies {
     compile name: 'fuse-jna-1.0.3-uber'
     compile 'org.jetbrains:annotations:15.0'
-    compile 'org.redisson:redisson:2.2.5'
+    compile 'org.redisson:redisson:2.2.27'
     compile 'com.github.sebyx31:jedis:1ca4ea8e86a49946acd4d0a0bf155288ee9134cf'
     compile 'org.slf4j:slf4j-simple:1.7.13'
     compile 'net.sourceforge.argparse4j:argparse4j:0.7.0'
-    compile 'it.unimi.dsi:fastutil:7.0.10'
+    compile 'it.unimi.dsi:fastutil:8.1.1'
     compile 'com.google.guava:guava:19.0'
     testCompile group: 'junit', name: 'junit', version: '4.11'
 }
